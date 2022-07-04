@@ -1,28 +1,42 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+  <spot-gins :root="root"></spot-gins>
+    <div id="map"></div>
+   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import SpotGins from './components/spot-gins.vue'
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    SpotGins
+  },
+  props: {
+    root: {
+      type: String,
+      default: null
+    }
   }
 }
 </script>
 
 <style>
+ body {
+   padding: 0;
+   margin: 0;
+}
+html, body {
+  height:100%;
+  width:100%;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin:0;
+  padding:0;
 }
 </style>

@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "scheme": {
+     "sitelog": "https://gnss-metadata.eu/v1/sitelog/view?id=[id]",
+     "data": ""
+  },
+  "features": [{
+        "type": "Feature",
+        "id": "BRST00FRA",
+        "geometry": {
+	      "type": "Point",
+	      "coordinates": [
+			-4.496599528551074,
+			48.38049777627479
+	      ]
+        },
+        "properties": {
+           "group": "GROUPE 1"
+        }
+    }, {
+        "type": "Feature",
+        "id": "ILDX00FRA",
+	    "geometry": {
+	      "type": "Point",
+	      "coordinates": [
+			-1.1768079143186634,
+			46.00943374182036
+	      ]
+	    },
+ 		"properties": {
+           "group": "GROUPE 1"
+        }
+    }, {
+       "type": "Feature",
+       "id": "ILDX00FRA", 
+	   "geometry": {
+		 "type": "Point",
+      	 "coordinates": [
+        	7.683821661742888,
+        	48.62166404740706
+      	 ]
+        },
+ 		"properties": {
+           "group": "GROUPE 2"
+        }
+    }]
+}
