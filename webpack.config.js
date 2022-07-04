@@ -11,6 +11,7 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin')
 var preUrl = PACKAGE.preproduction.url + "/webcomponents/";
 var prodUrl = PACKAGE.production.url + '/' + buildName + '@' + buildVersion +  '/dist/' ;
 var FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
+// var HtmlWebpackPlugin = require('html-webpack-plugin')
 //if (process.env.NODE_ENV === 'production') {
 //  var appURL = prodUrl;
 //} else {
@@ -139,10 +140,10 @@ if (process.env.NODE_ENV === 'production') {
   module.exports.mode = 'production'
   module.exports.devtool = '#source-map';
   module.exports.output.publicPath = prodUrl;
-
+  var indexPath = path.resolve(__dirname, '/dist/index.html')
   // http://vue-loader.vuejs.org/en/workflow/production.html
   module.exports.plugins = (module.exports.plugins || []).concat([
-
+   
     new CleanWebpackPlugin(pathsToClean),
     new UglifyJsPlugin({
         sourceMap: true
@@ -152,22 +153,53 @@ if (process.env.NODE_ENV === 'production') {
       options: {
         assetsSubDirectory: 'assets/'
       }
-    })
+    }),
+//    new HtmlWebpackPlugin({
+//      filename: indexPath,
+//      template: 'div-prod.html',
+//      assets: prodUrl,
+//      inject: false,
+//      minify: {
+//        removeComments: true,
+//        collapseWhitespace: false,
+//        removeAttributeQuotes: false
+//        // more options:
+//        // https://github.com/kangax/html-minifier#options-quick-reference
+//      },
+//      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+//      chunksSortMode: 'dependency'
+//    }),
   ])
 }
 
 if (process.env.NODE_ENV === 'preproduction') {
+//  var indexPath = path.resolve(__dirname, '/webcomponents/index.html')
   module.exports.plugins = (module.exports.plugins || []).concat([
     new webpack.DefinePlugin({
       'process.env': '"production"'
     }),
-    new VueLoaderPlugin()
+    new VueLoaderPlugin(),
+//    new HtmlWebpackPlugin({
+//      filename: indexPath,
+//      template: 'index2.html',
+//      root: preUrl + buildName + '.' + buildVersion + '.js',
+//      inject: false,
+//      minify: {
+//        removeComments: true,
+//        collapseWhitespace: false,
+//        removeAttributeQuotes: false
+//        // more options:
+//        // https://github.com/kangax/html-minifier#options-quick-reference
+//      },
+//      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+//      chunksSortMode: 'dependency'
+//    })
   ])
     module.exports.mode = 'production'
     module.exports.devtool = '#source-map';
     module.exports.output.path =  path.resolve(__dirname, './webcomponents'),
     module.exports.output.publicPath = preUrl;
-    module.exports.output.filename =   buildName+'_'+buildVersion+'.js'
+    module.exports.output.filename =   buildName+'.'+buildVersion+'.js'
     //module.exports.output.publicPath= PACKAGE.url+ buildName +'/master/dist/';
 
     // http://vue-loader.vuejs.org/en/workflow/production.html
