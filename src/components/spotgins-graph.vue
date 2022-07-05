@@ -1,15 +1,16 @@
 <template>
 <div>
- <div id="graph_N" :style="{height:height + 'px'}" @mousemove="highlight($event, 'N')">
-    <div class="my-spinner">
-       <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
-    </div>
-</div>
  <div id="graph_E" :style="{height:height + 'px'}" @mousemove="highlight($event, 'E')">
     <div class="my-spinner">
        <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
     </div>
  </div>
+ <div id="graph_N" :style="{height:height + 'px'}" @mousemove="highlight($event, 'N')">
+    <div class="my-spinner">
+       <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
+    </div>
+</div>
+
  <div id="graph_U" :style="{height:height + 'px'}" @mousemove="highlight($event, 'U')">
      <div class="my-spinner">
        <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
@@ -73,9 +74,9 @@ export default {
   data () {
     return {
       height: 150,
-      results: {N: [], E: [], U: []},
+      results: { E: [],N: [], U: []},
       dates: [],
-      types:['N', 'E', 'U'],
+      types:['E', 'N',  'U'],
       pointDate: {date: null, N: null, E: null, U: null},
       graphs: {N: null, E: null, U: null},
       colors:{
@@ -84,9 +85,9 @@ export default {
         U: '#006400'
        },
        plotlines: [],
-       min: {N: null, E: null, U: null},
-       max: {N: null, E: null, U: null},
-       title: {N: 'North', E: 'East', U: 'Up'}
+       min: {E: null, N: null,  U: null},
+       max: {E: null, N: null,  U: null},
+       title: {E: 'East', N: 'North',  U: 'Up'}
     }
   },
   methods: {
@@ -130,13 +131,13 @@ export default {
       var self = this
      // this.dates = this.values.map(result => result[0])
       this.min = {
-        N: data[0][1][0],
-        E: data[0][1][1],
+        E: data[0][1][0],
+        N: data[0][1][1],
         U: data[0][1][2]
       }
       this.max = {
-        N: data[0][1][0],
-        E: data[0][1][1],
+        E: data[0][1][0],
+        N: data[0][1][1],
         U: data[0][1][2]
       }
       data.forEach (function (result, n) {
@@ -160,7 +161,7 @@ export default {
 	             value[type] - quality[type],
 	             value[type]
 	          ]) 
-	          if (quality.N < 0.05) {
+	          if (quality.N < 0.01) {
               if (self.min[type] > value[type]) {
                 self.min[type] = value[type]
               } else if (self.max[type] < value[type]) {
@@ -168,7 +169,7 @@ export default {
               }
             }
 	        })
-	       }
+	      }
 // 	      if (result[0].substring(4) === '01-01') {
 // 	        self.plotlines.push({
 // 	          color: '#ccd6eb',
@@ -216,7 +217,6 @@ export default {
 //       this.pointDate[type] = point.open
       for (var key in this.types) {
         var tp = this.types[key]
-        console.log(tp)
         var chart = this.graphs[tp];
         if (chart && typeof chart !== 'undefined') {
   //        var pt = chart.series[0].points.find(el => el.x === point.x )
@@ -316,7 +316,7 @@ export default {
 //     var lightColor = this.$shadeColor(color, 0.4)
     this.graphs[type] = Highcharts.chart('graph_' + type, {
       chart: {
-        zoomType: 'xy'
+        zoomType: 'x'
       },
       title: 'Test',
       width: '680px',
