@@ -7,9 +7,9 @@ Vue.use(VueResource);
 import vueCustomElement from 'vue-custom-element';
 Vue.use(vueCustomElement);
 
-Vue.customElement('json-div', () => new Promise((resolve) => {
-  require(['./components/json-div.vue'], (JsonDiv) => resolve(JsonDiv.default))
-}))
+//Vue.customElement('json-div', () => new Promise((resolve) => {
+//  require(['./components/json-div.vue'], (JsonDiv) => resolve(JsonDiv.default))
+//}))
 
 Vue.customElement('spot-gins', () => new Promise((resolve) => {
   require(['./components/spot-gins.vue'], (SpotGins) => resolve(SpotGins.default))
