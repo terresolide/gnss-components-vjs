@@ -4,7 +4,7 @@ var PACKAGE = require('./package.json');
 // var config = require('./config');
 var buildVersion = PACKAGE.version;
 var buildName = PACKAGE.name;
-var CleanWebpackPlugin = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 var UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 // var vueLoaderConfig = require('./vue-loader.conf')
@@ -144,7 +144,7 @@ if (process.env.NODE_ENV === 'production') {
   // http://vue-loader.vuejs.org/en/workflow/production.html
   module.exports.plugins = (module.exports.plugins || []).concat([
    
-    new CleanWebpackPlugin(pathsToClean),
+    new CleanWebpackPlugin({cleanAfterEveryBuildPatterns: ['dist']}),
     new UglifyJsPlugin({
         sourceMap: true
     }),

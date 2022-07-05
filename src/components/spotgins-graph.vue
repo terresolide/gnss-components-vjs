@@ -1,17 +1,17 @@
 <template>
 <div>
- <div id="graph_N" :style="{height:height + 'px'}" @mousemove="highlight($event, 'ns')">
-   <div class="my-spinner">
-      <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
-   </div>
-</div>
- <div id="graph_E" :style="{height:height + 'px'}" @mousemove="highlight($event, 'ew')">
-     <div class="my-spinner">
+ <div id="graph_N" :style="{height:height + 'px'}" @mousemove="highlight($event, 'N')">
+    <div class="my-spinner">
        <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
+    </div>
+</div>
+ <div id="graph_E" :style="{height:height + 'px'}" @mousemove="highlight($event, 'E')">
+    <div class="my-spinner">
+       <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
+    </div>
  </div>
- </div>
- <div id="graph_U" :style="{height:height + 'px'}" @mousemove="highlight($event, 'magn')">
-   <div class="my-spinner">
+ <div id="graph_U" :style="{height:height + 'px'}" @mousemove="highlight($event, 'U')">
+     <div class="my-spinner">
        <span class="fa fa-spinner fa-spin fa-2x fa-fw"></span>
     </div>
  </div>
@@ -58,7 +58,16 @@ export default {
   },
   watch: {
     url () {
-      this.load()
+      this.reset()
+      console.log(this.selected)
+      if (this.selected) {
+        this.load()
+      }
+    },
+    selected (newvalue) {
+      if (this.results.N.length === 0 && newvalue) {
+        this.load()
+      }
     }
   },
   data () {
@@ -98,7 +107,6 @@ export default {
       
     },
     load () {
-      this.reset()
       if (!this.url) {
         return
       }
@@ -112,11 +120,11 @@ export default {
         
        })
     },
-    initDates () {
-//       var dates = this.values.map(result => result[0])
-//       console.log(dates)
-      this.dates = this.values.map(result => result[0])
-    },
+//     initDates () {
+// //       var dates = this.values.map(result => result[0])
+// //       console.log(dates)
+//       this.dates = this.values.map(result => result[0])
+//     },
     extractData (data) {
      
       var self = this
@@ -203,16 +211,18 @@ export default {
       var point = this.graphs[type].series[0].searchPoint(event, true);
       if (!point) {
         return
-      }  
-      this.pointDate.date = moment.unix(point.x / 1000).format('ll')
-      this.pointDate[type] = point.open
-      for (var key in this.graphs) {
-        var chart = this.graphs[key];
+      }
+//       this.pointDate.date = moment.unix(point.x / 1000).format('ll')
+//       this.pointDate[type] = point.open
+      for (var key in this.types) {
+        var tp = this.types[key]
+        console.log(tp)
+        var chart = this.graphs[tp];
         if (chart && typeof chart !== 'undefined') {
-          var pt = chart.series[0].points.find(el => el.x === this.point.x )
-          if (pt !== undefined) {
-           this.pointDate[key] = pt.open
-          }
+  //        var pt = chart.series[0].points.find(el => el.x === point.x )
+//           if (pt !== undefined) {
+//            this.pointDate[key] = pt.open
+//           }
           chart.xAxis[0].removePlotLine('highlight')
           chart.xAxis[0].addPlotLine({
            color: '#999999',
@@ -407,3 +417,13 @@ export default {
   }
 }
 </script>
+<style>
+.my-spinner {
+  width:100%;
+  padding-top:30px;
+  text-align:center;
+}
+.my-spinner .fa {
+  vertical-align: middle;
+}
+</style>

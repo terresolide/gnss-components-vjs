@@ -2,7 +2,7 @@
   <div style="position:relative;">
   <h1>SPOT GINS TEST</h1>
     <div id="map" ></div>
-    <div  id="json" style="background:white;max-width:450px;min-height:600px;max-height:600px;">
+    <div  id="json" style="background:white;max-width:450px;min-height:500px;max-height:500px;">
       <h4>{{selected}}</h4>
       <ul class="menu-content">
         <li @click="mode = 'station'" >
@@ -18,17 +18,17 @@
             <span :class="{'selected': mode === 'download'}" >Téléchargement</span>
         </li>
       </ul>
-      <div v-show="mode === 'station'">
-      <json-div :json="json" :deployed="true"></json-div>
+      <div v-show="mode === 'station'" style="max-height:420px;overflow-y:scroll;">
+      <json-div :url="sitelog" :selected="mode === 'station'" :deployed="true"></json-div>
       </div>
-      <div v-show="mode === 'graph'" style="text-align:center;max-height:500px;overflow:scroll;">
+      <div v-show="mode === 'graph'" style="text-align:center;max-height:420px;overflow:scroll;">
        <div v-if="imgMin" v-show="loaded">
         <a :href="img" target="_blank">
-          <img  :src="imgMin" width="400" @load="loaded = true">
+          <img  :src="imgMin" width="350" @load="loaded = true">
         </a>
        </div>
       </div>
-      <div v-show="mode === 'data'">
+      <div v-show="mode === 'data'" style="text-align:center;max-height:420px;overflow:scroll;">
         <spotgins-graph :url="dataJsonUrl" :selected="mode === 'data'"></spotgins-graph>
       </div>
       <div v-show="mode === 'download'" style="margin:20px;">     
@@ -78,7 +78,9 @@ export default {
       img: null,
       imgMin: null,
       dataAsciiUrl: null,
-      loaded: false
+      sitelog: null,
+      loaded: false,
+      popup: null
     }
   },
   mounted () {
@@ -90,14 +92,18 @@ export default {
       this.layerControl = new L.TilesControl(null, null, {position: 'topright'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
+      this.popup = L.popup({minWidth: 450, minHeight:500, maxHeight:500})
+      var node = document.querySelector('#json')
+      // container.appendChild(node)
+      this.popup.setContent(node)
       var self = this
-      this.map.on('popupclose', function (e) {
-        var json = e.target._container.querySelector('#json')
-        if (json) {
-          self.$el.appendChild(json)
-        }
-        self.reset()
-      })
+//       this.map.on('popupclose', function (e) {
+//         var json = e.target._container.querySelector('#json')
+//         if (json) {
+//           self.$el.appendChild(json)
+//         }
+//         self.reset()
+//       })
       this.load()
     },
     load () {
@@ -117,12 +123,15 @@ export default {
       this.json = null
       this.dataJsonUrl = null
       this.dataAsciiUrl = null
+      this.sitelog = null
     },
     download (type) {
+      console.log(type)
       var dataUrl = null
       if (type === 'json') {
         // var MIME_TYPE = "application/json";
         dataUrl = this.dataJsonUrl
+        console.log(dataUrl)
       }
       if (type === 'ascii') {
         dataUrl = this.dataAsciiUrl
@@ -204,33 +213,40 @@ export default {
 //       this.dataJsonUrl = null
 //       this.json = null
 //       this.dataAsciiUrl = null
-      this.loaded = false
-      e.target.bindPopup('Recherche en cours ...', {minWidth: 500, minHeight:600})
-      e.target.openPopup()
+      this.mode = 'graph'
+      if (this.loaded === e.target.id) {
+        return
+      }
+    
+     // e.target.bindPopup('Recherche en cours ...', {minWidth: 500, minHeight:600})
+     // e.target.openPopup()
       var id = e.target.feature.id
+      this.loaded = id
       this.selected = id
-      var url = this.scheme.sitelog.replaceAll('[id]', id)
       this.img = this.scheme.img.replaceAll('[id]', id)
       this.imgMin = this.scheme.imgMin.replaceAll('[id]', id)
-      console.log(url)
+      // console.log(url)
+      this.popup.setLatLng(e.target.getLatLng())
+     this.popup.openOn(this.map)
+//        this.img = this.scheme.img.replaceAll('[id]', id)
+//       this.imgMin = this.scheme.imgMin.replaceAll('[id]', id)
+      this.dataJsonUrl = this.scheme.dataJSON.replaceAll('[id]', id)
+      this.dataAsciiUrl = this.scheme.dataASCII.replaceAll('[id]', id)
+       this.sitelog = this.scheme.sitelog.replaceAll('[id]', id)
+     
       var self = this
-      self.createPopup(e.target)
-      this.$http.get(url, {headers: 'accept: application/json'})
-      .then(resp => {
-        this.json = resp.body
-        
-
-       })
+      // self.createPopup(e.target)
+      
       
     },
     createPopup(marker) {
-      marker.closePopup();
-      marker.unbindPopup();
+     // marker.closePopup();
+     // marker.unbindPopup();
       this.mode = 'graph'
-      var container = document.createElement('div')
-      var node = document.querySelector('#json')
-      container.appendChild(node)
-      marker.bindPopup(container, {minWidth: 450, minHeight:500}).openPopup()
+     // var container = document.createElement('div')
+//       var node = document.querySelector('#json')
+//       container.appendChild(node)
+     // marker.bindPopup(container, {minWidth: 450, minHeight:500}).openPopup()
       this.img = this.scheme.img.replaceAll('[id]', marker.feature.id)
       this.imgMin = this.scheme.imgMin.replaceAll('[id]', marker.feature.id)
       this.dataJsonUrl = this.scheme.dataJSON.replaceAll('[id]', marker.feature.id)
@@ -249,9 +265,16 @@ export default {
   height:100vh;
   width:100%;
 }
+#map .leaflet-popup-scrolled {
+  border: none;
+  padding-top: 0;
+}
+#map h4 {
+  margin:0;
+}
 h1 {
    position: fixed;
-   top:0;
+   bottom:0;
    width:100%;
    text-align:center;
    z-index:1000;
