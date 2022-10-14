@@ -45,7 +45,7 @@ export default{
   data () {
     return {
       data: null,
-      deployed: false
+      deployed: true
     }
   },
   watch: {
@@ -55,6 +55,9 @@ export default{
         this.deployed = true
       }
       this.load()
+    },
+    json (newvalue) {
+      this.data = newvalue
     },
     selected (newvalue) {
       if (!this.data) {

@@ -45,7 +45,7 @@ if (typeof Highcharts === 'object') {
 export default {
   props: {
     id: {
-      type: String,
+      type: Number,
       default: null
     },
     url: {
@@ -65,6 +65,13 @@ export default {
         this.load()
       }
     },
+    id () {
+      this.reset()
+      console.log(this.selected)
+      if (this.selected) {
+        this.load()
+      }
+    },
     selected (newvalue) {
       if (this.results.N.length === 0 && newvalue) {
         this.load()
@@ -74,6 +81,8 @@ export default {
   data () {
     return {
       height: 150,
+      next: null,
+      currentIndex: 0,
       results: { E: [],N: [], U: []},
       dates: [],
       types:['E', 'N',  'U'],
@@ -87,7 +96,7 @@ export default {
        plotlines: [],
        min: {E: null, N: null,  U: null},
        max: {E: null, N: null,  U: null},
-       title: {E: 'East', N: 'North',  U: 'Up'}
+       title: {E: 'East (mm)', N: 'North (mm)',  U: 'Up (mm)'}
     }
   },
   methods: {
@@ -111,10 +120,41 @@ export default {
       if (!this.url) {
         return
       }
-      this.$http.get(this.url, {headers: 'accept: application/json'})
+      this.navigationLink = this.url + 'Datastreams(' + this.id + ')'
+      this.$http.get(this.navigationLink + '/Observations?$top=1000&$select=phenomenonTime,result,resultQuality&$format=dataArray', {headers: 'accept: application/json'})
       .then(resp => {
-        if (resp.body.value && resp.body.value.dataArray) {
-          this.extractData(resp.body.value.dataArray)
+        if (resp.body.value && resp.body.value[0]) {
+          // check if it's always the same Datastream
+          if (resp.body.value[0]['Datastream@iot.navigationLink'] === this.navigationLink) {
+	          this.next = null
+	          if (resp.body.value[0].dataArray) {
+		          this.extractData(resp.body.value[0].dataArray)
+		          if (resp.body['@iot.nextLink']) {
+		            this.next = resp.body['@iot.nextLink']
+		          }
+	          }
+          }
+        }
+//         this.initDates()
+//         this.extractData()
+       })
+    },
+    searchNext () {
+      if (!this.next) {
+        return
+      }
+      this.$http.get(this.next, {headers: 'accept: application/json'})
+      .then(resp => {
+        if (resp.body.value && resp.body.value[0] && 
+            resp.body.value[0]['Datastream@iot.navigationLink'] === this.navigationLink) {
+          this.next = null
+          if (resp.body.value[0].dataArray) {
+            if (resp.body['@iot.nextLink']) {
+              this.next = resp.body['@iot.nextLink']
+            }
+	          this.addData(resp.body.value[0].dataArray)
+	          
+          }
         }
 //         this.initDates()
 //         this.extractData()
@@ -141,15 +181,15 @@ export default {
         U: data[0][1][2]
       }
       data.forEach (function (result, n) {
-        var time = moment(result[0], 'YYYY-MM-DD').valueOf()
+        var time = moment(result[0], 'YYYY-MM-DDThh:mm:ssZ').valueOf()
         var value = {}
         var quality = {}
         value.E = result[1][0]
-        quality.E = result[1][3]
+        quality.E = result[2][0]
         value.N = result[1][1]
-        quality.N = result[1][4]
+        quality.N = result[2][1]
         value.U = result[1][2]
-        quality.U = result[1][5]
+        quality.U = result[2][2]
         self.dates.push(time)
 	       // data.push([time, result])
 	      if (n%7 === 0) {
@@ -157,11 +197,11 @@ export default {
 	          self.results[type].push(
 	             [time, 
 	             value[type],
-	             value[type] + quality[type],
-	             value[type] - quality[type],
+	             Math.round((value[type] + quality[type]) * 100) / 100,
+	             Math.round((value[type] - quality[type]) * 100) / 100,
 	             value[type]
 	          ]) 
-	          if (quality.N < 0.01) {
+	          if (quality.N < 10) {
               if (self.min[type] > value[type]) {
                 self.min[type] = value[type]
               } else if (self.max[type] < value[type]) {
@@ -170,6 +210,8 @@ export default {
             }
 	        })
 	      }
+       
+      
 // 	      if (result[0].substring(4) === '01-01') {
 // 	        self.plotlines.push({
 // 	          color: '#ccd6eb',
@@ -179,13 +221,76 @@ export default {
 // 	        })
 // 	      }
       })
+      this.currentIndex = data.length - 1
       setTimeout(function () {
         self.buildGraph(0)
       }, 0)
     },
+    addData (data) {
+      var self = this
+      var dates = []
+      var results = {E: [], N: [], U: []}
+      data.forEach (function (result, n) {
+        var time = moment(result[0], 'YYYY-MM-DDThh:mm:ssZ').valueOf()
+        var value = {}
+        var quality = {}
+        value.E = result[1][0]
+        quality.E = result[2][0]
+        value.N = result[1][1]
+        quality.N = result[2][1]
+        value.U = result[1][2]
+        quality.U = result[2][2]
+        
+        dates.push(time)
+         // data.push([time, result])
+        if ((self.currentIndex + n)%7 === 0) {
+          self.types.forEach(function (type) {
+            results[type].push(
+               [time, 
+               value[type],
+               Math.round((value[type] + quality[type]) * 100) / 100,
+               Math.round((value[type] - quality[type]) * 100) / 100,
+               value[type]
+            ]) 
+            if (quality.N < 10) {
+              if (self.min[type] > value[type]) {
+                self.min[type] = value[type]
+              } else if (self.max[type] < value[type]) {
+                self.max[type] = value[type]
+              }
+            }
+          })
+        }
+      })
+      this.currentIndex = this.currentIndex + dates.length
+      this.addPointsToGraphs(dates, results)
+      this.searchNext()
+    },
+    addPointsToGraphs(dates, results) {
+      var self = this
+      this.dates = this.dates.concat(dates)
+      this.types.forEach(function(type) {
+         self.results[type] = self.results[type].concat(results[type])
+      })
+      
+      this.types.forEach(function (type) {
+        if (self.graphs[type]) {
+	        results[type].forEach(function (result) {
+	          self.graphs[type].series[0].addPoint(result, false)
+	        })
+	        self.graphs[type].redraw()
+	        self.graphs[type].xAxis[0].setExtremes(self.dates[0], self.dates[self.dates.length - 1], true, false)
+	        self.graphs[type].yAxis[0].setExtremes(self.min[type], self.max[type], true, false)
+        }
+      })
+      
+    },
     buildGraph (index) {
       var _this = this
       if (!this.types[index]) {
+        if (this.next) {
+          this.searchNext()
+        }
         return
       }
       var type = this.types[index]
@@ -258,8 +363,8 @@ export default {
 //         break
 //     }
 //     var data = []
-    var min = this.min[type]
-    var max = this.max[type]
+    var min = Math.floor(this.min[type])
+    var max = Math.ceil(this.max[type])
 //     // var delta = []
 //     var plotlines = []
 //     var regData = []
@@ -344,7 +449,7 @@ export default {
                var pt = chart.series[0].points.find(el => el.x === this.point.x )
                if (pt !== undefined) {
                  _this.pointDate[type] = pt.open
-                 var quality = Math.round((pt.high - pt.open) * 1000000) / 1000000
+                 var quality = Math.round((pt.high - pt.open) * 100) / 100
                  values.push('<div><span style="color:'+ pt.color +';">&#9632;</span> ' + type.toUpperCase() + ': ' + pt.open + ' &pm; ' + quality + '</div>')
                }
                if (key !== type) {

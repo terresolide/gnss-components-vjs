@@ -19,7 +19,7 @@
         </li>
       </ul>
       <div v-show="mode === 'station'" style="max-height:420px;overflow-y:scroll;">
-      <json-div :url="sitelog" :selected="mode === 'station'" :deployed="true"></json-div>
+      <json-div :json="json" :selected="mode === 'station'" :deployed="true"></json-div>
       </div>
       <div v-show="mode === 'graph'" style="text-align:center;max-height:420px;overflow:scroll;">
        <div v-if="imgMin" v-show="loaded">
@@ -29,10 +29,10 @@
        </div>
       </div>
       <div v-show="mode === 'data'" style="text-align:center;max-height:420px;overflow:scroll;">
-        <spotgins-graph :url="dataJsonUrl" :selected="mode === 'data'"></spotgins-graph>
+        <spotgins-graph :url="root" :id="datastreamId" :selected="mode === 'data'"></spotgins-graph>
       </div>
       <div v-show="mode === 'download'" style="margin:20px;">     
-         <input type="button" value="Télécharger JSON" @click="download('json')"/><br /><br />
+       <!--    <input type="button" value="Télécharger JSON" @click="download('json')"/><br /><br />-->
          <input type="button" value="Télécharger ASCII" @click="download('ascii')" />
       </div>
     </div>
@@ -60,7 +60,7 @@ export default {
   props: {
     root: {
       type: String,
-      default: 'http://api.formater/data/spotgins/stations.json'
+      default: 'https://catalog.formater/FROST-Server/v1.1/'
     }
   },  
   data () {
@@ -69,6 +69,7 @@ export default {
       stations: [],
       scheme: {},
       json: null,
+      datastreamId: null,
       baseUrl: null,
       layerControl: null,
       bounds: null,
@@ -80,7 +81,8 @@ export default {
       dataAsciiUrl: null,
       sitelog: null,
       loaded: false,
-      popup: null
+      popup: null,
+      groupLayers: []
     }
   },
   mounted () {
@@ -110,10 +112,10 @@ export default {
       if (!this.root) {
         alert('Pas de fichier "root"!')
       }
-      this.$http.get(this.root)
+      this.$http.get(this.root + 'Things?$expand=Locations,Datastreams')
       .then(
-          resp => {this.extractUrl(resp.body)},
-          resp => {alert('Erreur de chargement' + resp.status)}
+          resp => {this.display(resp.body)},
+          resp => {alert('Erreur de chargement: ' + resp.status)}
        )
     },
     reset () {
@@ -124,6 +126,60 @@ export default {
       this.dataJsonUrl = null
       this.dataAsciiUrl = null
       this.sitelog = null
+    },
+    addStation (index) {
+      console.log(index)
+      if (!this.stations[index]) {
+        if (this.bounds) {
+          this.map.fitBounds(this.bounds, {padding: [20,20]})
+        }
+        return
+      }
+      var groupId = this.stations[index].properties.groupId 
+      var className = groupId === 1 ? 'marker-blue' : 'marker-red'
+      var icon = L.divIcon({className: className})
+      var self = this
+      var layer = L.geoJSON(this.stations[index],{
+        pointToLayer: function(feature, latlng) {
+           var marker = L.marker(latlng, {icon: icon, title: feature.id})
+           marker.on('click', self.getData )
+           return marker
+        }
+      })
+     // layer.addTo(this.map)
+       if (!this.groupLayers[groupId]) {
+        this.groupLayers[groupId] = L.layerGroup([layer])
+        this.layerControl.addOverlay(this.groupLayers[groupId], 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
+        this.groupLayers[groupId].addTo(this.map)
+      } else {
+        this.groupLayers[groupId].addLayer(layer)
+      }
+      var bounds = layer.getBounds()
+      if (!this.bounds) {
+        this.bounds = bounds
+      } else {
+        this.bounds.extend(bounds)
+      }
+      this.stations[index].layer = layer
+      this.addStation(index + 1)
+    },
+    display (data) {
+      var self = this
+      data.value.forEach(function (value) {
+        if (value.Locations[0]) {
+	        var station = value.Locations[0].location
+	        station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
+	        station.datastream = value.Datastreams[0]
+// 	        station.properties = value.properties
+// 	        station.properties.name = value.name
+// 	        station.properties.description = value.description
+	       
+	        station['@iot.id'] = value['@iot.id']
+	        self.stations.push(station)
+        }
+      })
+      this.addStation(0)
+       
     },
     download (type) {
       console.log(type)
@@ -136,6 +192,7 @@ export default {
       if (type === 'ascii') {
         dataUrl = this.dataAsciiUrl
       }
+      console.log(dataUrl)
       this.$http.get(dataUrl, {responseType: 'blob'}).then(
           resp => {
             console.log(resp.bodyBlob)
@@ -209,6 +266,22 @@ export default {
       })
     },
     getData (e) {
+      this.mode = 'graph'
+       if (this.loaded === e.target.id) {
+         return
+       }
+      console.log(e.target)
+      this.img = e.target.feature.datastream.properties.img
+      this.imgMin = this.img
+      this.datastreamId = e.target.feature.datastream['@iot.id']
+      this.dataAsciiUrl = e.target.feature.datastream.properties.file
+      console.log(this.img)
+     this.json = e.target.feature.properties
+      this.popup.setLatLng(e.target.getLatLng())
+      this.popup.openOn(this.map)
+      
+    },
+    getDataOld (e) {
 //       this.imgUrl = null
 //       this.dataJsonUrl = null
 //       this.json = null
