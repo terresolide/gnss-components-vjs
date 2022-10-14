@@ -270,12 +270,10 @@ export default {
        if (this.loaded === e.target.id) {
          return
        }
-      console.log(e.target)
       this.img = e.target.feature.datastream.properties.img
       this.imgMin = this.img
       this.datastreamId = e.target.feature.datastream['@iot.id']
       this.dataAsciiUrl = e.target.feature.datastream.properties.file
-      console.log(this.img)
      this.json = e.target.feature.properties
       this.popup.setLatLng(e.target.getLatLng())
       this.popup.openOn(this.map)
