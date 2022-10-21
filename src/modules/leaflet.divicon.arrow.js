@@ -43,7 +43,6 @@ L.DivIcon.Arrow = L.DivIcon.extend({
   createIcon (oldIcon) {
     const div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div'),
       options = this.options
-    console.log(options)
     let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     // svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     svg.setAttribute('viewBox', options.viewBox)
@@ -79,7 +78,6 @@ L.DivIcon.Arrow = L.DivIcon.extend({
     arrow.setAttribute('x2', options.arrow[0])
     arrow.setAttribute('y2', options.arrow[1] * (-1))
     group.appendChild(arrow)
-    console.log(div)
     this.options.html = svg
     this._setIconStyles(div, 'icon')
     return div

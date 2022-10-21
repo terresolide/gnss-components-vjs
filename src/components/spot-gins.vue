@@ -127,11 +127,9 @@ export default {
       this.dateLayers = L.layerGroup()
       var self = this
       this.dateLayers.on('add', function (event) {
-        console.log('added date layer')
         self.showNavigation = true
       })
       this.dateLayers.on('remove', function (event) {
-        console.log('removed date layer')
         self.showNavigation = false
       })
       this.layerControl.addOverlay(this.dateLayers, 'Vue par date')
@@ -248,7 +246,6 @@ export default {
     addVector (data) {
       var arrow = new L.DivIcon.Arrow({arrow: [data.result[0],data.result[1]]})
       var text = 'E: ' + data.result[0] + ', N: ' + data.result[1]
-      console.log(data.FeatureOfInterest.feature)
       var larrow = L.geoJSON(data.FeatureOfInterest.feature, {
         pointToLayer (feature, latlng) {
 	        var marker = L.marker(latlng, {icon: arrow, title: feature.id})       
