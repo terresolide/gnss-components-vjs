@@ -1,6 +1,11 @@
 <template>
   <div style="position:relative;">
-  <h1>SPOT GINS TEST</h1>
+
+  <h1 v-if="!showNavigation">SPOT GINS TEST</h1>
+  <div v-show="showNavigation" class="navigator">
+  <date-navigation color="darkblue" defaut="2020-05-01" :searching="searching" :first-date="temp.start" 
+  :last-date="temp.end" @dateChange="searchObservations"></date-navigation> 
+  </div>
     <div id="map" ></div>
     <div  id="json" style="background:white;max-width:450px;min-height:500px;max-height:500px;">
       <h4>{{selected}}</h4>
@@ -43,6 +48,7 @@
 var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
+L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
 delete Icon.Default.prototype._getIconUrl;
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -51,11 +57,13 @@ Icon.Default.mergeOptions({
 });
 const JsonDiv = () => import('./json-div.vue')
 const SpotginsGraph = () => import('./spotgins-graph.vue')
+const DateNavigation = () => import('./date-navigation.vue')
 export default {
   name: 'SpotGins',
   components: {
     JsonDiv,
-    SpotginsGraph
+    SpotginsGraph,
+    DateNavigation
   },
   props: {
     root: {
@@ -67,29 +75,38 @@ export default {
     return {
       map: null,
       stations: [],
-      scheme: {},
-      json: null,
+//       scheme: {},
+       json: null,
       datastreamId: null,
-      baseUrl: null,
+//      baseUrl: null,
       layerControl: null,
       bounds: null,
       mode: 'graph',
       selected: null,
-      dataJsonUrl: null,
+//      dataJsonUrl: null,
       img: null,
       imgMin: null,
       dataAsciiUrl: null,
       sitelog: null,
       loaded: false,
       popup: null,
-      groupLayers: []
+      groupLayers: [],
+      dateLayers: null,
+      showNavigation: false,
+      temp: {
+        start: '2007-03-25',
+        end: '2022-05-21'
+      },
+      searching: false
     }
   },
   mounted () {
+   
     this.initialize()
   },
   methods: {
     initialize () {
+    
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
       this.layerControl = new L.TilesControl(null, null, {position: 'topright'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
@@ -98,6 +115,7 @@ export default {
       var node = document.querySelector('#json')
       // container.appendChild(node)
       this.popup.setContent(node)
+      var arrow = new L.DivIcon.Arrow({})
       var self = this
 //       this.map.on('popupclose', function (e) {
 //         var json = e.target._container.querySelector('#json')
@@ -106,7 +124,19 @@ export default {
 //         }
 //         self.reset()
 //       })
+      this.dateLayers = L.layerGroup()
+      var self = this
+      this.dateLayers.on('add', function (event) {
+        console.log('added date layer')
+        self.showNavigation = true
+      })
+      this.dateLayers.on('remove', function (event) {
+        console.log('removed date layer')
+        self.showNavigation = false
+      })
+      this.layerControl.addOverlay(this.dateLayers, 'Vue par date')
       this.load()
+      this.searchObservations('2021-09-12')
     },
     load () {
       if (!this.root) {
@@ -123,12 +153,16 @@ export default {
       this.img = null
       this.imgMin = null
       this.json = null
-      this.dataJsonUrl = null
+    //  this.dataJsonUrl = null
       this.dataAsciiUrl = null
-      this.sitelog = null
+    //  this.sitelog = null
+    },
+    searchObservations (date) {
+
+      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest')
+      .then(resp => {this.displayDate(resp.body)})
     },
     addStation (index) {
-      console.log(index)
       if (!this.stations[index]) {
         if (this.bounds) {
           this.map.fitBounds(this.bounds, {padding: [20,20]})
@@ -138,22 +172,38 @@ export default {
       var groupId = this.stations[index].properties.groupId 
       var className = groupId === 1 ? 'marker-blue' : 'marker-red'
       var icon = L.divIcon({className: className})
+//        var svg = document.querySelector('.fixed #arrow')
+//        var node = svg.cloneNode(true)
+//        var line = svg.querySelector('line')
+//        line.setAttribute('x2', 350)
+//        line.setAttribute('y2', 500)
+//        console.log(line)
+     // var arrow = L.divIcon({html: svg.cloneNode(true), iconSize:[60,60], iconAnchor:[30,30]})
+   //   var arrow = new L.DivIcon.Arrow({arrow: [350, 500], color: 'darkred'})
       var self = this
       var layer = L.geoJSON(this.stations[index],{
         pointToLayer: function(feature, latlng) {
            var marker = L.marker(latlng, {icon: icon, title: feature.id})
            marker.on('click', self.getData )
+          // L.marker(latlng, {icon: arrow}).addTo(self.map)
            return marker
         }
       })
      // layer.addTo(this.map)
+      var first = false
+      if (this.groupLayers.length === 0) {
+        first = 'Les stations'
+      }
        if (!this.groupLayers[groupId]) {
         this.groupLayers[groupId] = L.layerGroup([layer])
+        this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
         this.layerControl.addOverlay(this.groupLayers[groupId], 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
         this.groupLayers[groupId].addTo(this.map)
       } else {
         this.groupLayers[groupId].addLayer(layer)
       }
+
+       
       var bounds = layer.getBounds()
       if (!this.bounds) {
         this.bounds = bounds
@@ -170,16 +220,43 @@ export default {
 	        var station = value.Locations[0].location
 	        station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
 	        station.datastream = value.Datastreams[0]
+	        var phenomenonTime = station.datastream.phenomenonTime
+	        var temp = phenomenonTime.split('/')
+	        if (temp[0] && temp[0].substr(0,10) < self.temp.start) {
+	          self.temp.start = temp[0].substr(0,10)
+	        }
+	        if (temp[1] && temp[1].substr(0,10) > self.temp.end) {
+            self.temp.end = temp[1].substr(0,10)
+          }
 // 	        station.properties = value.properties
 // 	        station.properties.name = value.name
 // 	        station.properties.description = value.description
-	       
 	        station['@iot.id'] = value['@iot.id']
 	        self.stations.push(station)
         }
       })
       this.addStation(0)
        
+    },
+    displayDate (data) {
+      this.dateLayers.clearLayers()
+      var self = this
+      data.value.forEach(function (value) {
+        self.addVector(value)
+      })
+    },
+    addVector (data) {
+      var arrow = new L.DivIcon.Arrow({arrow: [data.result[0],data.result[1]]})
+      var text = 'E: ' + data.result[0] + ', N: ' + data.result[1]
+      console.log(data.FeatureOfInterest.feature)
+      var larrow = L.geoJSON(data.FeatureOfInterest.feature, {
+        pointToLayer (feature, latlng) {
+	        var marker = L.marker(latlng, {icon: arrow, title: feature.id})       
+	        return marker
+        }
+      }).bindTooltip(text)
+      this.dateLayers.addLayer(larrow)
+      
     },
     download (type) {
       console.log(type)
@@ -211,60 +288,63 @@ export default {
 //       var blob = new Blob([data], {type: MIME_TYPE});
 //       window.location.href = window.URL.createObjectURL(blob);
     },
-    extractUrl (json) {
-      var url = new URL(this.root)
-      var base = url.pathname.split('/')
-      base.pop()
-      this.baseUrl = url.origin + base.join('/')
-      var scheme = json.scheme
-      for(var key in scheme) {
-        console.log(key)
-        this.scheme[key] = scheme[key].replace('[base_url]', this.baseUrl)
-      }
-      var self = this
-      json.stations.forEach(function (url, index) {
-         self.stations.push({
-           id: index,
-           url: url.replace('[base_url]', self.baseUrl)
-         })
-      })
-      this.loadFeatures(0)
-    },
-    loadFeatures (index) {
-      if (!this.stations[index]) {
-        if (this.bounds) {
-          this.map.fitBounds(this.bounds)
-        }
-        return
-      }
-      var self = this
-      this.$http.get(this.stations[index].url)
-      .then(resp => {
-        console.log(resp.body)
-        var className = resp.body.className
-        var id = resp.body.id
-        var icon = L.divIcon({className: className})
-        this.stations[index].feature = L.geoJSON(resp.body,{
-          pointToLayer: function(feature, latlng) {
-             var marker = L.marker(latlng, {icon: icon, title: feature.id})
-             marker.on('click', self.getData )
-             return marker
-          }
-        }).addTo(this.map)
-        var bounds = this.stations[index].feature.getBounds()
-        if (!this.bounds) {
-          this.bounds = bounds
-        } else {
-          this.bounds.extend(bounds)
-        }
-        this.layerControl.addOverlay(this.stations[index].feature, id +' <div class="' + className + '"></div>' )
-        // this.map.fitBounds(this.stations.getBounds())
-        this.loadFeatures(index + 1)
-      }, resp => {
-        alert('Erreur chargement station ' + (index + 1 ) + ': ' + resp.status)
-        this.loadFeatures(index + 1)
-      })
-    },
+//     extractUrl (json) {
+//       var url = new URL(this.root)
+//       var base = url.pathname.split('/')
+//       base.pop()
+//       this.baseUrl = url.origin + base.join('/')
+//       var scheme = json.scheme
+//       for(var key in scheme) {
+//         console.log(key)
+//         this.scheme[key] = scheme[key].replace('[base_url]', this.baseUrl)
+//       }
+//       var self = this
+//       json.stations.forEach(function (url, index) {
+//          self.stations.push({
+//            id: index,
+//            url: url.replace('[base_url]', self.baseUrl)
+//          })
+//       })
+//       this.loadFeatures(0)
+//     },
+//     loadFeatures (index) {
+//       if (!this.stations[index]) {
+//         if (this.bounds) {
+//           this.map.fitBounds(this.bounds)
+//         }
+//         return
+//       }
+//       var self = this
+//       this.$http.get(this.stations[index].url)
+//       .then(resp => {
+//         console.log(resp.body)
+//         var className = resp.body.className
+//         var id = resp.body.id
+//         var icon = L.divIcon({className: className})
+       
+//         // var arrow = L.divIcon({html: })
+//         this.stations[index].feature = L.geoJSON(resp.body,{
+//           pointToLayer: function(feature, latlng) {
+//              var marker = L.marker(latlng, {icon: icon, title: feature.id})
+//              marker.on('click', self.getData )
+             
+//              return marker
+//           }
+//         }).addTo(this.map)
+//         var bounds = this.stations[index].feature.getBounds()
+//         if (!this.bounds) {
+//           this.bounds = bounds
+//         } else {
+//           this.bounds.extend(bounds)
+//         }
+//         this.layerControl.addOverlay(this.stations[index].feature, id +' <div class="' + className + '"></div>' )
+//         // this.map.fitBounds(this.stations.getBounds())
+//         this.loadFeatures(index + 1)
+//       }, resp => {
+//         alert('Erreur chargement station ' + (index + 1 ) + ': ' + resp.status)
+//         this.loadFeatures(index + 1)
+//       })
+//     },
     getData (e) {
       this.mode = 'graph'
        if (this.loaded === e.target.id) {
@@ -318,17 +398,19 @@ export default {
 //       var node = document.querySelector('#json')
 //       container.appendChild(node)
      // marker.bindPopup(container, {minWidth: 450, minHeight:500}).openPopup()
-      this.img = this.scheme.img.replaceAll('[id]', marker.feature.id)
-      this.imgMin = this.scheme.imgMin.replaceAll('[id]', marker.feature.id)
-      this.dataJsonUrl = this.scheme.dataJSON.replaceAll('[id]', marker.feature.id)
-      this.dataAsciiUrl = this.scheme.dataASCII.replaceAll('[id]', marker.feature.id)
+//       this.img = this.scheme.img.replaceAll('[id]', marker.feature.id)
+//       this.imgMin = this.scheme.imgMin.replaceAll('[id]', marker.feature.id)
+//       this.dataJsonUrl = this.scheme.dataJSON.replaceAll('[id]', marker.feature.id)
+//       this.dataAsciiUrl = this.scheme.dataASCII.replaceAll('[id]', marker.feature.id)
     }
   }
 }
 </script>
 <style src='leaflet/dist/leaflet.css'>
+
     /* global styles */
 </style> 
+<style src='../assets/css/leaflet.divicon.arrow.css'></style>
 <style>
 
 #map {
@@ -343,6 +425,20 @@ export default {
 #map h4 {
   margin:0;
 }
+div.navigator {
+ position: fixed;
+   bottom:5px;
+   width:auto;
+   left:50%;
+   -webkit-transform: translateX(-50%);
+    -moz-transform: translateX(-50%);
+    -ms-transform: translateX(-50%);
+    -o-transform: translateX(-50%);
+    transform: translateX(-50%);
+   text-align:center;
+   z-index:1000;
+   pointer-events:none;
+}
 h1 {
    position: fixed;
    bottom:0;
@@ -350,6 +446,13 @@ h1 {
    text-align:center;
    z-index:1000;
    pointer-events:none;
+}
+.leaflet-div-icon {
+  /**  position: relative;
+    top: -50%;
+    left: -50%; **/
+    background: none;
+    border:none;
 }
 div.marker-red{
   width: 30px;
