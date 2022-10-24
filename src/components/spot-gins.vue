@@ -1,6 +1,6 @@
 <template>
   <div style="position:relative;">
-
+  <fmt-timeline :values="dates"></fmt-timeline>
   <h1 v-if="!showNavigation">SPOT GINS TEST</h1>
   <div v-show="showNavigation" class="navigator">
   <date-navigation color="darkblue" defaut="2020-05-01" :searching="searching" :first-date="temp.start" 
@@ -45,6 +45,8 @@
 </template>
 
 <script>
+import moment from 'moment'
+import FmtTimeline from './fmt-timeline.vue'
 var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
@@ -58,12 +60,14 @@ Icon.Default.mergeOptions({
 const JsonDiv = () => import('./json-div.vue')
 const SpotginsGraph = () => import('./spotgins-graph.vue')
 const DateNavigation = () => import('./date-navigation.vue')
+
 export default {
   name: 'SpotGins',
   components: {
     JsonDiv,
     SpotginsGraph,
-    DateNavigation
+    DateNavigation,
+    FmtTimeline
   },
   props: {
     root: {
@@ -75,6 +79,7 @@ export default {
     return {
       map: null,
       stations: [],
+      dates: null,
 //       scheme: {},
        json: null,
       datastreamId: null,
@@ -211,8 +216,26 @@ export default {
       this.stations[index].layer = layer
       this.addStation(index + 1)
     },
+    fillDates (start, end) {
+     // this.dates = {}
+    
+      var timeStart = moment(start.substr(0,10) + 'T12:00:00')
+      var date = timeStart.valueOf()
+      var theEnd = moment(end.substr(0,10) + 'T12:00:00').valueOf()
+      while (date < theEnd) {
+        if (!this.dates[date]) {
+           this.dates[date] = 1
+        } else {
+          this.dates[date] = this.dates[date] + 1
+        }
+        timeStart.add(1, 'd')
+        date = timeStart.valueOf()
+      }
+      
+    },
     display (data) {
       var self = this
+      this.dates = {}
       data.value.forEach(function (value) {
         if (value.Locations[0]) {
 	        var station = value.Locations[0].location
@@ -221,11 +244,12 @@ export default {
 	        var phenomenonTime = station.datastream.phenomenonTime
 	        var temp = phenomenonTime.split('/')
 	        if (temp[0] && temp[0].substr(0,10) < self.temp.start) {
-	          self.temp.start = temp[0].substr(0,10)
-	        }
-	        if (temp[1] && temp[1].substr(0,10) > self.temp.end) {
-            self.temp.end = temp[1].substr(0,10)
+            self.temp.start = temp[0].substr(0,10)
           }
+          if (temp[1] && temp[1].substr(0,10) > self.temp.end) {
+            self.temp.end = temp[1].substr(0,10)
+          }  
+          self.fillDates(temp[0], temp[1])
 // 	        station.properties = value.properties
 // 	        station.properties.name = value.name
 // 	        station.properties.description = value.description
@@ -256,7 +280,6 @@ export default {
       
     },
     download (type) {
-      console.log(type)
       var dataUrl = null
       if (type === 'json') {
         // var MIME_TYPE = "application/json";
