@@ -3,6 +3,7 @@
 </template>
 <script>
 import * as Highcharts from 'highcharts'
+import moment from 'moment'
 export default {
   name: 'FmtTimeline',
   props: {
@@ -38,9 +39,9 @@ export default {
         }
         this.chart.redraw()
         
-        this.chart.xAxis[0].setExtremes(this.dates[0][0], this.dates[length][0], true, false)
-        this.chart.yAxis[0].setExtremes(1, 3, true, false)
-        setTimeout(function() {
+//         this.chart.xAxis[0].setExtremes(this.dates[0][0], this.dates[length][0], true, false)
+//         this.chart.yAxis[0].setExtremes(1, 3, true, false)
+         setTimeout(function() {
           _this.display(null, index + 1000)
         },0)
         return
@@ -62,10 +63,14 @@ export default {
         
         chart:{
           height:200,
-          width: 700,
+          width: 1500,
           plotBorderColor: '#666666',
           plotBorderWidth: 0,
-          type: 'column'
+          type: 'column',
+          zoomType: 'x'
+        },
+        exporting: {
+          enabled: false
         },
         title: {
             text:"",
@@ -74,13 +79,26 @@ export default {
         legend: {
             enabled: false
         },
+        credits: {
+            enabled: false
+        },
         tooltip: {
           positioner: function () {
               return { x: 80, y: 0 };
           },
+          xDateFormat: '%e %b %Y',
           shadow: false,
           borderWidth: 0,
           backgroundColor: 'rgba(255,255,255,0.8)'
+        },
+        plotOptions: {
+          column: {
+            stacking: 'normal',
+            pointPadding: 0,
+            borderWidth: 0.1,
+            groupPadding: 0,
+            shadow: false
+          }
         },
 //         plotOptions: {
 //             series: {
@@ -103,7 +121,12 @@ export default {
                 month: '%b %y',
                 year: '%Y'
             },
-            crosshair: true,
+            min: _this.dates[0][0],
+            max: _this.dates[_this.dates.length -1][0],
+            crosshair: {
+              color: 'darkgrey',
+              zIndex: 1000
+            }
         },
         
         yAxis: {
@@ -123,12 +146,33 @@ export default {
           name: 'Nb Stations',
           type: "column",
           color: 'darkblue',
-          data: []
+          data: [],
+          cursor: 'pointer',
+          events: {
+              click: function (e, s) {
+                  console.log(s)
+                  console.log(e.point.x)
+                  var date = moment.unix(e.point.x/1000).format('YYYY-MM-DD')
+                  console.log(date)
+                  _this.plotLine(e.point.x)
+                  alert('You just clicked the graph');
+              }
+          }
         }]
       })
       setTimeout(function() {
         _this.display(null, index)
       })
+    },
+    plotLine (x) {
+      this.chart.xAxis[0].removePlotLine('highlight')
+      this.chart.xAxis[0].addPlotLine({
+       color: '#999999',
+       value:  x,
+       width: 2,
+       zIndex: 1000,
+       id: 'highlight'
+     })
     }
   }
 }

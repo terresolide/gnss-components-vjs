@@ -219,9 +219,9 @@ export default {
     fillDates (start, end) {
      // this.dates = {}
     
-      var timeStart = moment(start.substr(0,10) + 'T12:00:00')
+      var timeStart = moment.utc(start.substr(0,10) + 'T12:00:00.000Z')
       var date = timeStart.valueOf()
-      var theEnd = moment(end.substr(0,10) + 'T12:00:00').valueOf()
+      var theEnd = moment.utc(end.substr(0,10) + 'T12:00:00.000Z').valueOf()
       while (date < theEnd) {
         if (!this.dates[date]) {
            this.dates[date] = 1
