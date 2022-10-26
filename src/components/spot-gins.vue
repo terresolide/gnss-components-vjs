@@ -1,13 +1,14 @@
 <template>
   <div style="position:relative;">
-  <fmt-timeline :values="dates"></fmt-timeline>
-  <h1 v-if="!showNavigation">SPOT GINS TEST</h1>
+ <h1 v-if="!showNavigation">SPOT GINS TEST</h1>
   <div v-show="showNavigation" class="navigator">
+   <fmt-timeline v-if="loadedDates" :values="dates"></fmt-timeline>
+  
   <date-navigation color="darkblue" defaut="2020-05-01" :searching="searching" :first-date="temp.start" 
   :last-date="temp.end" @dateChange="searchObservations"></date-navigation> 
   </div>
     <div id="map" ></div>
-    <div  id="json" style="background:white;max-width:450px;min-height:500px;max-height:500px;">
+    <div  id="json" v-show="show" style="background:white;max-width:450px;min-height:500px;max-height:500px;">
       <h4>{{selected}}</h4>
       <ul class="menu-content">
         <li @click="mode = 'station'" >
@@ -73,6 +74,10 @@ export default {
     root: {
       type: String,
       default: 'https://catalog.formater/FROST-Server/v1.1/'
+    },
+    top: {
+      type: Number,
+      default: 2
     }
   },  
   data () {
@@ -80,6 +85,7 @@ export default {
       map: null,
       stations: [],
       dates: null,
+      preDates: null,
 //       scheme: {},
        json: null,
       datastreamId: null,
@@ -93,11 +99,13 @@ export default {
       imgMin: null,
       dataAsciiUrl: null,
       sitelog: null,
+      show: false,
       loaded: false,
       popup: null,
       groupLayers: [],
       dateLayers: null,
       showNavigation: false,
+      loadedDates: false,
       temp: {
         start: '2007-03-25',
         end: '2022-05-21'
@@ -133,21 +141,23 @@ export default {
       var self = this
       this.dateLayers.on('add', function (event) {
         self.showNavigation = true
+        self.loadedDates = true
       })
       this.dateLayers.on('remove', function (event) {
         self.showNavigation = false
       })
       this.layerControl.addOverlay(this.dateLayers, 'Vue par date')
-      this.load()
+      this.load(0)
       this.searchObservations('2021-09-12')
     },
-    load () {
+    load (index, next) {
       if (!this.root) {
-        alert('Pas de fichier "root"!')
+        alert('Pas de service SensorThings!')
       }
-      this.$http.get(this.root + 'Things?$expand=Locations,Datastreams')
+      var url = next ? next : this.root + 'Things?$top=' + this.top + '&$expand=Locations,Datastreams'
+      this.$http.get(url)
       .then(
-          resp => {this.display(resp.body)},
+          resp => {this.display(resp.body, index)},
           resp => {alert('Erreur de chargement: ' + resp.status)}
        )
     },
@@ -223,19 +233,21 @@ export default {
       var date = timeStart.valueOf()
       var theEnd = moment.utc(end.substr(0,10) + 'T12:00:00.000Z').valueOf()
       while (date < theEnd) {
-        if (!this.dates[date]) {
-           this.dates[date] = 1
+        if (!this.preDates[date]) {
+           this.preDates[date] = 1
         } else {
-          this.dates[date] = this.dates[date] + 1
+          this.preDates[date] = this.preDates[date] + 1
         }
         timeStart.add(1, 'd')
         date = timeStart.valueOf()
       }
       
     },
-    display (data) {
+    display (data, index) {
       var self = this
-      this.dates = {}
+      if (index === 0) {
+        this.preDates = {}
+      }
       data.value.forEach(function (value) {
         if (value.Locations[0]) {
 	        var station = value.Locations[0].location
@@ -257,8 +269,12 @@ export default {
 	        self.stations.push(station)
         }
       })
-      this.addStation(0)
-       
+      this.addStation(index)
+      if (data['@iot.nextLink']) {
+        this.load(this.stations.length, data['@iot.nextLink'])
+      } else {
+        this.dates = this.preDates
+      }
     },
     displayDate (data) {
       this.dateLayers.clearLayers()
@@ -284,15 +300,12 @@ export default {
       if (type === 'json') {
         // var MIME_TYPE = "application/json";
         dataUrl = this.dataJsonUrl
-        console.log(dataUrl)
       }
       if (type === 'ascii') {
         dataUrl = this.dataAsciiUrl
       }
-      console.log(dataUrl)
       this.$http.get(dataUrl, {responseType: 'blob'}).then(
           resp => {
-            console.log(resp.bodyBlob)
             if (resp.bodyBlob) {
              // var blob = new Blob(resp.bodyBlob);
               var url = window.URL.createObjectURL(resp.bodyBlob);
@@ -370,6 +383,7 @@ export default {
        if (this.loaded === e.target.id) {
          return
        }
+      this.show = true
       this.img = e.target.feature.datastream.properties.img
       this.imgMin = this.img
       this.datastreamId = e.target.feature.datastream['@iot.id']

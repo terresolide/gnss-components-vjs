@@ -21,8 +21,17 @@ export default {
   data () {
     return {
       dates: [],
-      chart: null
+      chart: null,
+      width: window.innerWidth
     }
+  },
+  created () {
+    this.width = window.innerWidth
+  },
+  mounted () {
+    this.width = window.innerWidth
+    console.log(this.width)
+    this.display(this.values, 0)
   },
   methods: {
     display (values, index) {
@@ -62,8 +71,8 @@ export default {
       this.chart = Highcharts.chart(container, {
         
         chart:{
-          height:200,
-          width: 1500,
+          height:100,
+          width: _this.width,
           plotBorderColor: '#666666',
           plotBorderWidth: 0,
           type: 'column',
@@ -83,9 +92,9 @@ export default {
             enabled: false
         },
         tooltip: {
-          positioner: function () {
-              return { x: 80, y: 0 };
-          },
+//           positioner: function () {
+//               return { x: 80, y: 0 };
+//           },
           xDateFormat: '%e %b %Y',
           shadow: false,
           borderWidth: 0,
@@ -131,8 +140,7 @@ export default {
         
         yAxis: {
           title:{
-            margin: 30,
-            useHTML: true,
+            margin: 15,
             text:'Nb Stations'
           },
           min:0,
@@ -177,3 +185,8 @@ export default {
   }
 }
 </script>
+<style scoped>
+ .fmt-timeline {
+   pointer-events:auto;
+ }
+</style>
