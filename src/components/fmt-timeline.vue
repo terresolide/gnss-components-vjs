@@ -197,6 +197,9 @@ export default {
       })
     },
     plotLine (x, date) {
+      if (!this.chart) {
+        return
+      }
       this.chart.xAxis[0].removePlotLine('highlight')
       this.chart.xAxis[0].addPlotLine({
        color: '#999999',

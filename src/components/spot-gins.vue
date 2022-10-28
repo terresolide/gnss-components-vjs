@@ -101,6 +101,7 @@ export default {
       show: false,
       loaded: false,
       popup: null,
+      stationLayers: null,
       groupLayers: [],
       dateLayers: null,
       showNavigation: false,
@@ -128,7 +129,7 @@ export default {
       var node = document.querySelector('#json')
       // container.appendChild(node)
       this.popup.setContent(node)
-      var arrow = new L.DivIcon.Arrow({})
+ //     var arrow = new L.DivIcon.Arrow({})
       var self = this
 //       this.map.on('popupclose', function (e) {
 //         var json = e.target._container.querySelector('#json')
@@ -137,7 +138,14 @@ export default {
 //         }
 //         self.reset()
 //       })
+
       this.dateLayers = L.layerGroup()
+//       this.stationLayers = L.layerGroup()
+//       this.stationLayers.first = {
+//         title: 'Stations',
+//         separator: true
+//       }
+//       this.stationLayers.addTo(this.map)
       var self = this
       this.dateLayers.on('add', function (event) {
         self.showNavigation = true
@@ -146,7 +154,9 @@ export default {
       this.dateLayers.on('remove', function (event) {
         self.showNavigation = false
       })
-      this.layerControl.addOverlay(this.dateLayers, 'Vue par date')
+      this.dateLayers.first = 'Les observations'
+      this.layerControl.addOverlay(this.dateLayers, 'Par date')
+    //  this.layerControl.addOverlay(this.stationLayers, 'TOUTES LES STATIONS')
       this.load(0)
       this.searchObservations(this.defaultDate)
     },
@@ -177,6 +187,7 @@ export default {
     },
     addStation (index) {
       if (!this.stations[index]) {
+        this.loadedDates = true
         if (this.bounds) {
           this.map.fitBounds(this.bounds, {padding: [20,20]})
         }
@@ -209,6 +220,7 @@ export default {
       }
        if (!this.groupLayers[groupId]) {
         this.groupLayers[groupId] = L.layerGroup([layer])
+   //     this.stationLayers.addLayer(this.groupLayers[groupId])
         this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
         this.layerControl.addOverlay(this.groupLayers[groupId], 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
         this.groupLayers[groupId].addTo(this.map)
