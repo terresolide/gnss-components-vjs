@@ -1,5 +1,5 @@
 <template>
-<div><div class="fmt-timeline"></div></div>
+<div><div class="fmt-timeline" :class="{disabled: drawing}"></div></div>
 </template>
 <script>
 import * as Highcharts from 'highcharts'
@@ -10,6 +10,10 @@ export default {
     values: {
       type: Array|Object,
       default: null
+    },
+    defaut: {
+      type: String,
+      value: '2020-03-15'
     }
   },
   watch: {
@@ -22,39 +26,58 @@ export default {
     return {
       dates: [],
       chart: null,
-      width: window.innerWidth
+      max: 0,
+      drawing: false,
+      resizeListener: null,
+      width: window.innerWidth - 30
     }
   },
   created () {
-    this.width = window.innerWidth
+    // this.width = window.innerWidth
+    this.resizeListener = this.resize.bind(this)
+    window.addEventListener('resize', this.resizeListener)
   },
   mounted () {
-    this.width = window.innerWidth
+    // this.width = window.innerWidth
     console.log(this.width)
     this.display(this.values, 0)
+  },
+  destroy () {
+    window.addEventListener('resize', this.resizeListener)
+    this.resizeListener = null
   },
   methods: {
     display (values, index) {
       var _this = this
       if (!values) {
-        console.log(index)
         if (index >= this.dates.length) {
+          this.drawing = false
+          if (this.defaut) {
+            var date = moment.utc(this.defaut + 'T12:00:00.000Z')
+            this.plotLine(date.valueOf(), date.format('ll'))
+            
+          }
           return
         }
+       
         var length = 1000
         for (var i = index; i < index + 1000  && i < this.dates.length; i++) {
           this.chart.series[0].addPoint(this.dates[i], false)
+          if (this.max < this.dates[i][1]) {
+            this.max = this.dates[i][1]
+          }
           length = i
         }
         this.chart.redraw()
         
 //         this.chart.xAxis[0].setExtremes(this.dates[0][0], this.dates[length][0], true, false)
-//         this.chart.yAxis[0].setExtremes(1, 3, true, false)
+         this.chart.yAxis[0].setExtremes(0, this.max, true, false)
          setTimeout(function() {
           _this.display(null, index + 1000)
         },0)
         return
       }
+      this.drawing = true
       if (this.chart) {
         this.chart.destroy()
         this.chart = null
@@ -95,7 +118,7 @@ export default {
 //           positioner: function () {
 //               return { x: 80, y: 0 };
 //           },
-          xDateFormat: '%e %b %Y',
+          xDateFormat: '%b %e, %Y',
           shadow: false,
           borderWidth: 0,
           backgroundColor: 'rgba(255,255,255,0.8)'
@@ -139,12 +162,16 @@ export default {
         },
         
         yAxis: {
-          title:{
-            margin: 15,
-            text:'Nb Stations'
+//           title:{
+//             margin: 15,
+//             text:'Nb Stations'
+//           },
+          title: {
+            enabled: false
           },
+          allowDecimals: false,
           min:0,
-          max:3
+          max:_this.max
         },
 //         tooltip: {
 //           shared: true,
@@ -158,12 +185,9 @@ export default {
           cursor: 'pointer',
           events: {
               click: function (e, s) {
-                  console.log(s)
-                  console.log(e.point.x)
-                  var date = moment.unix(e.point.x/1000).format('YYYY-MM-DD')
-                  console.log(date)
-                  _this.plotLine(e.point.x)
-                  alert('You just clicked the graph');
+                  var date = moment.unix(e.point.x/1000)
+                  _this.plotLine(e.point.x, date.format('ll') )
+                  _this.$emit('select', date.format('YYYY-MM-DD'))
               }
           }
         }]
@@ -172,21 +196,45 @@ export default {
         _this.display(null, index)
       })
     },
-    plotLine (x) {
+    plotLine (x, date) {
       this.chart.xAxis[0].removePlotLine('highlight')
       this.chart.xAxis[0].addPlotLine({
        color: '#999999',
        value:  x,
        width: 2,
        zIndex: 1000,
-       id: 'highlight'
+       id: 'highlight',
+       label: {
+         text: '<div class="date-tooltip">' + date + '</div>',
+         align: 'center',
+         useHTML: true,
+         rotation:0,
+         y:20
+       }
      })
+    },
+    resize () {
+      this.width = window.innerWidth - 30
+      this.chart.setSize(this.width, null, true)
+     
     }
   }
 }
 </script>
+<style>
+ .date-tooltip {
+   padding:3px 5px;
+   background:rgba(255,255,255,0.8);
+   border-radius: 3px;
+   border: 1px dotted grey;
+ }
+</style>
 <style scoped>
  .fmt-timeline {
    pointer-events:auto;
  }
+ .fmt-timeline.disabled {
+   pointer-events:  none;
+   opacity:0.8;
+ } 
 </style>

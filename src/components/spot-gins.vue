@@ -2,11 +2,10 @@
   <div style="position:relative;">
  <h1 v-if="!showNavigation">SPOT GINS TEST</h1>
   <div v-show="showNavigation" class="navigator">
-   <fmt-timeline v-if="loadedDates" :values="dates"></fmt-timeline>
+   <fmt-timeline v-if="loadedDates" :values="dates"
+   :defaut="defaultDate" @select="searchObservations"></fmt-timeline>
   
-  <date-navigation color="darkblue" defaut="2020-05-01" :searching="searching" :first-date="temp.start" 
-  :last-date="temp.end" @dateChange="searchObservations"></date-navigation> 
-  </div>
+   </div>
     <div id="map" ></div>
     <div  id="json" v-show="show" style="background:white;max-width:450px;min-height:500px;max-height:500px;">
       <h4>{{selected}}</h4>
@@ -60,14 +59,14 @@ Icon.Default.mergeOptions({
 });
 const JsonDiv = () => import('./json-div.vue')
 const SpotginsGraph = () => import('./spotgins-graph.vue')
-const DateNavigation = () => import('./date-navigation.vue')
+// const DateNavigation = () => import('./date-navigation.vue')
 
 export default {
   name: 'SpotGins',
   components: {
     JsonDiv,
     SpotginsGraph,
-    DateNavigation,
+ //   DateNavigation,
     FmtTimeline
   },
   props: {
@@ -106,6 +105,7 @@ export default {
       dateLayers: null,
       showNavigation: false,
       loadedDates: false,
+      defaultDate: '2021-03-15',
       temp: {
         start: '2007-03-25',
         end: '2022-05-21'
@@ -148,7 +148,7 @@ export default {
       })
       this.layerControl.addOverlay(this.dateLayers, 'Vue par date')
       this.load(0)
-      this.searchObservations('2021-09-12')
+      this.searchObservations(this.defaultDate)
     },
     load (index, next) {
       if (!this.root) {
