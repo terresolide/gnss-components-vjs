@@ -1,6 +1,14 @@
 <template>
   <div style="position:relative;">
  <h1 v-if="!showNavigation">SPOT GINS TEST</h1>
+  <div v-if=" colorScale" v-show="showNavigation" style="font-size:12px;position: fixed;left:20px;bottom:110px;z-index:1000;border-radius:4px;border: 2px solid rgba(0,0,0,0.2);padding:3px 3px 8px 3px;background:white;">
+    <div style="padding:3px 3px 5px 3px;">Up (mm)</div>
+    <div>
+     <div class="step"></div>
+    <div v-for="color, id in colorScale.colors(30).reverse()" class="step"  :style="{background: color}"></div>
+
+   </div>
+  </div>
   <div v-show="showNavigation" class="navigator">
    <fmt-timeline v-if="loadedDates" :values="dates"
    :defaut="defaultDate" @select="searchObservations"></fmt-timeline>
@@ -46,6 +54,7 @@
 
 <script>
 import moment from 'moment'
+import chroma from 'chroma-js'
 import FmtTimeline from './fmt-timeline.vue'
 var L = require('leaflet')
 import { Icon } from 'leaflet';
@@ -111,7 +120,8 @@ export default {
         start: '2007-03-25',
         end: '2022-05-21'
       },
-      searching: false
+      searching: false,
+      colorScale: null
     }
   },
   mounted () {
@@ -130,6 +140,9 @@ export default {
       // container.appendChild(node)
       this.popup.setContent(node)
  //     var arrow = new L.DivIcon.Arrow({})
+      this.colorScale = chroma.scale('RdYlBu').padding(-0.90)
+      this.colorScale = chroma.scale(['#a50026', '#313695'])
+      console.log(this.colorScale.colors(20))
       var self = this
 //       this.map.on('popupclose', function (e) {
 //         var json = e.target._container.querySelector('#json')
@@ -187,10 +200,11 @@ export default {
     },
     addStation (index) {
       if (!this.stations[index]) {
-        this.loadedDates = true
+        
         if (this.bounds) {
           this.map.fitBounds(this.bounds, {padding: [20,20]})
         }
+        this.loadedDates = true
         return
       }
       var groupId = this.stations[index].properties.groupId 
@@ -296,8 +310,15 @@ export default {
       })
     },
     addVector (data) {
-      var arrow = new L.DivIcon.Arrow({arrow: [data.result[0],data.result[1]]})
-      var text = 'E: ' + data.result[0] + ', N: ' + data.result[1]
+      var arrow = new L.DivIcon.Arrow({
+        arrow: data.result, 
+        color: this.colorScale((data.result[2] + 750) / 1500).hex(),
+//         iconSize: [100, 100],
+//         iconAnchor: [50, 50],
+//         stroke: 25
+      })
+      var text = '<b>' + data.FeatureOfInterest.name + '</b>'
+      text += '<br>E: ' + data.result[0] + ' mm<br>N: ' + data.result[1] + ' mm<br>Up: ' + data.result[2] + ' mm'
       var larrow = L.geoJSON(data.FeatureOfInterest.feature, {
         pointToLayer (feature, latlng) {
 	        var marker = L.marker(latlng, {icon: arrow, title: feature.id})       
@@ -458,7 +479,26 @@ export default {
 </style> 
 <style src='../assets/css/leaflet.divicon.arrow.css'></style>
 <style>
-
+.step {
+ /* margin-right:45px;*/
+  text-align: left;
+  font-size:10px;
+  width:30px;height:5px;
+}
+.step:first-child:after {
+ content:' 750';
+ /* margin-right: -30px;*/
+  margin-left:35px;
+ }
+ .step:nth-child(15):before {
+ content:'0';
+ width:40px;
+ margin-left:35px;
+ }
+ .step:last-child:before {
+ content:'-750';
+margin-left:35px;
+ }
 #map {
   min-height:500px;
   height:100vh;
