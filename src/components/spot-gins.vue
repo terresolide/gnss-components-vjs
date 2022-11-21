@@ -162,16 +162,22 @@ export default {
       var self = this
       this.dateLayers.on('add', function (event) {
         self.showNavigation = true
-        self.loadedDates = true
+      
+        // vide les layers stations
+        self.groupLayers.forEach(function (groupLayer) {
+          groupLayer.clearLayers()
+        })
+        self.searchObservations(self.defaultDate)
       })
       this.dateLayers.on('remove', function (event) {
         self.showNavigation = false
+        self.load(0)
       })
-      this.dateLayers.first = 'Les observations'
+      this.dateLayers.first = 'Vue'
       this.layerControl.addOverlay(this.dateLayers, 'Par date')
     //  this.layerControl.addOverlay(this.stationLayers, 'TOUTES LES STATIONS')
       this.load(0)
-      this.searchObservations(this.defaultDate)
+     
     },
     load (index, next) {
       if (!this.root) {
@@ -194,20 +200,19 @@ export default {
     //  this.sitelog = null
     },
     searchObservations (date) {
-
-      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest')
+      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=properties/groupId)')
       .then(resp => {this.displayDate(resp.body)})
     },
     addStation (index) {
       if (!this.stations[index]) {
-        
-        if (this.bounds) {
-          this.map.fitBounds(this.bounds, {padding: [20,20]})
-        }
-        this.loadedDates = true
+//         console.log(index)
+//         if (this.bounds) {
+//           this.map.fitBounds(this.bounds, {padding: [20,20]})
+//         }
+//         this.loadedDates = true
         return
       }
-      var groupId = this.stations[index].properties.groupId 
+      var groupId = this.stations[index].datastream.properties.groupId 
       var className = groupId === 1 ? 'marker-blue' : 'marker-red'
       var icon = L.divIcon({className: className})
 //        var svg = document.querySelector('.fixed #arrow')
@@ -230,7 +235,7 @@ export default {
      // layer.addTo(this.map)
       var first = false
       if (this.groupLayers.length === 0) {
-        first = 'Les stations'
+        first = 'Les groupes de stations'
       }
        if (!this.groupLayers[groupId]) {
         this.groupLayers[groupId] = L.layerGroup([layer])
@@ -241,13 +246,13 @@ export default {
       } else {
         this.groupLayers[groupId].addLayer(layer)
       }
-
-       
-      var bounds = layer.getBounds()
-      if (!this.bounds) {
-        this.bounds = bounds
-      } else {
-        this.bounds.extend(bounds)
+      if (!this.loadedDates) {
+        var bounds = layer.getBounds()
+	      if (!this.bounds) {
+	        this.bounds = bounds
+	      } else {
+	        this.bounds.extend(bounds)
+	      }
       }
       this.stations[index].layer = layer
       this.addStation(index + 1)
@@ -272,7 +277,12 @@ export default {
     display (data, index) {
       var self = this
       if (index === 0) {
-        this.preDates = {}
+        if (!this.loadedDates) {
+          this.preDates = {}
+        }
+        this.groupLayers.forEach(function (groupLayer) {
+          groupLayer.clearLayers()
+        })
       }
       data.value.forEach(function (value) {
         if (value.Locations[0]) {
@@ -300,16 +310,24 @@ export default {
         this.load(this.stations.length, data['@iot.nextLink'])
       } else {
         this.dates = this.preDates
+        if (!this.loadedDates && this.bounds) {
+          this.map.fitBounds(this.bounds)
+        }
+        this.loadedDates = true
       }
     },
     displayDate (data) {
-      this.dateLayers.clearLayers()
+      this.groupLayers.forEach(function (groupLayer) {
+        groupLayer.clearLayers()
+      })
       var self = this
       data.value.forEach(function (value) {
         self.addVector(value)
       })
     },
     addVector (data) {
+      var groupId = data.Datastream.properties.groupId 
+      
       var arrow = new L.DivIcon.Arrow({
         arrow: data.result, 
         color: this.colorScale((data.result[2] + 750) / 1500).hex(),
@@ -325,7 +343,7 @@ export default {
 	        return marker
         }
       }).bindTooltip(text)
-      this.dateLayers.addLayer(larrow)
+      this.groupLayers[groupId].addLayer(larrow)
       
     },
     download (type) {
