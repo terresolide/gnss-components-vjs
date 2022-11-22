@@ -120,6 +120,8 @@ export default {
         start: '2007-03-25',
         end: '2022-05-21'
       },
+      first: true,
+      temps: [],
       searching: false,
       colorScale: null
     }
@@ -173,8 +175,8 @@ export default {
         self.showNavigation = false
         self.load(0)
       })
-      this.dateLayers.first = 'Vue'
-      this.layerControl.addOverlay(this.dateLayers, 'Par date')
+//       this.dateLayers.first = 'Vue'
+//       this.layerControl.addOverlay(this.dateLayers, 'Par date')
     //  this.layerControl.addOverlay(this.stationLayers, 'TOUTES LES STATIONS')
       this.load(0)
      
@@ -233,15 +235,14 @@ export default {
         }
       })
      // layer.addTo(this.map)
-      var first = false
-      if (this.groupLayers.length === 0) {
-        first = 'Les groupes de stations'
-      }
+//       var first = false
+//       if (this.groupLayers.length === 0) {
+//         first = 'Les groupes de stations'
+//       }
        if (!this.groupLayers[groupId]) {
         this.groupLayers[groupId] = L.layerGroup([layer])
    //     this.stationLayers.addLayer(this.groupLayers[groupId])
-        this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
-        this.layerControl.addOverlay(this.groupLayers[groupId], 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
+      //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
         this.groupLayers[groupId].addTo(this.map)
       } else {
         this.groupLayers[groupId].addLayer(layer)
@@ -257,23 +258,45 @@ export default {
       this.stations[index].layer = layer
       this.addStation(index + 1)
     },
-    fillDates (start, end) {
-     // this.dates = {}
-    
-      var timeStart = moment.utc(start.substr(0,10) + 'T12:00:00.000Z')
-      var date = timeStart.valueOf()
-      var theEnd = moment.utc(end.substr(0,10) + 'T12:00:00.000Z').valueOf()
-      while (date < theEnd) {
-        if (!this.preDates[date]) {
-           this.preDates[date] = 1
-        } else {
-          this.preDates[date] = this.preDates[date] + 1
-        }
-        timeStart.add(1, 'd')
-        date = timeStart.valueOf()
+    fillDates (index) {
+      if (!this.temps[index]) {
+        this.loadedDates = true
+        return
       }
-      
+      var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z')
+      var date = timeStart.valueOf()
+      var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
+      while (date < theEnd) {
+	      if (!this.preDates[date]) {
+	        this.preDates[date] = 1
+	      } else {
+	       this.preDates[date] = this.preDates[date] + 1
+	      }
+	      timeStart.add(1, 'd')
+	      date = timeStart.valueOf()
+      }
+      var self = this
+      setTimeout(function () {
+        self.fillDates(index + 1)
+      })
     },
+//     fillDates (start, end) {
+//      // this.dates = {}
+    
+//       var timeStart = moment.utc(start.substr(0,10) + 'T12:00:00.000Z')
+//       var date = timeStart.valueOf()
+//       var theEnd = moment.utc(end.substr(0,10) + 'T12:00:00.000Z').valueOf()
+//       while (date < theEnd) {
+//         if (!this.preDates[date]) {
+//            this.preDates[date] = 1
+//         } else {
+//           this.preDates[date] = this.preDates[date] + 1
+//         }
+//         timeStart.add(1, 'd')
+//         date = timeStart.valueOf()
+//       }
+      
+//     },
     display (data, index) {
       var self = this
       if (index === 0) {
@@ -297,7 +320,8 @@ export default {
           if (temp[1] && temp[1].substr(0,10) > self.temp.end) {
             self.temp.end = temp[1].substr(0,10)
           }  
-          self.fillDates(temp[0], temp[1])
+          self.temps.push(temp)
+          // self.fillDates(temp[0], temp[1])
 // 	        station.properties = value.properties
 // 	        station.properties.name = value.name
 // 	        station.properties.description = value.description
@@ -310,10 +334,23 @@ export default {
         this.load(this.stations.length, data['@iot.nextLink'])
       } else {
         this.dates = this.preDates
+        if (this.first) {
+          this.dateLayers.first = 'Vue'
+          this.layerControl.addOverlay(this.dateLayers, 'Par date')
+	        var first = 'Les groupes de stations'
+	        this.groupLayers.forEach(function (layer, groupId) {
+	          layer.first = first ? {title: first, separator: true} : null
+	          var className = groupId === 1 ? 'marker-blue' : 'marker-red'
+	          self.layerControl.addOverlay(layer, 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
+	          first = null
+	        })
+	        this.first = false
+        }
         if (!this.loadedDates && this.bounds) {
           this.map.fitBounds(this.bounds)
         }
-        this.loadedDates = true
+        this.fillDates(0)
+        // this.loadedDates = true
       }
     },
     displayDate (data) {
