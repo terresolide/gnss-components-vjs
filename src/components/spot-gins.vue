@@ -97,6 +97,7 @@ export default {
 //       scheme: {},
        json: null,
       datastreamId: null,
+      datastreams: [],
 //      baseUrl: null,
       layerControl: null,
       bounds: null,
@@ -123,7 +124,12 @@ export default {
       first: true,
       temps: [],
       searching: false,
-      colorScale: null
+      colorScale: null,
+      classnames: {
+        1: 'marker-blue',
+        2: 'marker-red',
+        3: 'marker-orange'
+      }
     }
   },
   mounted () {
@@ -185,7 +191,7 @@ export default {
       if (!this.root) {
         alert('Pas de service SensorThings!')
       }
-      var url = next ? next : this.root + 'Things?$top=' + this.top + '&$expand=Locations,Datastreams'
+      var url = next ? next : this.root + 'Datastreams?$top=' + this.top 
       this.$http.get(url)
       .then(
           resp => {this.display(resp.body, index)},
@@ -205,7 +211,7 @@ export default {
       this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=properties/groupId)')
       .then(resp => {this.displayDate(resp.body)})
     },
-    addStation (index) {
+    addDatastream (index) {
       if (!this.stations[index]) {
 //         console.log(index)
 //         if (this.bounds) {
@@ -214,8 +220,8 @@ export default {
 //         this.loadedDates = true
         return
       }
-      var groupId = this.stations[index].datastream.properties.groupId 
-      var className = groupId === 1 ? 'marker-blue' : 'marker-red'
+      var groupId = this.datastreams[index].properties.groupId 
+      var className = this.classnames[groupId]
       var icon = L.divIcon({className: className})
 //        var svg = document.querySelector('.fixed #arrow')
 //        var node = svg.cloneNode(true)
@@ -226,7 +232,7 @@ export default {
      // var arrow = L.divIcon({html: svg.cloneNode(true), iconSize:[60,60], iconAnchor:[30,30]})
    //   var arrow = new L.DivIcon.Arrow({arrow: [350, 500], color: 'darkred'})
       var self = this
-      var layer = L.geoJSON(this.stations[index],{
+      var layer = L.geoJSON(this.datastreams[index],{
         pointToLayer: function(feature, latlng) {
            var marker = L.marker(latlng, {icon: icon, title: feature.id})
            marker.on('click', self.getData )
@@ -255,8 +261,8 @@ export default {
 	        this.bounds.extend(bounds)
 	      }
       }
-      this.stations[index].layer = layer
-      this.addStation(index + 1)
+      this.datastreams[index].layer = layer
+      this.addDatastream(index + 1)
     },
     fillDates (index) {
       if (!this.temps[index]) {
@@ -308,11 +314,13 @@ export default {
         })
       }
       data.value.forEach(function (value) {
-        if (value.Locations[0]) {
-	        var station = value.Locations[0].location
-	        station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
-	        station.datastream = value.Datastreams[0]
-	        var phenomenonTime = station.datastream.phenomenonTime
+        if (value.observedArea) {
+	        var datastream = value.observedArea
+	        delete value.observedArea
+	        datastream.properties = value
+// 	        station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
+// 	        station.datastream = value.Datastreams[0]
+	        var phenomenonTime = value.phenomenonTime
 	        var temp = phenomenonTime.split('/')
 	        if (temp[0] && temp[0].substr(0,10) < self.temp.start) {
             self.temp.start = temp[0].substr(0,10)
@@ -325,11 +333,11 @@ export default {
 // 	        station.properties = value.properties
 // 	        station.properties.name = value.name
 // 	        station.properties.description = value.description
-	        station['@iot.id'] = value['@iot.id']
-	        self.stations.push(station)
+	        datastream['@iot.id'] = value['@iot.id']
+	        self.datastreams.push(datastream)
         }
       })
-      this.addStation(index)
+      this.addDatastream(index)
       if (data['@iot.nextLink']) {
         this.load(this.stations.length, data['@iot.nextLink'])
       } else {
@@ -607,6 +615,13 @@ div.marker-blue {
   width: 30px;
   height: 30px;
   background-color: blue;
+  border: 1px solid black;
+  border-radius:3px;
+}
+div.marker-orange {
+  width: 30px;
+  height: 30px;
+  background-color: orange;
   border: 1px solid black;
   border-radius:3px;
 }
