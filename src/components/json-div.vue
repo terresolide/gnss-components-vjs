@@ -6,7 +6,7 @@
   </span>
   
   <div v-if="data" v-show="deployed">
-	  <div v-for="(value, key) in data" :key="key" class="row">
+	  <div v-for="(value, key) in data"  if="key.indexOf('@') < 0 " :key="key" class="row">
 	     <span v-if="typeof value === 'object'">
 	      <json-div :name="key" :json="value" ></json-div>
 	     </span>

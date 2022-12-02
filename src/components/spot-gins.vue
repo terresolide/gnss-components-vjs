@@ -106,6 +106,7 @@ export default {
 //       scheme: {},
        json: null,
       datastreamId: null,
+      feature: null,
       datastreams: [],
 //      baseUrl: null,
       layerControl: null,
@@ -553,8 +554,9 @@ export default {
       this.selected = e.target.feature.properties.name
       this.img = e.target.feature.properties.properties.img
       this.imgMin = this.img
-      this.average = e.target.feature.properties.properties.average
       this.datastreamId = e.target.feature.properties['@iot.id']
+      this.average = e.target.feature.properties.properties.average
+      this.feature = e.target.feature
       this.dataAsciiUrl = e.target.feature.properties.properties.file
      // this.json = e.target.feature.properties
       this.popup.setLatLng(e.target.getLatLng())
@@ -563,10 +565,14 @@ export default {
     },
     getStation () {
       this.mode = 'station'
-//       if (!this.json) {
-//         this.$http.get(this.selected.properties['Thing@iot.navigationLink'])
-//         .then(resp => {this.json = resp.body})
-//       }
+
+      if (!this.json || this.json['@datastream.id'] !== this.datastreamId) {
+        this.json = null
+        this.$http.get(this.feature.properties['Thing@iot.navigationLink'])
+        .then(resp => {
+          this.json = resp.body
+          this.json['@datastream.id'] = this.datastreamId})
+      }
     },
     getDataOld (e) {
 //       this.imgUrl = null
