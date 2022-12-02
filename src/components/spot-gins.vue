@@ -92,8 +92,6 @@ export default {
     sens () {
       var start = moment.utc(this.dateRef).valueOf()
       var end = moment.utc(this.date).valueOf()
-      console.log(start)
-      console.log(end)
       return (end - start > 0) ? 1 : -1
     }
   },
@@ -685,7 +683,7 @@ div.marker-red{
 div.marker-blue {
   width: 30px;
   height: 30px;
-  background-color: blue;
+  background-color: #0000CD;
   border: 1px solid black;
   border-radius:3px;
 }

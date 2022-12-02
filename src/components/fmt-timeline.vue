@@ -34,6 +34,8 @@ export default {
       max: 0,
       drawing: false,
       resizeListener: null,
+      mode: 'date',
+      listeners: {ref: null, date: null},
       width: window.innerWidth - 30
     }
   },
@@ -122,7 +124,7 @@ export default {
           plotBorderColor: '#666666',
           plotBorderWidth: 0,
           type: 'column',
-          zoomType: 'x'
+        //  zoomType: 'x'
         },
         exporting: {
           enabled: false
@@ -225,16 +227,25 @@ export default {
         return
       }
       var position = this.$el.querySelector('.fmt-timeline').getBoundingClientRect()
-      console.log(event)
+     // console.log(event)
 //    var x = event.clientX - position.left - 35
-   var x = event.clientX - position.left - this.chart.plotLeft;
-   var value = this.chart.xAxis[0].toValue(x, true)
-   var date = moment.unix(Math.round(value/1000))
+		  var x = event.clientX - position.left - this.chart.plotLeft;
+		  var value = this.chart.xAxis[0].toValue(x, true)
+		  var date = moment.unix(Math.round(value/1000))
       // this.plotLine(value, date.format('ll') )
-     this.drawLine(value, date.format('YYYY-MM-DD'))
-     this.$emit('select', date.format('YYYY-MM-DD'))
+      
+      if (!this.$el.classList.contains('ref')) {
+        this.drawLine(value, date.format('ll'))
+        this.$emit('select', date.format('YYYY-MM-DD'))
+      } else {
+        this.drawRef(value, date.format('ll'))
+        this.$emit('setref', date.format('YYYY-MM-DD'))
+      }
     },
     drawLine (x, date) {
+      if (this.listeners.date) {
+        this.listeners.date.remove()
+      }
       this.chart.xAxis[0].removePlotLine('selectedDate')
       this.chart.xAxis[0].addPlotLine({
        color: '#222222',
@@ -243,52 +254,55 @@ export default {
        zIndex: 1000,
        id: 'selectedDate',
        label: {
-         text: '<div class="date-tooltip">' + date + '</div>',
+         text: '<div class="date-tooltip draggable date">' + date + '</div>',
          align: 'center',
          useHTML: true,
          rotation:0,
-         y:20
+         y:40
        }
       })
+      var node = this.$el.querySelector('.date-tooltip.date')
+      var self = this
+      this.listeners.ref = node.addEventListener('click', function (e) {
+        self.$el.classList.toggle('ref')
+        e.stopPropagation()
+      }) 
     },
     drawRef (x, date) {
+     if (this.listeners.ref) {
+       this.listeners.ref.remove()
+     }
      this.chart.xAxis[0].removePlotLine('refDate')
      // var lines = this.chart.xAxis[0].
       this.chart.xAxis[0].addPlotLine({
        color: '#ff0000',
        value:  x,
        width: 3,
-       zIndex: 1000,
-       events: {
-         mouseover (e) {
-           console.log(e)
-         },
-         drag (e) {
-           console.log(e)
-         },
-         drop (e) {
-           console.log(e)
-         }
-       },
        id: 'refDate',
        zIndex: 1001,
        label: {
-         text: '<div class="date-tooltip draggable">' + date + '</div>',
+         text: '<div class="date-tooltip draggable reference">' + date + '</div>',
          align: 'center',
          useHTML: true,
          rotation:0,
-         y:50
+         y:40
        }
       })
+      var node = this.$el.querySelector('.date-tooltip.reference')
+      var self = this
+      this.listeners.ref = node.addEventListener('click', function (e) {
+        self.$el.classList.toggle('ref')
+        e.stopPropagation()
+      }) 
     },
     plotLine (x, date) {
       if (!this.chart) {
         return
       }
-      console.log('plotline')
+      var isRef = this.$el.classList.contains('ref')
       this.chart.xAxis[0].removePlotLine('highlight')
       this.chart.xAxis[0].addPlotLine({
-       color: '#999999',
+       color: isRef ? '#ff0000' : '#999999',
        value:  x,
        width: 2,
        zIndex: 1000,
@@ -298,7 +312,7 @@ export default {
          align: 'center',
          useHTML: true,
          rotation:0,
-         y:20
+         y:15
        }
      })
     },
@@ -317,11 +331,13 @@ export default {
    border-radius: 3px;
    border: 1px dotted grey;
  }
+ .date-tooltip.draggable.used,
  .date-tooltip.draggable:hover {
     cursor: move; /* fallback if grab cursor is unsupported */
     cursor: grab;
     cursor: -moz-grab;
     cursor: -webkit-grab;
+    cursor: pointer;
     background: #ffffff;
     border: 1px solid black;
  }

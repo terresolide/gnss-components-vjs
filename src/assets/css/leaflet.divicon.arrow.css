@@ -5,9 +5,9 @@
     background: none;
     border:none;
 }
-.leaflet-div-icon svg.arrow.up {
+/* .leaflet-div-icon svg.arrow.up {
   filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.7));
-}
+} */
 .leaflet-div-icon svg.arrow.down {
   filter: drop-shadow(2px 0px 2px rgb(0 0 0 / 0.7));
-}
+} 
