@@ -11,7 +11,7 @@
   </div>
   <div v-show="showNavigation" class="navigator">
    <fmt-timeline v-if="loadedDates" :values="dates" :reference="dateRef"
-   :defaut="defaultDate" @select="searchObservations"></fmt-timeline>
+   :defaut="defaultDate" @setref="changeRef" @select="searchObservations"></fmt-timeline>
   
    </div>
     <div id="map" ></div>
@@ -125,6 +125,7 @@ export default {
       dateLayers: null,
       showNavigation: false,
       loadedDates: false,
+      data: null,
       defaultDate: '2021-03-15',
       temp: {
         start: '2007-03-25',
@@ -203,6 +204,10 @@ export default {
       this.searchReferences('2017-02-27')
      
     },
+    changeRef (date) {
+      this.dateRef = date
+      this.searchReferences(date)
+    },
     load (index, next) {
       if (!this.root) {
         alert('Pas de service SensorThings!')
@@ -231,13 +236,15 @@ export default {
         data.forEach(function (result) {
            self.references[result.Datastream['@iot.id']] = result.result
         })
-        console.log(self.references)
+        this.displayDate()
       })
     },
     searchObservations (date) {
       this.date = date
       this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=id,properties/groupId)')
-      .then(resp => {this.displayDate(resp.body)})
+      .then(resp => {
+        this.data = resp.body
+        this.displayDate()})
     },
     addDatastream (index) {
       if (!this.datastreams[index]) {
@@ -410,12 +417,15 @@ export default {
         // this.loadedDates = true
       }
     },
-    displayDate (data) {
+    displayDate () {
+      if (!this.data) {
+        return
+      }
       this.groupLayers.forEach(function (groupLayer) {
         groupLayer.clearLayers()
       })
       var self = this
-      data.value.forEach(function (value) {
+      this.data.value.forEach(function (value) {
         self.addVector(value)
       })
     },

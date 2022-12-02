@@ -275,7 +275,7 @@ export default {
      this.chart.xAxis[0].removePlotLine('refDate')
      // var lines = this.chart.xAxis[0].
       this.chart.xAxis[0].addPlotLine({
-       color: '#ff0000',
+       color: '#B80000',
        value:  x,
        width: 3,
        id: 'refDate',
@@ -302,13 +302,13 @@ export default {
       var isRef = this.$el.classList.contains('ref')
       this.chart.xAxis[0].removePlotLine('highlight')
       this.chart.xAxis[0].addPlotLine({
-       color: isRef ? '#ff0000' : '#999999',
+       color: isRef ? '#B80000' : '#999999',
        value:  x,
        width: 2,
        zIndex: 1000,
        id: 'highlight',
        label: {
-         text: '<div class="date-tooltip">' + date + '</div>',
+         text: '<div class="date-tooltip highlight">' + date + '</div>',
          align: 'center',
          useHTML: true,
          rotation:0,
@@ -325,13 +325,15 @@ export default {
 }
 </script>
 <style>
+ .ref .date-tooltip.draggable.date,
  .date-tooltip {
    padding:3px 5px;
    background:rgba(255,255,255,0.8);
    border-radius: 3px;
    border: 1px dotted grey;
  }
- .date-tooltip.draggable.used,
+ .ref .date-tooltip.draggable.reference,
+.date-tooltip.draggable.date,
  .date-tooltip.draggable:hover {
     cursor: move; /* fallback if grab cursor is unsupported */
     cursor: grab;
@@ -340,6 +342,11 @@ export default {
     cursor: pointer;
     background: #ffffff;
     border: 1px solid black;
+ }
+ .date-tooltip.reference,
+ .ref .date-tooltip.highlight {
+   color: darkred;
+   border-color:darkred;
  }
 </style>
 <style scoped>
