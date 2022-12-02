@@ -11,7 +11,7 @@ L.DivIcon.Arrow = L.DivIcon.extend({
    /*
     * @options stroke: Number 20
     */
-    stroke: 20,
+    stroke: 10,
    /*
     * @option iconAnchor: Array [30, 30]
     * overwrite Icon default
@@ -24,11 +24,11 @@ L.DivIcon.Arrow = L.DivIcon.extend({
    /*
     * @option viewBox: String = '0 0 1500 1500'
     */
-    viewBox: '0 0 1500 1500',
+    viewBox: '0 0 700 700',
     /*
     * @option center: Array = [750, 750]
     */
-    center: [750, 750],
+    center: [350, 350],
     /*
      * @option arraw: Array = [East, North, Up]
      */

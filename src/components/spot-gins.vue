@@ -10,15 +10,15 @@
    </div>
   </div>
   <div v-show="showNavigation" class="navigator">
-   <fmt-timeline v-if="loadedDates" :values="dates"
+   <fmt-timeline v-if="loadedDates" :values="dates" :reference="dateRef"
    :defaut="defaultDate" @select="searchObservations"></fmt-timeline>
   
    </div>
     <div id="map" ></div>
-    <div  id="json" v-show="show" style="background:white;max-width:450px;min-height:500px;max-height:500px;">
+    <div  id="json" v-show="show" style="background:white;max-width:450px;min-height:550px;max-height:600px;">
       <h4>{{selected}}</h4>
       <ul class="menu-content">
-        <li @click="mode = 'station'" >
+        <li @click="getStation" >
         <span :class="{'selected': mode === 'station'}" >Station</span>
         </li>
         <li @click="mode='graph'" >
@@ -31,7 +31,7 @@
             <span :class="{'selected': mode === 'download'}" >Téléchargement</span>
         </li>
       </ul>
-      <div v-show="mode === 'station'" style="max-height:420px;overflow-y:scroll;">
+      <div v-show="mode === 'station'" style="max-height:500px;overflow-y:scroll;">
       <json-div :json="json" :selected="mode === 'station'" :deployed="true"></json-div>
       </div>
       <div v-show="mode === 'graph'" style="text-align:center;max-height:420px;overflow:scroll;">
@@ -42,7 +42,7 @@
        </div>
       </div>
       <div v-show="mode === 'data'" style="text-align:center;max-height:420px;overflow:scroll;">
-        <spotgins-graph :url="root" :id="datastreamId" :selected="mode === 'data'"></spotgins-graph>
+        <spotgins-graph :url="root" :id="datastreamId" :average="average" :selected="mode === 'data'"></spotgins-graph>
       </div>
       <div v-show="mode === 'download'" style="margin:20px;">     
        <!--    <input type="button" value="Télécharger JSON" @click="download('json')"/><br /><br />-->
@@ -85,15 +85,26 @@ export default {
     },
     top: {
       type: Number,
-      default: 2
+      default: 20
     }
   },  
+  computed: {
+    sens () {
+      var start = moment.utc(this.dateRef).valueOf()
+      var end = moment.utc(this.date).valueOf()
+      console.log(start)
+      console.log(end)
+      return (end - start > 0) ? 1 : -1
+    }
+  },
   data () {
     return {
       map: null,
       stations: [],
+      date: null,
       dates: null,
       preDates: null,
+      preDates2: null,
 //       scheme: {},
        json: null,
       datastreamId: null,
@@ -121,6 +132,9 @@ export default {
         start: '2007-03-25',
         end: '2022-05-21'
       },
+      dateRef: '2017-02-27',
+      references: [],
+      average: null,
       first: true,
       temps: [],
       searching: false,
@@ -132,13 +146,16 @@ export default {
       }
     }
   },
+  created () {
+    this.date = this.defaultDate
+  },
   mounted () {
    
     this.initialize()
   },
   methods: {
     initialize () {
-    
+   
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
       this.layerControl = new L.TilesControl(null, null, {position: 'topright'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
@@ -150,7 +167,7 @@ export default {
  //     var arrow = new L.DivIcon.Arrow({})
       this.colorScale = chroma.scale('RdYlBu').padding(-0.90)
       this.colorScale = chroma.scale(['#a50026', '#313695'])
-      console.log(this.colorScale.colors(20))
+ //     console.log(this.colorScale.colors(20))
       var self = this
 //       this.map.on('popupclose', function (e) {
 //         var json = e.target._container.querySelector('#json')
@@ -185,6 +202,7 @@ export default {
 //       this.layerControl.addOverlay(this.dateLayers, 'Par date')
     //  this.layerControl.addOverlay(this.stationLayers, 'TOUTES LES STATIONS')
       this.load(0)
+      this.searchReferences('2017-02-27')
      
     },
     load (index, next) {
@@ -207,12 +225,24 @@ export default {
       this.dataAsciiUrl = null
     //  this.sitelog = null
     },
+    searchReferences () {
+      var self = this
+      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + this.dateRef + ')&$expand=Datastream($select=id)')
+      .then(resp => {
+        var data = resp.body.value
+        data.forEach(function (result) {
+           self.references[result.Datastream['@iot.id']] = result.result
+        })
+        console.log(self.references)
+      })
+    },
     searchObservations (date) {
-      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=properties/groupId)')
+      this.date = date
+      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=id,properties/groupId)')
       .then(resp => {this.displayDate(resp.body)})
     },
     addDatastream (index) {
-      if (!this.stations[index]) {
+      if (!this.datastreams[index]) {
 //         console.log(index)
 //         if (this.bounds) {
 //           this.map.fitBounds(this.bounds, {padding: [20,20]})
@@ -220,7 +250,7 @@ export default {
 //         this.loadedDates = true
         return
       }
-      var groupId = this.datastreams[index].properties.groupId 
+      var groupId = this.datastreams[index].properties.properties.groupId 
       var className = this.classnames[groupId]
       var icon = L.divIcon({className: className})
 //        var svg = document.querySelector('.fixed #arrow')
@@ -264,6 +294,37 @@ export default {
       this.datastreams[index].layer = layer
       this.addDatastream(index + 1)
     },
+    fillDates2 (index) {
+      if (!this.temps[index]) {
+      //  this.loadedDates = true
+        return
+      }
+      var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z').valueOf()
+//    var date = timeStart.valueOf()
+      var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
+      if (this.preDates2.length === 0) {
+        this.preDates2.push([timeStart, 1, this.temps[index][0].substr(0,10)])
+        this.preDates2.push([theEnd, 0, this.temps[index][1].substr(0,10)])
+      } else {
+        var find = this.preDates2.findIndex(tab => tab[0] >= timeStart)
+        if (find >= 0) {
+          if (this.preDates2[find][0] > timeStart) {
+            var tot = this.preDates2[find - 1] ? this.preDates2[find - 1][1] : 0
+            this.preDates2.splice(find, 0, [timeStart, tot, this.temps[index][0].substr(0,10)] )
+          }
+          while (this.preDates2[find] && this.preDates2[find][0] < theEnd) {
+            this.preDates2[find][1] = this.preDates2[find][1] + 1
+            find = find + 1
+          }
+          if (!this.preDates2[find] || this.preDates2[find][0] !== theEnd) {
+             tot = this.preDates2[find] ? this.preDates2[find][1] : 0
+             this.preDates2.splice(find, 0, [theEnd, tot, this.temps[index][1].substr(0,10)])
+          }
+        }  
+      }
+      console.log(this.preDates2)
+      this.fillDates2(index + 1)
+    },
     fillDates (index) {
       if (!this.temps[index]) {
         this.loadedDates = true
@@ -286,36 +347,25 @@ export default {
         self.fillDates(index + 1)
       })
     },
-//     fillDates (start, end) {
-//      // this.dates = {}
-    
-//       var timeStart = moment.utc(start.substr(0,10) + 'T12:00:00.000Z')
-//       var date = timeStart.valueOf()
-//       var theEnd = moment.utc(end.substr(0,10) + 'T12:00:00.000Z').valueOf()
-//       while (date < theEnd) {
-//         if (!this.preDates[date]) {
-//            this.preDates[date] = 1
-//         } else {
-//           this.preDates[date] = this.preDates[date] + 1
-//         }
-//         timeStart.add(1, 'd')
-//         date = timeStart.valueOf()
-//       }
-      
-//     },
+
     display (data, index) {
       var self = this
       if (index === 0) {
         if (!this.loadedDates) {
-          this.preDates = {}
+          this.preDates = []
+          this.preDates2 = []
         }
         this.groupLayers.forEach(function (groupLayer) {
           groupLayer.clearLayers()
         })
       }
       data.value.forEach(function (value) {
+        // console.log(value.observedArea)
         if (value.observedArea) {
-	        var datastream = value.observedArea
+	        var datastream = {
+	            type: 'Feature',
+	            geometry: value.observedArea
+	        }
 	        delete value.observedArea
 	        datastream.properties = value
 // 	        station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
@@ -339,7 +389,7 @@ export default {
       })
       this.addDatastream(index)
       if (data['@iot.nextLink']) {
-        this.load(this.stations.length, data['@iot.nextLink'])
+        this.load(this.datastreams.length, data['@iot.nextLink'])
       } else {
         this.dates = this.preDates
         if (this.first) {
@@ -348,7 +398,7 @@ export default {
 	        var first = 'Les groupes de stations'
 	        this.groupLayers.forEach(function (layer, groupId) {
 	          layer.first = first ? {title: first, separator: true} : null
-	          var className = groupId === 1 ? 'marker-blue' : 'marker-red'
+	          var className = self.classnames[groupId]
 	          self.layerControl.addOverlay(layer, 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
 	          first = null
 	        })
@@ -358,6 +408,7 @@ export default {
           this.map.fitBounds(this.bounds)
         }
         this.fillDates(0)
+        this.fillDates2(0)
         // this.loadedDates = true
       }
     },
@@ -372,16 +423,27 @@ export default {
     },
     addVector (data) {
       var groupId = data.Datastream.properties.groupId 
-      
+      var iot = data.Datastream['@iot.id']
+      if (!this.references[iot]) {
+        return
+      }
+      var ref = this.references[iot]
+      if (!ref) {
+        return
+      }
+      var vector = []
+      for(var i in ref) {
+        vector[i] = this.sens * Math.round((data.result[i] - ref[i]) * 100) / 100
+      }
       var arrow = new L.DivIcon.Arrow({
-        arrow: data.result, 
-        color: this.colorScale((data.result[2] + 750) / 1500).hex(),
+        arrow: vector,
+        color: this.colorScale((vector[2] + 350) / 750).hex(),
 //         iconSize: [100, 100],
 //         iconAnchor: [50, 50],
 //         stroke: 25
       })
       var text = '<b>' + data.FeatureOfInterest.name + '</b>'
-      text += '<br>E: ' + data.result[0] + ' mm<br>N: ' + data.result[1] + ' mm<br>Up: ' + data.result[2] + ' mm'
+      text += '<br>E: ' + vector[0]  + ' mm<br>N: ' + vector[1] + ' mm<br>Up: ' + vector[2]+ ' mm'
       var larrow = L.geoJSON(data.FeatureOfInterest.feature, {
         pointToLayer (feature, latlng) {
 	        var marker = L.marker(latlng, {icon: arrow, title: feature.id})       
@@ -480,14 +542,23 @@ export default {
          return
        }
       this.show = true
-      this.img = e.target.feature.datastream.properties.img
+      this.selected = e.target.feature.properties.name
+      this.img = e.target.feature.properties.properties.img
       this.imgMin = this.img
-      this.datastreamId = e.target.feature.datastream['@iot.id']
-      this.dataAsciiUrl = e.target.feature.datastream.properties.file
-     this.json = e.target.feature.properties
+      this.average = e.target.feature.properties.properties.average
+      this.datastreamId = e.target.feature.properties['@iot.id']
+      this.dataAsciiUrl = e.target.feature.properties.properties.file
+     // this.json = e.target.feature.properties
       this.popup.setLatLng(e.target.getLatLng())
       this.popup.openOn(this.map)
       
+    },
+    getStation () {
+      this.mode = 'station'
+//       if (!this.json) {
+//         this.$http.get(this.selected.properties['Thing@iot.navigationLink'])
+//         .then(resp => {this.json = resp.body})
+//       }
     },
     getDataOld (e) {
 //       this.imgUrl = null
@@ -549,7 +620,7 @@ export default {
   width:30px;height:5px;
 }
 .step:first-child:after {
- content:' 750';
+ content:' 350';
  /* margin-right: -30px;*/
   margin-left:35px;
  }
@@ -559,7 +630,7 @@ export default {
  margin-left:35px;
  }
  .step:last-child:before {
- content:'-750';
+ content:'-350';
 margin-left:35px;
  }
 #map {
@@ -626,7 +697,8 @@ div.marker-orange {
   border-radius:3px;
 }
 div.leaflet-control-layers-overlays div.marker-red,
-div.leaflet-control-layers-overlays div.marker-blue {
+div.leaflet-control-layers-overlays div.marker-blue, 
+div.leaflet-control-layers-overlays div.marker-orange {
   display:inline-block;
   width: 10px;
   height: 10px;

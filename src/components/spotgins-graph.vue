@@ -52,6 +52,10 @@ export default {
       type: String,
       default: null
     },
+    average: {
+      type: Array,
+      default: () => {return [0,0,0]}
+    },
     selected: {
       type: Boolean,
       default: false
@@ -171,24 +175,24 @@ export default {
       var self = this
      // this.dates = this.values.map(result => result[0])
       this.min = {
-        E: data[0][1][0],
-        N: data[0][1][1],
-        U: data[0][1][2]
+        E: data[0][1][0] - this.average[0],
+        N: data[0][1][1] - this.average[1],
+        U: data[0][1][2] - this.average[2]
       }
       this.max = {
-        E: data[0][1][0],
-        N: data[0][1][1],
-        U: data[0][1][2]
+        E: data[0][1][0] - this.average[0],
+        N: data[0][1][1] - this.average[1],
+        U: data[0][1][2] - this.average[2]
       }
       data.forEach (function (result, n) {
         var time = moment(result[0], 'YYYY-MM-DDThh:mm:ssZ').valueOf()
         var value = {}
         var quality = {}
-        value.E = result[1][0]
+        value.E = Math.round((result[1][0] - self.average[0])* 100) / 100
         quality.E = result[2][0]
-        value.N = result[1][1]
+        value.N = Math.round((result[1][1] - self.average[1]) * 100) / 100
         quality.N = result[2][1]
-        value.U = result[1][2]
+        value.U = Math.round((result[1][2] - self.average[2]) * 100) /100
         quality.U = result[2][2]
         self.dates.push(time)
 	       // data.push([time, result])
@@ -489,8 +493,8 @@ export default {
            title: {
                text: title
            },
-           min: min,
-           max: max,
+//            min: min,
+//            max: max,
            plotLines: [{
              value: 0,
              color: 'lightgrey',
@@ -506,17 +510,17 @@ export default {
            data:data,
            lineWidth: 1
        },
-       {
-         type: "linearRegression",
-         linkedTo: type,
-         color: 'darkred',
-         enableMouseTracking: false,
-         zIndex: 11,
-         params: {
-           period: 30
-         },
-         lineWidth: 1
-       },
+//        {
+//          type: "linearRegression",
+//          linkedTo: type,
+//          color: 'darkred',
+//          enableMouseTracking: false,
+//          zIndex: 11,
+//          params: {
+//            period: 30
+//          },
+//          lineWidth: 1
+//        },
     ]})
  },
   }

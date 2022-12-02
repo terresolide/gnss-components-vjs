@@ -1,5 +1,6 @@
 <template>
-<div><div class="fmt-timeline" :class="{disabled: drawing}"></div></div>
+<div><div class="fmt-timeline" :class="{disabled: drawing}"
+ @mousemove="mouseover" @click="setSelected" @mouseleave="mouseout"></div></div>
 </template>
 <script>
 import * as Highcharts from 'highcharts'
@@ -13,14 +14,18 @@ export default {
     },
     defaut: {
       type: String,
-      value: '2020-03-15'
+      default: '2020-03-15'
+    },
+    reference: {
+      type: String,
+      default: '2017-02-27'
     }
   },
   watch: {
     values (newvalue) {
       console.log('newvalue')
       this.display(newvalue, 0)
-    }
+    } 
   },
   data () {
     return {
@@ -47,6 +52,20 @@ export default {
     this.resizeListener = null
   },
   methods: {
+    mouseover (event) {
+     var position = this.$el.querySelector('.fmt-timeline').getBoundingClientRect()
+//       console.log(position)
+//       var x = event.clientX - position.left - 35
+      var x = event.clientX - position.left - this.chart.plotLeft;
+      var value = this.chart.xAxis[0].toValue(x, true)
+      var date = moment.unix(Math.round(value/1000))
+      this.plotLine(value, date.format('ll') )
+      
+    },
+    mouseout () {
+      console.log('out')
+      this.chart.xAxis[0].removePlotLine('highlight')
+    },
     display (values, index) {
       var _this = this
       if (!values) {
@@ -54,8 +73,13 @@ export default {
           this.drawing = false
           if (this.defaut) {
             var date = moment.utc(this.defaut + 'T12:00:00.000Z')
-            this.plotLine(date.valueOf(), date.format('ll'))
+            this.drawLine(date.valueOf(), date.format('ll'))
             
+          }
+          if (this.reference) {
+            console.log('reference')
+            var date = moment.utc(this.reference + 'T12:00:00.000Z')
+            this.drawRef(date.valueOf(), date.format('ll'))
           }
           return
         }
@@ -89,7 +113,6 @@ export default {
       for (var key in values) {
         this.dates.push([parseInt(key), values[key]])
       }
-      
       var container = this.$el.querySelector(".fmt-timeline")
       this.chart = Highcharts.chart(container, {
         
@@ -115,6 +138,7 @@ export default {
             enabled: false
         },
         tooltip: {
+          enabled: false,
 //           positioner: function () {
 //               return { x: 80, y: 0 };
 //           },
@@ -183,23 +207,85 @@ export default {
           color: 'darkblue',
           data: [],
           cursor: 'pointer',
-          events: {
-              click: function (e, s) {
-                  var date = moment.unix(e.point.x/1000)
-                  _this.plotLine(e.point.x, date.format('ll') )
-                  _this.$emit('select', date.format('YYYY-MM-DD'))
-              }
-          }
+//           events: {
+//               click: function (e, s) {
+//                   var date = moment.unix(e.point.x/1000)
+//                   _this.plotLine(e.point.x, date.format('ll') )
+//                   _this.$emit('select', date.format('YYYY-MM-DD'))
+//               }
+//           }
         }]
       })
       setTimeout(function() {
         _this.display(null, index)
       })
     },
+    setSelected (event) {
+      if (!this.chart) {
+        return
+      }
+      var position = this.$el.querySelector('.fmt-timeline').getBoundingClientRect()
+      console.log(event)
+//    var x = event.clientX - position.left - 35
+   var x = event.clientX - position.left - this.chart.plotLeft;
+   var value = this.chart.xAxis[0].toValue(x, true)
+   var date = moment.unix(Math.round(value/1000))
+      // this.plotLine(value, date.format('ll') )
+     this.drawLine(value, date.format('YYYY-MM-DD'))
+     this.$emit('select', date.format('YYYY-MM-DD'))
+    },
+    drawLine (x, date) {
+      this.chart.xAxis[0].removePlotLine('selectedDate')
+      this.chart.xAxis[0].addPlotLine({
+       color: '#222222',
+       value:  x,
+       width: 3,
+       zIndex: 1000,
+       id: 'selectedDate',
+       label: {
+         text: '<div class="date-tooltip">' + date + '</div>',
+         align: 'center',
+         useHTML: true,
+         rotation:0,
+         y:20
+       }
+      })
+    },
+    drawRef (x, date) {
+     this.chart.xAxis[0].removePlotLine('refDate')
+     // var lines = this.chart.xAxis[0].
+      this.chart.xAxis[0].addPlotLine({
+       color: '#ff0000',
+       value:  x,
+       width: 3,
+       zIndex: 1000,
+       events: {
+         mouseover (e) {
+           console.log(e)
+         },
+         drag (e) {
+           console.log(e)
+         },
+         drop (e) {
+           console.log(e)
+         }
+       },
+       id: 'refDate',
+       zIndex: 1001,
+       label: {
+         text: '<div class="date-tooltip draggable">' + date + '</div>',
+         align: 'center',
+         useHTML: true,
+         rotation:0,
+         y:50
+       }
+      })
+    },
     plotLine (x, date) {
       if (!this.chart) {
         return
       }
+      console.log('plotline')
       this.chart.xAxis[0].removePlotLine('highlight')
       this.chart.xAxis[0].addPlotLine({
        color: '#999999',
@@ -230,6 +316,14 @@ export default {
    background:rgba(255,255,255,0.8);
    border-radius: 3px;
    border: 1px dotted grey;
+ }
+ .date-tooltip.draggable:hover {
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    background: #ffffff;
+    border: 1px solid black;
  }
 </style>
 <style scoped>
