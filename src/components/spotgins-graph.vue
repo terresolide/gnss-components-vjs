@@ -196,7 +196,7 @@ export default {
         quality.U = result[2][2]
         self.dates.push(time)
 	       // data.push([time, result])
-	      if (n%7 === 0) {
+	     // if (n%2 === 0) {
 	        self.types.forEach(function (type) {
 	          self.results[type].push(
 	             [time, 
@@ -205,7 +205,7 @@ export default {
 	             Math.round((value[type] - quality[type]) * 100) / 100,
 	             value[type]
 	          ]) 
-	          if (quality.N < 10) {
+	          if (quality.N < 1) {
               if (self.min[type] > value[type]) {
                 self.min[type] = value[type]
               } else if (self.max[type] < value[type]) {
@@ -213,7 +213,7 @@ export default {
               }
             }
 	        })
-	      }
+	     // }
        
       
 // 	      if (result[0].substring(4) === '01-01') {

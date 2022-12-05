@@ -21,15 +21,15 @@ export default {
       default: '2017-02-27'
     }
   },
-  watch: {
-    values (newvalue) {
-      console.log('newvalue')
-      this.display(newvalue, 0)
-    } 
-  },
+//   watch: {
+//     values (newvalue) {
+//       console.log('newvalue')
+//       this.display(newvalue, 0)
+//     } 
+//   },
   data () {
     return {
-      dates: [],
+     // dates: [],
       chart: null,
       max: 0,
       drawing: false,
@@ -47,7 +47,8 @@ export default {
   mounted () {
     // this.width = window.innerWidth
     console.log(this.width)
-    this.display(this.values, 0)
+    console.log(this.reference)
+    this.display()
   },
   destroy () {
     window.addEventListener('resize', this.resizeListener)
@@ -68,53 +69,53 @@ export default {
       console.log('out')
       this.chart.xAxis[0].removePlotLine('highlight')
     },
-    display (values, index) {
+    display () {
       var _this = this
-      if (!values) {
-        if (index >= this.dates.length) {
-          this.drawing = false
-          if (this.defaut) {
-            var date = moment.utc(this.defaut + 'T12:00:00.000Z')
-            this.drawLine(date.valueOf(), date.format('ll'))
+//       if (!values) {
+//         if (index >= this.dates.length) {
+//           this.drawing = false
+//           if (this.defaut) {
+//             var date = moment.utc(this.defaut + 'T12:00:00.000Z')
+//             this.drawLine(date.valueOf(), date.format('ll'))
             
-          }
-          if (this.reference) {
-            console.log('reference')
-            var date = moment.utc(this.reference + 'T12:00:00.000Z')
-            this.drawRef(date.valueOf(), date.format('ll'))
-          }
-          return
-        }
+//           }
+//           if (this.reference) {
+//             console.log('reference')
+//             var date = moment.utc(this.reference + 'T12:00:00.000Z')
+//             this.drawRef(date.valueOf(), date.format('ll'))
+//           }
+//           return
+//         }
        
-        var length = 1000
-        for (var i = index; i < index + 1000  && i < this.dates.length; i++) {
-          this.chart.series[0].addPoint(this.dates[i], false)
-          if (this.max < this.dates[i][1]) {
-            this.max = this.dates[i][1]
-          }
-          length = i
-        }
-        this.chart.redraw()
+//         var length = 1000
+//         for (var i = index; i < index + 1000  && i < this.dates.length; i++) {
+//           this.chart.series[0].addPoint(this.dates[i], false)
+//           if (this.max < this.dates[i][1]) {
+//             this.max = this.dates[i][1]
+//           }
+//           length = i
+//         }
+//         this.chart.redraw()
         
-//         this.chart.xAxis[0].setExtremes(this.dates[0][0], this.dates[length][0], true, false)
-         this.chart.yAxis[0].setExtremes(0, this.max, true, false)
-         setTimeout(function() {
-          _this.display(null, index + 1000)
-        },0)
-        return
-      }
-      this.drawing = true
-      if (this.chart) {
-        this.chart.destroy()
-        this.chart = null
-      }
-      this.dates = []
-      if (Object.keys(values).length === 0) {
-        return
-      }
-      for (var key in values) {
-        this.dates.push([parseInt(key), values[key]])
-      }
+// //         this.chart.xAxis[0].setExtremes(this.dates[0][0], this.dates[length][0], true, false)
+//          this.chart.yAxis[0].setExtremes(0, this.max, true, false)
+//          setTimeout(function() {
+//           _this.display(null, index + 1000)
+//         },0)
+//         return
+//       }
+//       this.drawing = true
+//       if (this.chart) {
+//         this.chart.destroy()
+//         this.chart = null
+//       }
+//       this.dates = []
+//       if (Object.keys(values).length === 0) {
+//         return
+//       }
+//       for (var key in values) {
+//         this.dates.push([parseInt(key), values[key]])
+//       }
       var container = this.$el.querySelector(".fmt-timeline")
       this.chart = Highcharts.chart(container, {
         
@@ -123,7 +124,8 @@ export default {
           width: _this.width,
           plotBorderColor: '#666666',
           plotBorderWidth: 0,
-          type: 'column',
+          type: 'area'
+        //  type: 'column',
         //  zoomType: 'x'
         },
         exporting: {
@@ -149,15 +151,15 @@ export default {
           borderWidth: 0,
           backgroundColor: 'rgba(255,255,255,0.8)'
         },
-        plotOptions: {
-          column: {
-            stacking: 'normal',
-            pointPadding: 0,
-            borderWidth: 0.1,
-            groupPadding: 0,
-            shadow: false
-          }
-        },
+//         plotOptions: {
+//           column: {
+//             stacking: 'normal',
+//             pointPadding: 0,
+//             borderWidth: 0.1,
+//             groupPadding: 0,
+//             shadow: false
+//           }
+//         },
 //         plotOptions: {
 //             series: {
 //                 pointPadding: 0,
@@ -179,8 +181,8 @@ export default {
                 month: '%b %y',
                 year: '%Y'
             },
-            min: _this.dates[0][0],
-            max: _this.dates[_this.dates.length -1][0],
+            min: _this.values[0][0],
+            max: _this.values[_this.values.length -1][0],
             crosshair: {
               color: 'darkgrey',
               zIndex: 1000
@@ -196,8 +198,8 @@ export default {
             enabled: false
           },
           allowDecimals: false,
-          min:0,
-          max:_this.max
+          minRange: 5,
+          min:0
         },
 //         tooltip: {
 //           shared: true,
@@ -205,10 +207,15 @@ export default {
 //         },
         series: [{
           name: 'Nb Stations',
-          type: "column",
           color: 'darkblue',
-          data: [],
-          cursor: 'pointer',
+          enableMouseTracking: false,
+          states: {
+            hover: {
+                enabled: false
+            }
+          },
+          data: _this.values,
+ //         cursor: 'pointer',
 //           events: {
 //               click: function (e, s) {
 //                   var date = moment.unix(e.point.x/1000)
@@ -218,9 +225,19 @@ export default {
 //           }
         }]
       })
-      setTimeout(function() {
-        _this.display(null, index)
-      })
+      if (this.defaut) {
+         var date = moment.utc(this.defaut + 'T12:00:00.000Z')
+         this.drawLine(date.valueOf(), date.format('ll'))
+            
+       }
+       if (this.reference) {
+         console.log('reference')
+         var date = moment.utc(this.reference + 'T12:00:00.000Z')
+         this.drawRef(date.valueOf(), date.format('ll'))
+       }
+//       setTimeout(function() {
+//         _this.display(null, index)
+//       })
     },
     setSelected (event) {
       if (!this.chart) {

@@ -301,34 +301,45 @@ export default {
       this.addDatastream(index + 1)
     },
     fillDates2 (index) {
-      if (!this.temps[index]) {
+      
+      if (!this.temps[index] ) {
       //  this.loadedDates = true
         return
       }
+     // console.log(this.temps[index][0].substr(0,10) + ' / ' + this.temps[index][1].substr(0,10))
       var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z').valueOf()
 //    var date = timeStart.valueOf()
       var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
       if (this.preDates2.length === 0) {
-        this.preDates2.push([timeStart, 1, this.temps[index][0].substr(0,10)])
-        this.preDates2.push([theEnd, 0, this.temps[index][1].substr(0,10)])
+        this.preDates2.push([timeStart, 1])
+        this.preDates2.push([theEnd, 0])
       } else {
-        var find = this.preDates2.findIndex(tab => tab[0] >= timeStart)
-        if (find >= 0) {
-          if (this.preDates2[find][0] > timeStart) {
-            var tot = this.preDates2[find - 1] ? this.preDates2[find - 1][1] : 0
-            this.preDates2.splice(find, 0, [timeStart, tot, this.temps[index][0].substr(0,10)] )
+        // var find = this.preDates2.findIndex(tab => tab[0] >= timeStart)
+        var k = 0
+        while (this.preDates2[k][0] < timeStart && k < this.preDates2.length ) {
+          k++
+        }
+        if (!this.preDates2[k]) {
+          this.preDates2.push([timeStart, 1])
+          this.preDates2.push([theEnd, 0])
+    
+        } else {
+          if (this.preDates2[k][0] === timeStart) {
+            this.preDates2[k][1] = this.preDates2[k][1] + 1
+          } else {
+            var tot = this.preDates2[k - 1] ? this.preDates2[k - 1][1] : 0
+            this.preDates2.splice(k, 0, [timeStart, tot])
           }
-          while (this.preDates2[find] && this.preDates2[find][0] < theEnd) {
-            this.preDates2[find][1] = this.preDates2[find][1] + 1
-            find = find + 1
+          while (this.preDates2[k][0] < theEnd && k < this.preDates2.length ) {
+            var tot = this.preDates2[k][1]
+            this.preDates2[k][1] = this.preDates2[k][1] + 1
+            k++
           }
-          if (!this.preDates2[find] || this.preDates2[find][0] !== theEnd) {
-             tot = this.preDates2[find] ? this.preDates2[find][1] : 0
-             this.preDates2.splice(find, 0, [theEnd, tot, this.temps[index][1].substr(0,10)])
+          if (this.preDates2[k][0] > theEnd) {
+            this.preDates2.splice(k, 0, [theEnd, tot])
           }
-        }  
+        }
       }
-      console.log(this.preDates2)
       this.fillDates2(index + 1)
     },
     fillDates (index) {
@@ -397,7 +408,7 @@ export default {
       if (data['@iot.nextLink']) {
         this.load(this.datastreams.length, data['@iot.nextLink'])
       } else {
-        this.dates = this.preDates
+        this.dates = this.preDates2
         if (this.first) {
           this.dateLayers.first = 'Vue'
           this.layerControl.addOverlay(this.dateLayers, 'Par date')
