@@ -15,6 +15,7 @@
    </div>
     <div id="map" ></div>
     <div  id="json" v-show="show" style="background:white;max-width:450px;min-height:550px;max-height:600px;">
+      <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
       <h4>{{selected}}</h4>
       <ul class="menu-content">
         <li @click="getStation" >
@@ -164,7 +165,8 @@ export default {
       this.layerControl = new L.TilesControl(null, null, {position: 'topright'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
-      this.popup = L.popup({minWidth: 450, minHeight:500, maxHeight:500})
+      this.popup = L.popup({minWidth: 450, minHeight:500, maxHeight:500, closeButton: false})
+      
       var node = document.querySelector('#json')
       // container.appendChild(node)
       this.popup.setContent(node)
@@ -212,6 +214,9 @@ export default {
     changeRef (date) {
       this.dateRef = date
       this.searchReferences(date)
+    },
+    closePopup() {
+      this.map.closePopup()
     },
     goToStation (e) {
       e.preventDefault()
@@ -270,6 +275,7 @@ export default {
       var className = this.classnames[groupId]
       var icon = L.divIcon({
         className: 'icon-marker marker-' + className, 
+        iconSize: [15,15],
         html:'<span class="fa fa-circle" style="font-size:8px;"></span>'})
 //        var svg = document.querySelector('.fixed #arrow')
 //        var node = svg.cloneNode(true)
@@ -423,11 +429,12 @@ export default {
         this.dates = this.preDates2
         if (this.first) {
           this.dateLayers.first = 'Vue'
-          this.layerControl.addOverlay(this.dateLayers, 'Par date')
+          // this.layerControl.addOverlay(this.dateLayers, 'Par date')
 	        var first = 'Les groupes de stations'
 	        this.groupLayers.forEach(function (layer, groupId) {
-	          layer.first = first ? {title: first, separator: true} : null
-	          var className = self.classnames[groupId]
+	           layer.first = first ? first : null
+	            
+	             var className = self.classnames[groupId]
 	          self.layerControl.addOverlay(layer, 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
 	          first = null
 	        })
@@ -653,6 +660,24 @@ export default {
 </style> 
 <style src='../assets/css/leaflet.divicon.arrow.css'></style>
 <style>
+div.leaflet-marker-icon {
+  margin-left: -7px;
+margin-top: -7px;
+width: 15px;
+height: 15px;
+transform: translate3d(255px, -215px, 0px);
+z-index: -215;
+outline: none;
+}
+div[id="json"] .fa-close {
+  padding:3px;
+  border: 1px dotted white;
+  border-radius: 3px;
+  cursor: pointer;
+}
+div[id="json"] .fa-close:hover {
+ border-color: grey;
+}
 .step {
  /* margin-right:45px;*/
   text-align: left;

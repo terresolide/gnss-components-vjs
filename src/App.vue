@@ -1,5 +1,5 @@
 <template>
- <div style="position:relative;">
+ <div class="spotgins" style="position:relative;">
  <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  <div v-if="$route && $route.name !== 'home'" id="page">
            <router-view ></router-view>
@@ -23,6 +23,10 @@ export default {
 }
 </script>
 <style>
+.spotgins {
+  font-family: sans-serif;
+  line-height:1;
+}
 #page {
   position: absolute;
   width:100%;
