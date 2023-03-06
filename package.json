@@ -1,6 +1,6 @@
 {
   "name": "spot-gins-vjs",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Component to display spot gins data",
   "preproduction": {
     "url": "http://api.formater/data/spotgins"
@@ -24,13 +24,16 @@
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
   },
   "dependencies": {
+    "@bokeh/bokehjs": "^3.0.3",
     "chroma-js": "^2.4.2",
     "highcharts": "^10.1.0",
     "leaflet": "^1.7.1",
     "moment": "^2.29.3",
     "vue": "^2.6.12",
     "vue-custom-element": "^1.4.4",
-    "vue-resource": "^1.5.0"
+    "vue-resource": "^1.5.0",
+    "vue-router": "^3.6.5",
+    "vue-store": "^0.3.1-moved"
   },
   "devDependencies": {
     "@babel/core": "^7.2.10",

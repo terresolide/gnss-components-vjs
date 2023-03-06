@@ -1,6 +1,5 @@
 <template>
   <div style="position:relative;">
- <h1 v-if="!showNavigation">SPOT GINS TEST</h1>
   <div v-if=" colorScale" v-show="showNavigation" style="font-size:12px;position: fixed;left:20px;bottom:110px;z-index:1000;border-radius:4px;border: 2px solid rgba(0,0,0,0.2);padding:3px 3px 8px 3px;background:white;">
     <div style="padding:3px 3px 5px 3px;">Up (mm)</div>
     <div>
@@ -24,11 +23,15 @@
         <li @click="mode='graph'" >
             <span :class="{'selected': mode === 'graph'}" >Graphique</span>
         </li>
-        <li @click="mode='data'" >
+       <!--   <li @click="mode='data'" >
             <span :class="{'selected': mode === 'data'}" >Interactif</span>
         </li>
+        -->
          <li @click="mode='download'" >
             <span :class="{'selected': mode === 'download'}" >Téléchargement</span>
+        </li>
+         <li v-if="$route" @click="goToStation($event)" >
+            <span :class="{'selected': mode === 'more'}" >Plus d'info</span>
         </li>
       </ul>
       <div v-show="mode === 'station'" style="max-height:500px;overflow-y:scroll;">
@@ -37,7 +40,7 @@
       <div v-show="mode === 'graph'" style="text-align:center;max-height:420px;overflow:scroll;">
        <div v-if="imgMin" v-show="loaded">
         <a :href="img" target="_blank">
-          <img  :src="imgMin" width="350" @load="loaded = true">
+          <img  :src="imgMin" width="350" @click="goToStation($event)" @load="loaded = true">
         </a>
        </div>
       </div>
@@ -62,9 +65,9 @@ L.TilesControl = require('../modules/leaflet.tiles.js')
 L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
 delete Icon.Default.prototype._getIconUrl;
 Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
+  iconUrl: require('leaflet/dist/images/marker-icon.png').default,
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 const JsonDiv = () => import('./json-div.vue')
 const SpotginsGraph = () => import('./spotgins-graph.vue')
@@ -98,6 +101,7 @@ export default {
   data () {
     return {
       map: null,
+      stationId: null,
       stations: [],
       date: null,
       dates: null,
@@ -140,9 +144,9 @@ export default {
       searching: false,
       colorScale: null,
       classnames: {
-        1: 'marker-blue',
-        2: 'marker-red',
-        3: 'marker-orange'
+        1: 'blue',
+        2: 'red',
+        3: 'orange'
       }
     }
   },
@@ -209,11 +213,16 @@ export default {
       this.dateRef = date
       this.searchReferences(date)
     },
+    goToStation (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      this.$router.push({ name: 'station', params: { id: this.stationId } })
+    },
     load (index, next) {
       if (!this.root) {
         alert('Pas de service SensorThings!')
       }
-      var url = next ? next : this.root + 'Datastreams?$top=' + this.top 
+      var url = next ? next : this.root + 'Datastreams?$expand=Thing($select=name)&$top=' + this.top 
       this.$http.get(url)
       .then(
           resp => {this.display(resp.body, index)},
@@ -224,6 +233,7 @@ export default {
       this.loaded = false
       this.img = null
       this.imgMin = null
+      this.stationId = null
       this.json = null
     //  this.dataJsonUrl = null
       this.dataAsciiUrl = null
@@ -258,7 +268,9 @@ export default {
       }
       var groupId = this.datastreams[index].properties.properties.groupId 
       var className = this.classnames[groupId]
-      var icon = L.divIcon({className: className})
+      var icon = L.divIcon({
+        className: 'icon-marker marker-' + className, 
+        html:'<span class="fa fa-circle" style="font-size:8px;"></span>'})
 //        var svg = document.querySelector('.fixed #arrow')
 //        var node = svg.cloneNode(true)
 //        var line = svg.querySelector('line')
@@ -562,6 +574,9 @@ export default {
          return
        }
       this.show = true
+      console.log('loaded', this.loaded)
+      console.log(e.target.feature)
+      this.stationId = e.target.feature.properties.Thing.name
       this.selected = e.target.feature.properties.name
       this.img = e.target.feature.properties.properties.img
       this.imgMin = this.img
@@ -699,27 +714,58 @@ h1 {
     background: none;
     border:none;
 }
-div.marker-red{
-  width: 30px;
-  height: 30px;
-  background-color: darkred;
+div.icon-marker {
+  color: white;
+  width: 12px;
+  height: 12px;
   border: 1px solid black;
   border-radius:3px;
+  text-align:center;
+  line-height:12px;
+}
+div.icon-marker span {
+  line-height:12px;
+  font-weight:700;
+  vertical-align: middle;
+}
+div.marker-red{
+  background-color: darkred;
 }
 
 div.marker-blue {
-  width: 30px;
-  height: 30px;
   background-color: #0000CD;
-  border: 1px solid black;
-  border-radius:3px;
 }
 div.marker-orange {
-  width: 30px;
-  height: 30px;
-  background-color: orange;
-  border: 1px solid black;
-  border-radius:3px;
+
+  background-color: darkorange;
+
+}
+div.arrow-down {
+  width: 20px;
+  height: 20px;
+  
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  background-position: left, right;
+  line-height:20px;
+  vertical-align: middle;
+  color:white;
+  text-align:center;
+}
+div.a-red {
+  background-image:
+    linear-gradient(to bottom right, transparent 50%, darkred 0),
+    linear-gradient(to top right, darkred 50%, transparent 0);
+}
+div.a-orange {
+  background-image:
+    linear-gradient(to bottom right, transparent 50%, darkorange 0),
+    linear-gradient(to top right, darkorange 50%, transparent 0);
+}
+div.a-blue {
+  background-image:
+    linear-gradient(to bottom right, transparent 50%,  #0000CD 0),
+    linear-gradient(to top right,  #0000CD 50%, transparent 0);
 }
 div.leaflet-control-layers-overlays div.marker-red,
 div.leaflet-control-layers-overlays div.marker-blue, 
