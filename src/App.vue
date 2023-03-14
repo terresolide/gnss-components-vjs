@@ -1,19 +1,20 @@
 <template>
  <div class="spotgins" style="position:relative;">
- <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
- <div v-if="$route && $route.name !== 'home'" id="page">
+ <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
+ -->
+ <div  id="page">
            <router-view ></router-view>
  </div>
  </div>
 </template>
 
 <script>
-import SpotGins from './components/spot-gins.vue'
+// import SpotGins from './components/spot-gins.vue'
 
 export default {
   name: 'App',
   components: {
-    SpotGins
+    // SpotGins
   },
   mounted () {
     if (this.$route) {

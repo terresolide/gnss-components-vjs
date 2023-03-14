@@ -1,7 +1,7 @@
 <template>
- <div >
+ <div style="margin:auto;">
 	 <div class="station-header">
-	    <span class="fa fa-close" @click="close"></span>
+	    <span class="fa fa-close" @click="close" style="margin-right:20px;"></span>
 	    <h2 v-if="stationId">Station {{stationId}}</h2>
 	    <h2 v-else>UNKNOWN STATION</h2>
 	 </div>
@@ -9,12 +9,16 @@
   <div v-if="location">
    
     <div>
-    <h3 style="margin-bottom:0;">Coordinates</h3>
+      <h3 style="margin-bottom:0;">Coordinates</h3>
       <div style="float:left;min-width:300px;width:40%;margin-left:10px;margin-top:18px;margin-right:50px;">
        
-	       <div>Latitude: {{location.geometry.coordinates[1].toLocaleString()}}°</div>
-	       <div>Longitude: {{location.geometry.coordinates[0].toLocaleString()}}°</div>
+	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
+	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
+	       <div v-if="station.properties.height"><label>Height:</label>{{station.properties.height.toLocaleString()}} m</div>
   
+      <h3>Informations</h3>
+       <div v-if="station.properties.m3g"><label>M3g:</label>  <a :href="station.properties.m3g" target="_blank">sitelog</a></div>
+       <div><label>Domes:</label> {{station.properties.domes}}</div>
        <div v-if="neighbours.length > 0" style="margin-left:-10px;">
         <h3>Nearest stations</h3>
         <div v-if="map && neighboursLayer" style="margin-left:10px;">
@@ -32,11 +36,36 @@
       </div>
     </div>
    </div>
-   <div style="clear:left;padding-top:10px;" v-if="stationId">
-     <h3>Time Series Plots</h3>
-     <div v-html="plot.div" style="max-width:600px;">STATION INCONNUE</div>
+   <div v-if="files.length > 0"style="clear:left;padding-top:10px;position:relative;">
+   <div  v-if="selected" class="file-selected">
+     <span class="fa fa-close" @click="unselect"></span>
+     <h3>Time Series Plots of {{selected.name}}</h3>
+     <div v-html="plot.div" >STATION INCONNUE</div>
    </div>
-   <div v-else>
+     <h3>Data</h3>
+     <div style="margin-left:10px;">
+		   <div  v-for="file in files" class="file-container" >
+		     <div style="">
+		       <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
+		         -->
+		         <a  :href="file.properties.file" :download="file.name" ><span class="fa fa-download"></span></a>
+		       <div><label>Name</label>{{file.name}}</div>
+		       <div style="font-size:0.8rem;">
+		        
+		        <div><label>ProductType</label>{{file.productType}}</div>
+		        <div><label>Phenomenon Time</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
+		        <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
+		        <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file'">
+		        <label>{{key}}</label> {{value}}
+		        </div>
+		     </div>
+		     <div><img :src="file.properties.img" style="max-width:500px;" @click="getSerie(file)" /></div>
+		     </div>
+		   </div>
+	   </div>
+   </div>
+   
+   <div v-if="!station">
       No station found with this code
    </div>
   </div>
@@ -47,6 +76,7 @@
 var L = require('leaflet')
 import { Icon } from 'leaflet';
 import Util from '../modules/util.js'
+import moment from 'moment'
 delete Icon.Default.prototype._getIconUrl;
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
@@ -65,11 +95,20 @@ export default {
       icon: null,
       stationLayer: null,
       neighboursLayer: null,
+      files: [],
+      selected: null,
       onMap: false,
       map: null,
       location: null,
-      neighbours: [],
-      root: 'https://catalog.formater/FROST-Server/v1.1/'
+      neighbours: []
+    }
+  },
+  computed: {
+    root () {
+      return this.$store.getters['frost']
+    },
+    api () {
+      return this.$store.getters['api']
     }
   },
   watch: {
@@ -107,6 +146,13 @@ export default {
         this.stationLayer.bringToFront()
       }
     },
+    date2str(date, small){
+      var format = small ? 'll': 'lll'
+      if (date ) {
+        return moment(date).format('ll')
+      }
+      return ''
+    },
     initNeighboursLayer () {
       if (this.neighboursLayer) {
         this.neighboursLayer.clearLayers()
@@ -122,6 +168,39 @@ export default {
       } 
     },
     getNeighbours () {
+      if (!this.location) {
+        return
+      }
+      var center = this.location.geometry.coordinates
+      this.$http.get(this.api + "stations?center=" + this.stationId + "&radius=100&strict=1")
+      .then(resp => {
+        if (resp.body.stations && resp.body.stations.length > 0) {
+          var neighbours = resp.body.stations
+          var center = this.location.geometry.coordinates
+          neighbours.forEach(function (st, index) {
+            var pos = st.location.geometry.coordinates
+            var distance  = Util.getDistanceFromLatLonInKm(pos[1], pos[0], center[1], center[0])
+            console.log(distance)
+            neighbours[index].distance = distance
+          })
+          this.neighbours = neighbours
+
+          var self = this
+          this.neighbours.forEach(function (st) {
+            var layer = L.geoJSON(st.location, {
+              pointToLayer (feature, latlng) {
+                return L.marker(latlng, {title: st.name})
+              }
+            })
+            self.neighboursLayer.addLayer(layer)
+          })
+          if (this.onMap) {
+            this.addNeighboursToMap()
+          }
+        }      
+      })
+    },
+    getNeighboursOld () {
       if (!this.location) {
         return
       }
@@ -154,8 +233,13 @@ export default {
         }      
       })
     },
-    getSerie () {
-      this.$http.get('https://spotgins.formater/api/stations/' + this.stationId + '/component' )
+    getSerie (file) {
+      this.selected = file
+      if (this.script) {
+        this.script.remove()
+        this.script = null
+      }
+      this.$http.get(this.api + 'files/' + file.name + '/component' )
       .then(resp => {
         this.plot.div = resp.body.div
         this.plot.script = resp.body.script
@@ -164,16 +248,21 @@ export default {
         this.$el.appendChild(this.script)
       })
     },
+    unselect () {
+      this.selected = null
+    },
     getStation () {
         this.initNeighboursLayer()
-        this.$http.get(this.root + "/Things?$filter=substringof('" + this.stationId + "',name)&$expand=Locations($top=1)")
+        // this.$http.get(this.root + "/Things?$filter=substringof('" + this.stationId + "',name)&$expand=Locations($top=1)")
+        this.$http.get(this.api + 'stations/' + this.stationId)
         .then(resp => {
-          if (resp.body.value && resp.body.value.length > 0) {
-            if (resp.body.value[0].name === this.stationId) {
-	            this.station = resp.body.value[0]
-	            this.location = this.station.Locations[0].location
+          if (resp.body.id) {
+            if (resp.body.name === this.stationId) {
+	            this.station = resp.body
+	            this.location = this.station.location
 	           // this.initMap()
-	            this.getSerie()
+	            this.getFiles()
+	            // this.getNeighbours()
 	            this.$nextTick(() => this.initMap())
             } else {
               this.setNoStation()
@@ -184,6 +273,14 @@ export default {
             this.setNoStation()
           }
         })
+    },
+    getFiles() {
+      this.files = []
+      this.$http.get(this.api + 'stations/' + this.stationId + '/files')
+      .then(resp => {
+        this.files = resp.body.files
+        console.log(this.files)
+      })
     },
     goToStation (station) {
       this.$router.push({name: 'station', params: {id: station.name}})
@@ -232,7 +329,7 @@ export default {
      this.getNeighbours()
     },
     close () {
-      this.$router.push({name: 'home'})
+      this.$router.push({name: 'home', query: this.$store.state.query})
     }
   }
 }
@@ -246,6 +343,40 @@ div[id="stationMap"] {
 }
 </style>
 <style scoped>
+  div.file-selected {
+     position:absolute;background:white;top:0;
+     border:1px solid lightgrey;
+     border-radius:10px;
+     padding:10px;
+     min-width:800px;
+     min-height:800px;
+     width:fit-content;
+     height:fit-content;
+     z-index: 1;
+     box-shadow: 0 0 3px rgba(0,0,0,.5);
+  }
+  div.file-container {
+    position:relative;
+    margin:5px;
+    padding:10px;
+    border: 1px solid grey;
+    border-radius:10px;
+    max-width:550px;
+    min-width:500px; 
+    display:inline-block;
+    cursor:pointer;
+  }
+  div.file-container a {
+    position: absolute;
+    right:10px;
+    top:5px;
+    
+  }
+  label{
+    display: inline-block;
+    min-width:130px;
+    text-transform: capitalize;
+  }
   div.station-header {
     position:relative;
     background: lightgrey;
@@ -271,7 +402,7 @@ div[id="stationMap"] {
   }
   span.fa-close {
     position: absolute;
-    right: 5px;
+    right: 15px;
     cursor: pointer;
     padding: 5px;
     border: 1px dotted lightgrey;

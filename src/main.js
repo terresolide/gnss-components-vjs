@@ -1,8 +1,18 @@
 import Vue from 'vue'
+import Vuex from 'vuex'
+Vue.use(Vuex)
 import VueResource from 'vue-resource';
 Vue.use(VueResource);
 import App from './App.vue'
 import router from './router'
+import makeStore from './store'
+
+let config = {}
+if (typeof gnssConfig != 'undefined') {
+  config = JSON.parse(gnssConfig.innerHTML)
+} 
+
+const store = makeStore(config)
 
 //import vueCustomElement from 'vue-custom-element';
 //Vue.use(vueCustomElement);
@@ -19,5 +29,6 @@ import router from './router'
 
 new Vue({
   render: h => h(App),
-  router
+  router,
+  store
 }).$mount('#app')

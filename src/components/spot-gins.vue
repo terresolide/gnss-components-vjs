@@ -9,25 +9,39 @@
    </div>
   </div>
   <div v-show="showNavigation" class="navigator">
-   <fmt-timeline v-if="loadedDates" :values="dates" :reference="dateRef"
+  <!--   <fmt-timeline v-if="loadedDates" :values="dates" :reference="dateRef"
    :defaut="defaultDate" @setref="changeRef" @select="searchObservations"></fmt-timeline>
-  
+  -->
    </div>
     <div id="map" ></div>
-    <div  id="json" v-show="show" style="background:white;max-width:450px;min-height:550px;max-height:600px;">
+    <div  id="json" v-show="show" style="background:white;max-width:200px;min-height:150px;max-height:600px;">
       <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
-      <h4>{{selected}}</h4>
-      <ul class="menu-content">
+      <div @click="goToStation($event)" style="min-height:100px;cursor:pointer;">
+           <h4 v-if="selected">STATION {{selected.properties.name}}</h4>
+     
+      <div v-if="selected">
+	      <h5 style="margin-bottom:0;">Coordinates</h5>
+	         <div style="margin-left:10px;margin-top:18px;">
+	       
+	         <div>Latitude: {{selected.geometry.coordinates[1].toLocaleString()}}°</div>
+	         <div>Longitude: {{selected.geometry.coordinates[0].toLocaleString()}}°</div>
+	         <div v-if="selected.properties.height">Height: {{selected.properties.height.toLocaleString()}} m</div>
+	        </div>
+	      <h5>Informations</h5>
+	       <div style="margin-left:10px;margin-top:18px;">
+	        <div v-if="selected.properties.m3g">M3g:  <a :href="selected.properties.m3g" target="_blank">sitelog</a></div>
+	        <div>Domes: {{selected.properties.domes}}</div>
+	       </div>
+     </div>
+      </div>
+     <!--  <ul class="menu-content">
         <li @click="getStation" >
         <span :class="{'selected': mode === 'station'}" >Station</span>
         </li>
         <li @click="mode='graph'" >
             <span :class="{'selected': mode === 'graph'}" >Graphique</span>
         </li>
-       <!--   <li @click="mode='data'" >
-            <span :class="{'selected': mode === 'data'}" >Interactif</span>
-        </li>
-        -->
+      
          <li @click="mode='download'" >
             <span :class="{'selected': mode === 'download'}" >Téléchargement</span>
         </li>
@@ -49,9 +63,8 @@
         <spotgins-graph :url="root" :id="datastreamId" :average="average" :selected="mode === 'data'"></spotgins-graph>
       </div>
       <div v-show="mode === 'download'" style="margin:20px;">     
-       <!--    <input type="button" value="Télécharger JSON" @click="download('json')"/><br /><br />-->
          <input type="button" value="Télécharger ASCII" @click="download('ascii')" />
-      </div>
+      </div> -->
     </div>
    </div>
 </template>
@@ -83,16 +96,19 @@ export default {
     FmtTimeline
   },
   props: {
-    root: {
-      type: String,
-      default: 'https://catalog.formater/FROST-Server/v1.1/'
-    },
+    
     top: {
       type: Number,
       default: 20
     }
   },  
   computed: {
+    root () {
+      return this.$store.getters['frost']
+    },
+    api () {
+      return this.$store.getters['api']
+    },
     sens () {
       var start = moment.utc(this.dateRef).valueOf()
       var end = moment.utc(this.date).valueOf()
@@ -102,6 +118,8 @@ export default {
   data () {
     return {
       map: null,
+      frost: 'https://catalog.formater/FROST-Server/v1.1/',
+      
       stationId: null,
       stations: [],
       date: null,
@@ -208,7 +226,7 @@ export default {
 //       this.layerControl.addOverlay(this.dateLayers, 'Par date')
     //  this.layerControl.addOverlay(this.stationLayers, 'TOUTES LES STATIONS')
       this.load(0)
-      this.searchReferences('2017-02-27')
+      // this.searchReferences('2017-02-27')
      
     },
     changeRef (date) {
@@ -221,16 +239,28 @@ export default {
     goToStation (e) {
       e.preventDefault()
       e.stopPropagation()
-      this.$router.push({ name: 'station', params: { id: this.stationId } })
+      this.$store.commit('setQuery', this.$route.query)
+      this.$router.push({ name: 'station', params: { id: this.selected.properties.name } })
     },
-    load (index, next) {
-      if (!this.root) {
+//     load (index, next) {
+//       if (!this.root) {
+//         alert('Pas de service SensorThings!')
+//       }
+//       var url = next ? next : this.root + 'Datastreams?$expand=Thing($select=name)&$top=' + this.top 
+//       this.$http.get(url)
+//       .then(
+//           resp => {this.display(resp.body, index)},
+//           resp => {alert('Erreur de chargement: ' + resp.status)}
+//        )
+//     },
+    load (i) {
+      if (!this.api) {
         alert('Pas de service SensorThings!')
       }
-      var url = next ? next : this.root + 'Datastreams?$expand=Thing($select=name)&$top=' + this.top 
+      var url = this.api + 'stations'
       this.$http.get(url)
       .then(
-          resp => {this.display(resp.body, index)},
+          resp => {this.display(resp.body, i)},
           resp => {alert('Erreur de chargement: ' + resp.status)}
        )
     },
@@ -244,24 +274,24 @@ export default {
       this.dataAsciiUrl = null
     //  this.sitelog = null
     },
-    searchReferences () {
-      var self = this
-      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + this.dateRef + ')&$expand=Datastream($select=id)')
-      .then(resp => {
-        var data = resp.body.value
-        data.forEach(function (result) {
-           self.references[result.Datastream['@iot.id']] = result.result
-        })
-        this.displayDate()
-      })
-    },
-    searchObservations (date) {
-      this.date = date
-      this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=id,properties/groupId)')
-      .then(resp => {
-        this.data = resp.body
-        this.displayDate()})
-    },
+//     searchReferences () {
+//       var self = this
+//       this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + this.dateRef + ')&$expand=Datastream($select=id)')
+//       .then(resp => {
+//         var data = resp.body.value
+//         data.forEach(function (result) {
+//            self.references[result.Datastream['@iot.id']] = result.result
+//         })
+//         this.displayDate()
+//       })
+//     },
+//     searchObservations (date) {
+//       this.date = date
+//       this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=id,properties/groupId)')
+//       .then(resp => {
+//         this.data = resp.body
+//         this.displayDate()})
+//     },
     addDatastream (index) {
       if (!this.datastreams[index]) {
 //         console.log(index)
@@ -301,8 +331,6 @@ export default {
 //       }
        if (!this.groupLayers[groupId]) {
         this.groupLayers[groupId] = L.layerGroup([layer])
-   //     this.stationLayers.addLayer(this.groupLayers[groupId])
-      //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
         this.groupLayers[groupId].addTo(this.map)
       } else {
         this.groupLayers[groupId].addLayer(layer)
@@ -318,134 +346,194 @@ export default {
       this.datastreams[index].layer = layer
       this.addDatastream(index + 1)
     },
-    fillDates2 (index) {
+//     fillDates2 (index) {
       
-      if (!this.temps[index] ) {
-      //  this.loadedDates = true
-        return
-      }
-     // console.log(this.temps[index][0].substr(0,10) + ' / ' + this.temps[index][1].substr(0,10))
-      var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z').valueOf()
-//    var date = timeStart.valueOf()
-      var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
-      if (this.preDates2.length === 0) {
-        this.preDates2.push([timeStart, 1])
-        this.preDates2.push([theEnd, 0])
-      } else {
-        // var find = this.preDates2.findIndex(tab => tab[0] >= timeStart)
-        var k = 0
-        while (this.preDates2[k][0] < timeStart && k < this.preDates2.length ) {
-          k++
-        }
-        if (!this.preDates2[k]) {
-          this.preDates2.push([timeStart, 1])
-          this.preDates2.push([theEnd, 0])
+//       if (!this.temps[index] ) {
+//       //  this.loadedDates = true
+//         return
+//       }
+//      // console.log(this.temps[index][0].substr(0,10) + ' / ' + this.temps[index][1].substr(0,10))
+//       var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z').valueOf()
+// //    var date = timeStart.valueOf()
+//       var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
+//       if (this.preDates2.length === 0) {
+//         this.preDates2.push([timeStart, 1])
+//         this.preDates2.push([theEnd, 0])
+//       } else {
+//         // var find = this.preDates2.findIndex(tab => tab[0] >= timeStart)
+//         var k = 0
+//         while (this.preDates2[k][0] < timeStart && k < this.preDates2.length ) {
+//           k++
+//         }
+//         if (!this.preDates2[k]) {
+//           this.preDates2.push([timeStart, 1])
+//           this.preDates2.push([theEnd, 0])
     
-        } else {
-          if (this.preDates2[k][0] === timeStart) {
-            this.preDates2[k][1] = this.preDates2[k][1] + 1
-          } else {
-            var tot = this.preDates2[k - 1] ? this.preDates2[k - 1][1] : 0
-            this.preDates2.splice(k, 0, [timeStart, tot])
-          }
-          while (this.preDates2[k][0] < theEnd && k < this.preDates2.length ) {
-            var tot = this.preDates2[k][1]
-            this.preDates2[k][1] = this.preDates2[k][1] + 1
-            k++
-          }
-          if (this.preDates2[k][0] > theEnd) {
-            this.preDates2.splice(k, 0, [theEnd, tot])
-          }
-        }
-      }
-      this.fillDates2(index + 1)
-    },
-    fillDates (index) {
-      if (!this.temps[index]) {
-        this.loadedDates = true
-        return
-      }
-      var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z')
-      var date = timeStart.valueOf()
-      var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
-      while (date < theEnd) {
-	      if (!this.preDates[date]) {
-	        this.preDates[date] = 1
-	      } else {
-	       this.preDates[date] = this.preDates[date] + 1
-	      }
-	      timeStart.add(1, 'd')
-	      date = timeStart.valueOf()
-      }
-      var self = this
-      setTimeout(function () {
-        self.fillDates(index + 1)
-      })
-    },
-
+//         } else {
+//           if (this.preDates2[k][0] === timeStart) {
+//             this.preDates2[k][1] = this.preDates2[k][1] + 1
+//           } else {
+//             var tot = this.preDates2[k - 1] ? this.preDates2[k - 1][1] : 0
+//             this.preDates2.splice(k, 0, [timeStart, tot])
+//           }
+//           while (this.preDates2[k][0] < theEnd && k < this.preDates2.length ) {
+//             var tot = this.preDates2[k][1]
+//             this.preDates2[k][1] = this.preDates2[k][1] + 1
+//             k++
+//           }
+//           if (this.preDates2[k][0] > theEnd) {
+//             this.preDates2.splice(k, 0, [theEnd, tot])
+//           }
+//         }
+//       }
+//       this.fillDates2(index + 1)
+//     },
+//     fillDates (index) {
+//       if (!this.temps[index]) {
+//         this.loadedDates = true
+//         return
+//       }
+//       var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z')
+//       var date = timeStart.valueOf()
+//       var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
+//       while (date < theEnd) {
+// 	      if (!this.preDates[date]) {
+// 	        this.preDates[date] = 1
+// 	      } else {
+// 	       this.preDates[date] = this.preDates[date] + 1
+// 	      }
+// 	      timeStart.add(1, 'd')
+// 	      date = timeStart.valueOf()
+//       }
+//       var self = this
+//       setTimeout(function () {
+//         self.fillDates(index + 1)
+//       })
+//     },
+//      display (data, index) {
+//       var self = this
+//       if (index === 0) {
+//         if (!this.loadedDates) {
+//           this.preDates = []
+//           this.preDates2 = []
+//         }
+//         this.groupLayers.forEach(function (groupLayer) {
+//           groupLayer.clearLayers()
+//         })
+//       }
+//       data.value.forEach(function (value) {
+//         // console.log(value.observedArea)
+//         if (value.observedArea) {
+//           var datastream = {
+//               type: 'Feature',
+//               geometry: value.observedArea
+//           }
+//           delete value.observedArea
+//           datastream.properties = value
+// //          station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
+// //          station.datastream = value.Datastreams[0]
+//           var phenomenonTime = value.phenomenonTime
+//           var temp = phenomenonTime.split('/')
+//           if (temp[0] && temp[0].substr(0,10) < self.temp.start) {
+//             self.temp.start = temp[0].substr(0,10)
+//           }
+//           if (temp[1] && temp[1].substr(0,10) > self.temp.end) {
+//             self.temp.end = temp[1].substr(0,10)
+//           }  
+//           self.temps.push(temp)
+//           // self.fillDates(temp[0], temp[1])
+// //          station.properties = value.properties
+// //          station.properties.name = value.name
+// //          station.properties.description = value.description
+//           datastream['@iot.id'] = value['@iot.id']
+//           self.datastreams.push(datastream)
+//         }
+//       })
+//       this.addDatastream(index)
+//       if (data['@iot.nextLink']) {
+//         this.load(this.datastreams.length, data['@iot.nextLink'])
+//       } else {
+//         this.dates = this.preDates2
+//         if (this.first) {
+//           this.dateLayers.first = 'Vue'
+//           // this.layerControl.addOverlay(this.dateLayers, 'Par date')
+//           var first = 'Les groupes de stations'
+//           this.groupLayers.forEach(function (layer, groupId) {
+//              layer.first = first ? first : null
+              
+//                var className = self.classnames[groupId]
+//             self.layerControl.addOverlay(layer, 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
+//             first = null
+//           })
+//           this.first = false
+//         }
+//         if (!this.loadedDates && this.bounds) {
+//           this.map.fitBounds(this.bounds)
+//         }
+// //         this.fillDates(0)
+// //         this.fillDates2(0)
+//         // this.loadedDates = true
+//       }
+//     },
     display (data, index) {
       var self = this
       if (index === 0) {
-        if (!this.loadedDates) {
-          this.preDates = []
-          this.preDates2 = []
-        }
+        
         this.groupLayers.forEach(function (groupLayer) {
           groupLayer.clearLayers()
         })
       }
-      data.value.forEach(function (value) {
+      data.stations.forEach(function (value) {
         // console.log(value.observedArea)
-        if (value.observedArea) {
-	        var datastream = {
-	            type: 'Feature',
-	            geometry: value.observedArea
-	        }
-	        delete value.observedArea
-	        datastream.properties = value
-// 	        station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
-// 	        station.datastream = value.Datastreams[0]
-	        var phenomenonTime = value.phenomenonTime
-	        var temp = phenomenonTime.split('/')
-	        if (temp[0] && temp[0].substr(0,10) < self.temp.start) {
-            self.temp.start = temp[0].substr(0,10)
+          console.log(value)
+          var feature = value.location
+          feature.id = value.name
+          if (!value.properties) {
+            value.properties =  {}
           }
-          if (temp[1] && temp[1].substr(0,10) > self.temp.end) {
-            self.temp.end = temp[1].substr(0,10)
-          }  
-          self.temps.push(temp)
-          // self.fillDates(temp[0], temp[1])
-// 	        station.properties = value.properties
-// 	        station.properties.name = value.name
-// 	        station.properties.description = value.description
-	        datastream['@iot.id'] = value['@iot.id']
-	        self.datastreams.push(datastream)
+          value.properties.name= value.name,
+          value.properties.description= value.description
+          feature.properties = value.properties
+	        self.addStation(feature)
+      })
+      this.map.fitBounds(this.bounds)
+      
+    },
+    addStation(feature) {
+      console.log(feature)
+      this.stations.push(feature)
+      var groupId = feature.properties.m3g ? 1 : 3
+      var html = this.stations.length % 3 === 0 ? '<span class="fa fa-circle" style="font-size:8px;"></span>' : '<span class="fa fa-star" style="font-size:8px;"></span>'
+      var className = this.classnames[groupId]
+      var icon = L.divIcon({
+        className: 'icon-marker marker-' + className, 
+        iconSize: [15,15],
+        html: html})
+
+      var self = this
+      var layer = L.geoJSON(feature,{
+        pointToLayer: function(feature, latlng) {
+           var marker = L.marker(latlng, {icon: icon, title: feature.id})
+           marker.on('click', self.getData )
+          // L.marker(latlng, {icon: arrow}).addTo(self.map)
+           return marker
         }
       })
-      this.addDatastream(index)
-      if (data['@iot.nextLink']) {
-        this.load(this.datastreams.length, data['@iot.nextLink'])
+       if (!this.groupLayers[groupId]) {
+        this.groupLayers[groupId] = L.layerGroup([layer])
+   //     this.stationLayers.addLayer(this.groupLayers[groupId])
+      //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
+        this.groupLayers[groupId].addTo(this.map)
+        this.layerControl.addOverlay(this.groupLayers[groupId], 'Groupe ' + groupId +' <div class="marker-' + className + '"></div>' )
       } else {
-        this.dates = this.preDates2
-        if (this.first) {
-          this.dateLayers.first = 'Vue'
-          // this.layerControl.addOverlay(this.dateLayers, 'Par date')
-	        var first = 'Les groupes de stations'
-	        this.groupLayers.forEach(function (layer, groupId) {
-	           layer.first = first ? first : null
-	            
-	             var className = self.classnames[groupId]
-	          self.layerControl.addOverlay(layer, 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
-	          first = null
-	        })
-	        this.first = false
-        }
-        if (!this.loadedDates && this.bounds) {
-          this.map.fitBounds(this.bounds)
-        }
-        this.fillDates(0)
-        this.fillDates2(0)
-        // this.loadedDates = true
+        this.groupLayers[groupId].addLayer(layer)
+      }
+      this.stations[this.stations.length - 1].layer = layer
+      var bounds = layer.getBounds()
+      if (!this.bounds) {
+        this.bounds = bounds
+      } else {
+        this.bounds.extend(bounds)
       }
     },
     displayDate () {
@@ -575,27 +663,33 @@ export default {
 //         this.loadFeatures(index + 1)
 //       })
 //     },
-    getData (e) {
-      this.mode = 'graph'
-       if (this.loaded === e.target.id) {
-         return
-       }
-      this.show = true
-      console.log('loaded', this.loaded)
-      console.log(e.target.feature)
-      this.stationId = e.target.feature.properties.Thing.name
-      this.selected = e.target.feature.properties.name
-      this.img = e.target.feature.properties.properties.img
-      this.imgMin = this.img
-      this.datastreamId = e.target.feature.properties['@iot.id']
-      this.average = e.target.feature.properties.properties.average
-      this.feature = e.target.feature
-      this.dataAsciiUrl = e.target.feature.properties.properties.file
-     // this.json = e.target.feature.properties
-      this.popup.setLatLng(e.target.getLatLng())
-      this.popup.openOn(this.map)
+       getData (e) {
+         if (this.loaded === e.target.id) {
+            return
+         }
+         this.selected = e.target.feature
+         this.show = true
+         this.popup.setLatLng(e.target.getLatLng())
+         this.popup.openOn(this.map)
+       },
+//     getData (e) {
+//       this.mode = 'graph'
+//        
+//       this.show = true
+//       console.log('loaded', this.loaded)
+//       console.log(e.target.feature)
+//       this.stationId = e.target.feature.properties.Thing.name
+//       this.selected = e.target.feature.properties.name
+//       this.img = e.target.feature.properties.properties.img
+//       this.imgMin = this.img
+//       this.datastreamId = e.target.feature.properties['@iot.id']
+//       this.average = e.target.feature.properties.properties.average
+//       this.feature = e.target.feature
+//       this.dataAsciiUrl = e.target.feature.properties.properties.file
+//      // this.json = e.target.feature.properties
+
       
-    },
+//     },
     getStation () {
       this.mode = 'station'
 
@@ -796,8 +890,8 @@ div.leaflet-control-layers-overlays div.marker-red,
 div.leaflet-control-layers-overlays div.marker-blue, 
 div.leaflet-control-layers-overlays div.marker-orange {
   display:inline-block;
-  width: 10px;
-  height: 10px;
+  width: 15px;
+  height: 15px;
   vertical-align: middle;
 } 
  ul.menu-content {

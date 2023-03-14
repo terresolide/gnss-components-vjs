@@ -1,6 +1,6 @@
 {
   "name": "spot-gins-vjs",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Component to display spot gins data",
   "preproduction": {
     "url": "http://api.formater/data/spotgins"
@@ -33,7 +33,8 @@
     "vue-custom-element": "^1.4.4",
     "vue-resource": "^1.5.0",
     "vue-router": "^3.6.5",
-    "vue-store": "^0.3.1-moved"
+    "vue-store": "^0.3.1-moved",
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@babel/core": "^7.2.10",
