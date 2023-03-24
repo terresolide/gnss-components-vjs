@@ -257,7 +257,7 @@ export default {
       if (!this.api) {
         alert('Pas de service SensorThings!')
       }
-      var url = this.api + 'stations'
+      var url = this.api + 'stations/'
       this.$http.get(url)
       .then(
           resp => {this.display(resp.body, i)},
