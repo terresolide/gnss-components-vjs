@@ -362,7 +362,8 @@ div[id="stationMap"] {
     border: 1px solid grey;
     border-radius:10px;
     max-width:550px;
-    min-width:500px; 
+    min-width:500px;
+    vertical-align:top;
     display:inline-block;
     cursor:pointer;
   }

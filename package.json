@@ -33,6 +33,7 @@
     "vue-custom-element": "^1.4.4",
     "vue-resource": "^1.5.0",
     "vue-router": "^3.6.5",
+    "vue-ssr-carousel": "^2.1.0",
     "vue-store": "^0.3.1-moved",
     "vuex": "^3.6.2"
   },

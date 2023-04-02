@@ -16,8 +16,8 @@
     <div id="map" ></div>
     <div  id="json" v-show="show" style="background:white;max-width:200px;min-height:150px;max-height:600px;">
       <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
-      <div @click="goToStation($event)" style="min-height:100px;cursor:pointer;">
-           <h4 v-if="selected">STATION {{selected.properties.name}}</h4>
+      <div style="min-height:100px;cursor:pointer;">
+           <h4 v-if="selected" @click="goToStation($event)" >STATION {{selected.properties.name}}</h4>
      
       <div v-if="selected">
 	      <h5 style="margin-bottom:0;">Coordinates</h5>
@@ -32,6 +32,11 @@
 	        <div v-if="selected.properties.m3g">M3g:  <a :href="selected.properties.m3g" target="_blank">sitelog</a></div>
 	        <div>Domes: {{selected.properties.domes}}</div>
 	       </div>
+	      <ssr-carousel show-dots="true"> 
+	         <div v-for="img, id in selected.properties.images"  :key="id" class="slide">
+	           <img :src="img" width="250"/>
+	         </div>
+	       </ssr-carousel> 
      </div>
       </div>
      <!--  <ul class="menu-content">
@@ -70,6 +75,8 @@
 </template>
 
 <script>
+// const SsrCarousel () => import('vue-ssr-carousel')
+import SsrCarousel from 'vue-ssr-carousel'
 import moment from 'moment'
 import chroma from 'chroma-js'
 import FmtTimeline from './fmt-timeline.vue'
@@ -93,7 +100,8 @@ export default {
     JsonDiv,
     SpotginsGraph,
  //   DateNavigation,
-    FmtTimeline
+    FmtTimeline,
+    SsrCarousel
   },
   props: {
     
@@ -493,18 +501,50 @@ export default {
           }
           value.properties.name= value.name,
           value.properties.description= value.description
+          value.properties.images = value.images
           feature.properties = value.properties
+          
 	        self.addStation(feature)
       })
       this.map.fitBounds(this.bounds)
       
     },
+    getClassname (status) {
+      switch (status) {
+        case 'PERMANENT':
+          return 'red'
+        case 'MOBILE':
+          return 'orange'
+        default:
+          return 'blue'
+      }
+    },
+    getSymbol (networks) {
+      if (networks && networks.length > 0) {
+        var symbol = 'circle'
+        if (networks.indexOf('RENAG')>= 0) {
+          symbol = 'caret-up'
+          if (networks.indexOf('EPOS') >= 0) {
+            symbol = 'star'
+          }
+        } else if (networks.indexOf('EPOS') >= 0) {
+           symbol = 'caret-dwon'
+        } else if (networks.indexOf('IGS') >= 0) {
+          symbol = 'square'
+        }
+        return '<span class="fa fa-' + symbol + '" style="font-size:8px;"></span>' 
+      } else {
+        return ''
+      }
+    },
     addStation(feature) {
       console.log(feature)
       this.stations.push(feature)
+      console.log(feature.properties.status)
+      
       var groupId = feature.properties.m3g ? 1 : 3
-      var html = this.stations.length % 3 === 0 ? '<span class="fa fa-circle" style="font-size:8px;"></span>' : '<span class="fa fa-star" style="font-size:8px;"></span>'
-      var className = this.classnames[groupId]
+      var html = this.getSymbol(feature.properties.networks)
+      var className = this.getClassname(feature.properties.status)
       var icon = L.divIcon({
         className: 'icon-marker marker-' + className, 
         iconSize: [15,15],
@@ -664,13 +704,16 @@ export default {
 //       })
 //     },
        getData (e) {
+         
          if (this.loaded === e.target.id) {
             return
          }
          this.selected = e.target.feature
+         print(this.selected)
          this.show = true
          this.popup.setLatLng(e.target.getLatLng())
          this.popup.openOn(this.map)
+         return false
        },
 //     getData (e) {
 //       this.mode = 'graph'
@@ -748,11 +791,12 @@ export default {
   }
 }
 </script>
-<style src='leaflet/dist/leaflet.css'>
-
+<style src='leaflet/dist/leaflet.css' />
+<style src="vue-ssr-carousel/index.css"></style>
     /* global styles */
 </style> 
 <style src='../assets/css/leaflet.divicon.arrow.css'></style>
+
 <style>
 div.leaflet-marker-icon {
   margin-left: -7px;
