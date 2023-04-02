@@ -14,13 +14,24 @@
   -->
    </div>
     <div id="map" ></div>
-    <div  id="json" v-show="show" style="background:white;max-width:200px;min-height:150px;max-height:600px;">
+    <div  id="json" v-show="show" style="background:white;max-width:250px;min-height:350px;max-height:350px;">
       <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
       <div style="min-height:100px;cursor:pointer;">
            <h4 v-if="selected" @click="goToStation($event)" >STATION {{selected.properties.name}}</h4>
-     
+           <ul v-if="selected"  class="menu-content">
+              <li @click="mode = 'info'" >
+             <span :class="{'selected': mode === 'station'}" >Informations</span>
+            </li>
+            <li @click="mode='image'" >
+               <span :class="{'selected': mode === 'image'}" >Graphique</span>
+            </li>
+      
+             </ul>
       <div v-if="selected">
+      <div v-show="mode == 'info'" style="min-width:250px;">
 	      <h5 style="margin-bottom:0;">Coordinates</h5>
+	      
+	       
 	         <div style="margin-left:10px;margin-top:18px;">
 	       
 	         <div>Latitude: {{selected.geometry.coordinates[1].toLocaleString()}}°</div>
@@ -29,14 +40,15 @@
 	        </div>
 	      <h5>Informations</h5>
 	       <div style="margin-left:10px;margin-top:18px;">
+	        <div v-if="selected.properties.status">Status: {{selected.properties.status}}</div>
 	        <div v-if="selected.properties.m3g">M3g:  <a :href="selected.properties.m3g" target="_blank">sitelog</a></div>
 	        <div>Domes: {{selected.properties.domes}}</div>
+	        <div v-if="selected.properties.networks">Networks: {{selected.properties.networks.join(', ')}}</div>
 	       </div>
-	      <ssr-carousel show-dots="true"> 
-	         <div v-for="img, id in selected.properties.images"  :key="id" class="slide">
-	           <img :src="img" width="250"/>
-	         </div>
-	       </ssr-carousel> 
+	      </div>
+	      <div v-if="selected" v-show="mode == 'image'" style="min-width:250px;">
+	        <gnss-carousel :images="selected.properties.images" :height="250"></gnss-carousel>
+	      </div>
      </div>
       </div>
      <!--  <ul class="menu-content">
@@ -76,7 +88,7 @@
 
 <script>
 // const SsrCarousel () => import('vue-ssr-carousel')
-import SsrCarousel from 'vue-ssr-carousel'
+
 import moment from 'moment'
 import chroma from 'chroma-js'
 import FmtTimeline from './fmt-timeline.vue'
@@ -92,6 +104,7 @@ Icon.Default.mergeOptions({
 });
 const JsonDiv = () => import('./json-div.vue')
 const SpotginsGraph = () => import('./spotgins-graph.vue')
+const GnssCarousel = () => import('./gnss-carousel.vue')
 // const DateNavigation = () => import('./date-navigation.vue')
 
 export default {
@@ -101,7 +114,7 @@ export default {
     SpotginsGraph,
  //   DateNavigation,
     FmtTimeline,
-    SsrCarousel
+    GnssCarousel
   },
   props: {
     
@@ -121,6 +134,11 @@ export default {
       var start = moment.utc(this.dateRef).valueOf()
       var end = moment.utc(this.date).valueOf()
       return (end - start > 0) ? 1 : -1
+    }
+  },
+  watch: {
+    $route (newroute) {
+      console.log(newroute)
     }
   },
   data () {
@@ -191,7 +209,7 @@ export default {
       this.layerControl = new L.TilesControl(null, null, {position: 'topright'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
-      this.popup = L.popup({minWidth: 450, minHeight:500, maxHeight:500, closeButton: false})
+      this.popup = L.popup({minWidth: 250, minHeight:350, maxHeight:370, closeButton: false})
       
       var node = document.querySelector('#json')
       // container.appendChild(node)
@@ -704,12 +722,10 @@ export default {
 //       })
 //     },
        getData (e) {
-         
-         if (this.loaded === e.target.id) {
-            return
-         }
+         this.selected = null
+         this.$forceUpdate()
+         this.mode = 'image'
          this.selected = e.target.feature
-         print(this.selected)
          this.show = true
          this.popup.setLatLng(e.target.getLatLng())
          this.popup.openOn(this.map)
@@ -792,7 +808,7 @@ export default {
 }
 </script>
 <style src='leaflet/dist/leaflet.css' />
-<style src="vue-ssr-carousel/index.css"></style>
+
     /* global styles */
 </style> 
 <style src='../assets/css/leaflet.divicon.arrow.css'></style>
