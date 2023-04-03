@@ -1,7 +1,10 @@
 <template>
   <div style="position:relative;">
-    <div>
+    <div class="form expand" >
+      <div class="fa fa-chevron-right" @click="closeForm()"></div>
+    xxx
     </div>
+   
     <div id="map" ></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
       <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
@@ -84,6 +87,7 @@ var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
 L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
+L.Control.Form = require('../modules/leaflet.control.form.js')
 delete Icon.Default.prototype._getIconUrl;
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
@@ -181,12 +185,24 @@ export default {
     this.initialize()
   },
   methods: {
+    closeForm () {
+      var elt = document.querySelector('.form')
+      elt.classList.toggle('expand')
+    },
     treatmentQuery (query) {
+      this.drawLayers.clearLayers()
       if (query.center && query.radius) {
-        this.drawLayers.clearLayers()
         var point = query.center.split(',')
         var circle = L.circle([point[1],point[0]], query.radius * 1000, {color: 'red', weight: 1})
         this.drawLayers.addLayer(circle)
+      } else if (query.bbox) {
+        var tab = query.bbox.match(/\-{0,1}\d+(?:\.\d+)?/g).map(Number)
+        if (tab.length == 4) {
+          var rectangle = L.rectangle([[tab[1], tab[0]], [tab[3], tab[2]]], {color: 'red', weight: 1})
+          this.drawLayers.addLayer(rectangle)
+        } else {
+          // remove query bbox?
+        }
       }
       this.load(0)
     },
@@ -196,48 +212,11 @@ export default {
       // query = query.filter(x => x !== null)
       for (var key in newquery) {
         if (newquery[key] ===  null) {
-          console.log('delete' + key)
           delete newquery[key]
         }
       }
       console.log(newquery)
       this.$router.push({name: 'home', query: newquery}).catch(()=>{})
-    },
-    drawValidBbox (bounds) {
-      if (!this.drawLayers) {
-        return
-      }
-      if (!bounds) {
-        return null
-      }
-      let bbox = { north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getSouthWest().lng
-      }
-      // valid bbox
-      if (bbox.east > 180 || bbox.west < -180) {
-         var delta = bbox.east - bbox.west
-         if ( delta > 360) {
-           bbox.east = 180
-           bbox.west = -180
-         }else {
-           bbox.west = L.modLng(bbox.west);
-           bbox.west = bbox.west === 180 ? -180 : bbox.west
-           bbox.east = Math.min(bbox.west + delta, 180)
-         }
-      }
-      // draw or redraw if bbox change
-      var bounds = [[bbox.south, bbox.west], [bbox.north, bbox.east]]
-      var rectangle = L.rectangle(bounds, {color: '#ff0000'})
-      this.drawLayers.clearLayers()
-      this.drawLayers.addLayer(rectangle)
-      bounds = this.drawLayers.getBounds()
-//       if (this.searchArea) {
-//         bounds.extend(this.boundsLayer.getBounds())
-//       }
-      this.map.fitBounds(bounds, {padding: [20, 20]})
-      return bbox;
     },
     initDrawControl () {
         if (this.drawControl) {
@@ -277,13 +256,15 @@ export default {
 	          case 'rectangle':
 		          let layer = e.layer
 		          let bounds = e.layer.getBounds()
-		          self.bbox = self.drawValidBbox(bounds)
+		          self.changeQuery({bbox: bounds.toBBoxString(), center: null, radius: null})
+		          return
 		          break
 	          case 'circle':
 	            var center = e.layer.getLatLng()
 	            var radius = e.layer.getRadius()
-	            self.changeQuery({center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000})
-              break
+	            self.changeQuery({bbox: null, center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000})
+              return
+	            break
           }
           // self.updateUrl()
         //  self.drawIntersection()
@@ -294,7 +275,6 @@ export default {
       
         this.map.on(L.Draw.Event.EDITED, function (e) {
           let bounds
-            console.log(e)
           e.layers.eachLayer(function (layer) {
             if (layer instanceof L.Circle) {
               console.log(e)
@@ -304,7 +284,8 @@ export default {
               // self.$router.push({name: 'home', query: {center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000}})
            
             } else if (layer instanceof L.Rectangle) {
-              console.log('RECTANGLE')
+              let bounds = layer.getBounds()
+              self.changeQuery({bbox: bounds.toBBoxString(), center: null, radius: null})
             }
 //             switch(e.layerType){
 // 	            case 'rectangle':
@@ -343,9 +324,11 @@ export default {
     initialize () {
    
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
-      this.layerControl = new L.TilesControl(null, null, {position: 'topright'})
+      this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
+      var control = new L.Control.Form()
+      control.addTo(this.map)
       this.popup = L.popup({minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
       this.initDrawControl()
       var node = document.querySelector('#json')
@@ -417,6 +400,7 @@ export default {
         this.groupLayers = []
         this.stations = []
         this.groups = []
+        this.bounds = null
       }
       data.stations.forEach(function (value) {
           var feature = value.location
@@ -471,26 +455,26 @@ export default {
     getSymbol (networks) {
       if (networks && networks.length > 0) {
         var symbol = 'circle'
+        var text = ''
         if (networks.indexOf('RENAG')>= 0) {
           symbol = 'caret-up'
           if (networks.indexOf('EPOS') >= 0) {
             symbol = 'star'
           }
         } else if (networks.indexOf('EPOS') >= 0) {
-           symbol = 'caret-dwon'
+           symbol = ''
+           text = '&#9660;'
         } else if (networks.indexOf('IGS') >= 0) {
           symbol = 'square'
         }
-        return '<span class="fa fa-' + symbol + '" style="font-size:8px;"></span>' 
+        return '<span class="fa fa-' + symbol + '" style="font-size:8px;">' + text + '</span>' 
       } else {
         return ''
       }
     },
     addStation(feature) {
       this.stations.push(feature)
-      
       var groupId = this.getStatus(feature)
-      console.log(groupId)
       var html = this.getSymbol(feature.properties.networks)
       var className = this.getClassname(feature.properties.status)
       var icon = L.divIcon({
@@ -648,6 +632,17 @@ export default {
 <!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
+.leaflet-touch .leaflet-control-layers-toggle {
+  width: 30px;
+  height: 30px;
+}
+ a.leaflet-form-link {
+   width: 44px;
+  height: 44px;
+  line-height:44px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
 div.leaflet-marker-icon {
   margin-left: -7px;
 margin-top: -7px;
@@ -871,5 +866,20 @@ ul.menu-content li span:hover {
 ul.menu-content li span.selected {
   background:white;
   color:#b8412c;
+}
+div.form {
+  position: absolute;
+  transform: translateX(400px);
+  height: 300px;
+  width: 320px;
+  z-index: 1001;
+  background: white;
+  right: 10px;
+  top: 65px;
+  border-radius: 5px 0 5px 5px;
+  padding: 10px;
+}
+div.form.expand {
+  transform: translateX(0px);
 }
 </style>
