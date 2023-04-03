@@ -1,18 +1,5 @@
 <template>
   <div style="position:relative;">
-  <div v-if=" colorScale" v-show="showNavigation" style="font-size:12px;position: fixed;left:20px;bottom:110px;z-index:1000;border-radius:4px;border: 2px solid rgba(0,0,0,0.2);padding:3px 3px 8px 3px;background:white;">
-    <div style="padding:3px 3px 5px 3px;">Up (mm)</div>
-    <div>
-     <div class="step"></div>
-    <div v-for="color, id in colorScale.colors(30).reverse()" class="step"  :style="{background: color}"></div>
-
-   </div>
-  </div>
-  <div v-show="showNavigation" class="navigator">
-  <!--   <fmt-timeline v-if="loadedDates" :values="dates" :reference="dateRef"
-   :defaut="defaultDate" @setref="changeRef" @select="searchObservations"></fmt-timeline>
-  -->
-   </div>
     <div>
     </div>
     <div id="map" ></div>
@@ -92,7 +79,6 @@
 // const SsrCarousel () => import('vue-ssr-carousel')
 
 import moment from 'moment'
-import chroma from 'chroma-js'
 // import FmtTimeline from './fmt-timeline.vue'
 var L = require('leaflet')
 import { Icon } from 'leaflet';
@@ -165,52 +151,20 @@ export default {
   data () {
     return {
       map: null,
-      frost: 'https://catalog.formater/FROST-Server/v1.1/',
-      
       stationId: null,
       stations: [],
-      date: null,
-      dates: null,
-      preDates: null,
-      preDates2: null,
 //       scheme: {},
-       json: null,
-      datastreamId: null,
-      feature: null,
-      datastreams: [],
+      json: null,
 //      baseUrl: null,
       layerControl: null,
       bounds: null,
       mode: 'graph',
       selected: null,
-      search: {},
-      bbox: null,
 //      dataJsonUrl: null,
-      img: null,
-      imgMin: null,
-      dataAsciiUrl: null,
-      sitelog: null,
       show: false,
-      loaded: false,
       popup: null,
-      stationLayers: null,
+      groups: [],
       groupLayers: [],
-      dateLayers: null,
-      showNavigation: false,
-      loadedDates: false,
-      data: null,
-      defaultDate: '2021-03-15',
-      temp: {
-        start: '2007-03-25',
-        end: '2022-05-21'
-      },
-      dateRef: '2017-02-27',
-      references: [],
-      average: null,
-      first: true,
-      temps: [],
-      searching: false,
-      colorScale: null,
       classnames: {
         1: 'blue',
         2: 'red',
@@ -234,6 +188,7 @@ export default {
         var circle = L.circle([point[1],point[0]], query.radius * 1000, {color: 'red', weight: 1})
         this.drawLayers.addLayer(circle)
       }
+      this.load(0)
     },
     changeQuery (params) {
       var newquery = Object.assign({}, this.$route.query)
@@ -241,11 +196,12 @@ export default {
       // query = query.filter(x => x !== null)
       for (var key in newquery) {
         if (newquery[key] ===  null) {
+          console.log('delete' + key)
           delete newquery[key]
         }
       }
       console.log(newquery)
-      this.$router.push({name: 'home', query: params}).catch(()=>{})
+      this.$router.push({name: 'home', query: newquery}).catch(()=>{})
     },
     drawValidBbox (bounds) {
       if (!this.drawLayers) {
@@ -313,6 +269,7 @@ export default {
           }
         })
         this.drawControl.addTo(this.map)
+        this.layerControl.addOverlay(this.drawLayers, 'Selected area')
         var self = this
         this.map.on(L.Draw.Event.CREATED, function (e) {
           console.log(e.layerType)
@@ -323,7 +280,6 @@ export default {
 		          self.bbox = self.drawValidBbox(bounds)
 		          break
 	          case 'circle':
-	            console.log(e)
 	            var center = e.layer.getLatLng()
 	            var radius = e.layer.getRadius()
 	            self.changeQuery({center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000})
@@ -376,15 +332,8 @@ export default {
         })
       
         this.map.on(L.Draw.Event.DELETED , function (e) {
-          var returnedBbox = { 
-            north: '',
-            south: '',
-            east: '',
-            west: ''
-          }
-          // self.bbox is null
-          self.bbox = self.drawValidBbox(null)
-         
+          self.drawLayers.clearLayers()
+          self.changeQuery({bbox: null, center: null, radius: null})
          // self.drawIntersection()
           // trigger event fmt:selectAreaChange
 //           let event = new CustomEvent('fmt:selectAreaChange', {detail: returnedBbox})
@@ -400,46 +349,11 @@ export default {
       this.popup = L.popup({minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
       this.initDrawControl()
       var node = document.querySelector('#json')
-      // container.appendChild(node)
       this.popup.setContent(node)
- //     var arrow = new L.DivIcon.Arrow({})
-      this.colorScale = chroma.scale('RdYlBu').padding(-0.90)
-      this.colorScale = chroma.scale(['#a50026', '#313695'])
- //     console.log(this.colorScale.colors(20))
       var self = this
-//       this.map.on('popupclose', function (e) {
-//         var json = e.target._container.querySelector('#json')
-//         if (json) {
-//           self.$el.appendChild(json)
-//         }
-//         self.reset()
-//       })
 
       this.dateLayers = L.layerGroup()
-//       this.stationLayers = L.layerGroup()
-//       this.stationLayers.first = {
-//         title: 'Stations',
-//         separator: true
-//       }
-//       this.stationLayers.addTo(this.map)
-      var self = this
-      this.dateLayers.on('add', function (event) {
-        self.showNavigation = true
-      
-        // vide les layers stations
-        self.groupLayers.forEach(function (groupLayer) {
-          groupLayer.clearLayers()
-        })
-        self.searchObservations(self.defaultDate)
-      })
-      this.dateLayers.on('remove', function (event) {
-        self.showNavigation = false
-        self.load(0)
-      })
-//       this.dateLayers.first = 'Vue'
-//       this.layerControl.addOverlay(this.dateLayers, 'Par date')
-    //  this.layerControl.addOverlay(this.stationLayers, 'TOUTES LES STATIONS')
-      this.load(0)
+      this.treatmentQuery(this.$route.query)
       // this.searchReferences('2017-02-27')
      
     },
@@ -473,7 +387,7 @@ export default {
         alert('Pas de service SensorThings!')
       }
       var url = this.api + 'stations/'
-      this.$http.get(url)
+      this.$http.get(url, {params: this.$route.query})
       .then(
           resp => {this.display(resp.body, i)},
           resp => {alert('Erreur de chargement: ' + resp.status)}
@@ -489,218 +403,22 @@ export default {
       this.dataAsciiUrl = null
     //  this.sitelog = null
     },
-//     searchReferences () {
-//       var self = this
-//       this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + this.dateRef + ')&$expand=Datastream($select=id)')
-//       .then(resp => {
-//         var data = resp.body.value
-//         data.forEach(function (result) {
-//            self.references[result.Datastream['@iot.id']] = result.result
-//         })
-//         this.displayDate()
-//       })
-//     },
-//     searchObservations (date) {
-//       this.date = date
-//       this.$http.get(this.root + '/Observations?$select=result&$filter=date(phenomenonTime) eq date(' + date + ')&$expand=FeatureOfInterest,Datastream($select=id,properties/groupId)')
-//       .then(resp => {
-//         this.data = resp.body
-//         this.displayDate()})
-//     },
-    addDatastream (index) {
-      if (!this.datastreams[index]) {
-//         console.log(index)
-//         if (this.bounds) {
-//           this.map.fitBounds(this.bounds, {padding: [20,20]})
-//         }
-//         this.loadedDates = true
-        return
-      }
-      var groupId = this.datastreams[index].properties.properties.groupId 
-      var className = this.classnames[groupId]
-      var icon = L.divIcon({
-        className: 'icon-marker marker-' + className, 
-        iconSize: [15,15],
-        html:'<span class="fa fa-circle" style="font-size:8px;"></span>'})
-//        var svg = document.querySelector('.fixed #arrow')
-//        var node = svg.cloneNode(true)
-//        var line = svg.querySelector('line')
-//        line.setAttribute('x2', 350)
-//        line.setAttribute('y2', 500)
-//        console.log(line)
-     // var arrow = L.divIcon({html: svg.cloneNode(true), iconSize:[60,60], iconAnchor:[30,30]})
-   //   var arrow = new L.DivIcon.Arrow({arrow: [350, 500], color: 'darkred'})
-      var self = this
-      var layer = L.geoJSON(this.datastreams[index],{
-        pointToLayer: function(feature, latlng) {
-           var marker = L.marker(latlng, {icon: icon, title: feature.id})
-           marker.on('click', self.getData )
-          // L.marker(latlng, {icon: arrow}).addTo(self.map)
-           return marker
-        }
-      })
-     // layer.addTo(this.map)
-//       var first = false
-//       if (this.groupLayers.length === 0) {
-//         first = 'Les groupes de stations'
-//       }
-       if (!this.groupLayers[groupId]) {
-        this.groupLayers[groupId] = L.layerGroup([layer])
-        this.groupLayers[groupId].addTo(this.map)
-      } else {
-        this.groupLayers[groupId].addLayer(layer)
-      }
-      if (!this.loadedDates) {
-        var bounds = layer.getBounds()
-	      if (!this.bounds) {
-	        this.bounds = bounds
-	      } else {
-	        this.bounds.extend(bounds)
-	      }
-      }
-      this.datastreams[index].layer = layer
-      this.addDatastream(index + 1)
-    },
-//     fillDates2 (index) {
-      
-//       if (!this.temps[index] ) {
-//       //  this.loadedDates = true
-//         return
-//       }
-//      // console.log(this.temps[index][0].substr(0,10) + ' / ' + this.temps[index][1].substr(0,10))
-//       var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z').valueOf()
-// //    var date = timeStart.valueOf()
-//       var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
-//       if (this.preDates2.length === 0) {
-//         this.preDates2.push([timeStart, 1])
-//         this.preDates2.push([theEnd, 0])
-//       } else {
-//         // var find = this.preDates2.findIndex(tab => tab[0] >= timeStart)
-//         var k = 0
-//         while (this.preDates2[k][0] < timeStart && k < this.preDates2.length ) {
-//           k++
-//         }
-//         if (!this.preDates2[k]) {
-//           this.preDates2.push([timeStart, 1])
-//           this.preDates2.push([theEnd, 0])
-    
-//         } else {
-//           if (this.preDates2[k][0] === timeStart) {
-//             this.preDates2[k][1] = this.preDates2[k][1] + 1
-//           } else {
-//             var tot = this.preDates2[k - 1] ? this.preDates2[k - 1][1] : 0
-//             this.preDates2.splice(k, 0, [timeStart, tot])
-//           }
-//           while (this.preDates2[k][0] < theEnd && k < this.preDates2.length ) {
-//             var tot = this.preDates2[k][1]
-//             this.preDates2[k][1] = this.preDates2[k][1] + 1
-//             k++
-//           }
-//           if (this.preDates2[k][0] > theEnd) {
-//             this.preDates2.splice(k, 0, [theEnd, tot])
-//           }
-//         }
-//       }
-//       this.fillDates2(index + 1)
-//     },
-//     fillDates (index) {
-//       if (!this.temps[index]) {
-//         this.loadedDates = true
-//         return
-//       }
-//       var timeStart = moment.utc(this.temps[index][0].substr(0,10) + 'T12:00:00.000Z')
-//       var date = timeStart.valueOf()
-//       var theEnd = moment.utc(this.temps[index][1].substr(0,10) + 'T12:00:00.000Z').valueOf()
-//       while (date < theEnd) {
-// 	      if (!this.preDates[date]) {
-// 	        this.preDates[date] = 1
-// 	      } else {
-// 	       this.preDates[date] = this.preDates[date] + 1
-// 	      }
-// 	      timeStart.add(1, 'd')
-// 	      date = timeStart.valueOf()
-//       }
-//       var self = this
-//       setTimeout(function () {
-//         self.fillDates(index + 1)
-//       })
-//     },
-//      display (data, index) {
-//       var self = this
-//       if (index === 0) {
-//         if (!this.loadedDates) {
-//           this.preDates = []
-//           this.preDates2 = []
-//         }
-//         this.groupLayers.forEach(function (groupLayer) {
-//           groupLayer.clearLayers()
-//         })
-//       }
-//       data.value.forEach(function (value) {
-//         // console.log(value.observedArea)
-//         if (value.observedArea) {
-//           var datastream = {
-//               type: 'Feature',
-//               geometry: value.observedArea
-//           }
-//           delete value.observedArea
-//           datastream.properties = value
-// //          station.properties = Object.assign({name: value.name, description: value.description}, value.properties)
-// //          station.datastream = value.Datastreams[0]
-//           var phenomenonTime = value.phenomenonTime
-//           var temp = phenomenonTime.split('/')
-//           if (temp[0] && temp[0].substr(0,10) < self.temp.start) {
-//             self.temp.start = temp[0].substr(0,10)
-//           }
-//           if (temp[1] && temp[1].substr(0,10) > self.temp.end) {
-//             self.temp.end = temp[1].substr(0,10)
-//           }  
-//           self.temps.push(temp)
-//           // self.fillDates(temp[0], temp[1])
-// //          station.properties = value.properties
-// //          station.properties.name = value.name
-// //          station.properties.description = value.description
-//           datastream['@iot.id'] = value['@iot.id']
-//           self.datastreams.push(datastream)
-//         }
-//       })
-//       this.addDatastream(index)
-//       if (data['@iot.nextLink']) {
-//         this.load(this.datastreams.length, data['@iot.nextLink'])
-//       } else {
-//         this.dates = this.preDates2
-//         if (this.first) {
-//           this.dateLayers.first = 'Vue'
-//           // this.layerControl.addOverlay(this.dateLayers, 'Par date')
-//           var first = 'Les groupes de stations'
-//           this.groupLayers.forEach(function (layer, groupId) {
-//              layer.first = first ? first : null
-              
-//                var className = self.classnames[groupId]
-//             self.layerControl.addOverlay(layer, 'Groupe ' + groupId +' <div class="' + className + '"></div>' )
-//             first = null
-//           })
-//           this.first = false
-//         }
-//         if (!this.loadedDates && this.bounds) {
-//           this.map.fitBounds(this.bounds)
-//         }
-// //         this.fillDates(0)
-// //         this.fillDates2(0)
-//         // this.loadedDates = true
-//       }
-//     },
     display (data, index) {
       var self = this
       if (index === 0) {
-        
-        this.groupLayers.forEach(function (groupLayer) {
-          groupLayer.clearLayers()
-        })
+        for (var key in this.groupLayers) {
+          if (this.groupLayers[key]) {
+	          this.groupLayers[key].clearLayers()
+	          this.groupLayers[key].remove(this.map)
+	          this.layerControl.removeLayer(this.groupLayers[key])
+	          this.groupLayers[key] = null
+          }
+        }
+        this.groupLayers = []
+        this.stations = []
+        this.groups = []
       }
       data.stations.forEach(function (value) {
-        // console.log(value.observedArea)
-          console.log(value)
           var feature = value.location
           feature.id = value.name
           if (!value.properties) {
@@ -713,6 +431,20 @@ export default {
           
 	        self.addStation(feature)
       })
+      // next step
+      // add layer to control
+      this.groups.sort()
+      var self = this
+      var first = 'STATION STATUS'
+      this.groups.forEach(function (group) {
+        self.groupLayers[group].first = first ? {title:first,separator:true}:false
+        first = false
+        var className = self.getClassname(group)
+        self.layerControl.addOverlay(self.groupLayers[group],  group +' <div class="marker-' + className + '"></div>' )
+      })
+      if (this.drawLayers.getBounds()) {
+        this.bounds.extend(this.drawLayers.getBounds())
+      }
       this.map.fitBounds(this.bounds)
       
     },
@@ -725,6 +457,15 @@ export default {
           return 'orange'
         default:
           return 'blue'
+      }
+    },
+    getStatus (feature) {
+      switch (feature.properties.status){
+        case 'PERMANENT':
+        case 'MOBILE':
+          return feature.properties.status
+        default:
+          return 'Unknown'
       }
     },
     getSymbol (networks) {
@@ -746,11 +487,10 @@ export default {
       }
     },
     addStation(feature) {
-      console.log(feature)
       this.stations.push(feature)
-      console.log(feature.properties.status)
       
-      var groupId = feature.properties.status ? feature.properties.status : 'Unknwon'
+      var groupId = this.getStatus(feature)
+      console.log(groupId)
       var html = this.getSymbol(feature.properties.networks)
       var className = this.getClassname(feature.properties.status)
       var icon = L.divIcon({
@@ -771,8 +511,10 @@ export default {
         this.groupLayers[groupId] = L.layerGroup([layer])
    //     this.stationLayers.addLayer(this.groupLayers[groupId])
       //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
+        this.groups.push(groupId)
         this.groupLayers[groupId].addTo(this.map)
-        this.layerControl.addOverlay(this.groupLayers[groupId],  groupId +' <div class="marker-' + className + '"></div>' )
+        console.log('add layer ' + groupId)
+        // this.layerControl.addOverlay(this.groupLayers[groupId],  groupId +' <div class="marker-' + className + '"></div>' )
       } else {
         this.groupLayers[groupId].addLayer(layer)
       }
@@ -783,50 +525,6 @@ export default {
       } else {
         this.bounds.extend(bounds)
       }
-    },
-    displayDate () {
-      if (!this.data) {
-        return
-      }
-      this.groupLayers.forEach(function (groupLayer) {
-        groupLayer.clearLayers()
-      })
-      var self = this
-      this.data.value.forEach(function (value) {
-        self.addVector(value)
-      })
-    },
-    addVector (data) {
-      var groupId = data.Datastream.properties.groupId 
-      var iot = data.Datastream['@iot.id']
-      if (!this.references[iot]) {
-        return
-      }
-      var ref = this.references[iot]
-      if (!ref) {
-        return
-      }
-      var vector = []
-      for(var i in ref) {
-        vector[i] = this.sens * Math.round((data.result[i] - ref[i]) * 100) / 100
-      }
-      var arrow = new L.DivIcon.Arrow({
-        arrow: vector,
-        color: this.colorScale((vector[2] + 350) / 750).hex(),
-//         iconSize: [100, 100],
-//         iconAnchor: [50, 50],
-//         stroke: 25
-      })
-      var text = '<b>' + data.FeatureOfInterest.name + '</b>'
-      text += '<br>E: ' + vector[0]  + ' mm<br>N: ' + vector[1] + ' mm<br>Up: ' + vector[2]+ ' mm'
-      var larrow = L.geoJSON(data.FeatureOfInterest.feature, {
-        pointToLayer (feature, latlng) {
-	        var marker = L.marker(latlng, {icon: arrow, title: feature.id})       
-	        return marker
-        }
-      }).bindTooltip(text)
-      this.groupLayers[groupId].addLayer(larrow)
-      
     },
     download (type) {
       var dataUrl = null
@@ -854,75 +552,18 @@ export default {
 //       var blob = new Blob([data], {type: MIME_TYPE});
 //       window.location.href = window.URL.createObjectURL(blob);
     },
-//     extractUrl (json) {
-//       var url = new URL(this.root)
-//       var base = url.pathname.split('/')
-//       base.pop()
-//       this.baseUrl = url.origin + base.join('/')
-//       var scheme = json.scheme
-//       for(var key in scheme) {
-//         console.log(key)
-//         this.scheme[key] = scheme[key].replace('[base_url]', this.baseUrl)
-//       }
-//       var self = this
-//       json.stations.forEach(function (url, index) {
-//          self.stations.push({
-//            id: index,
-//            url: url.replace('[base_url]', self.baseUrl)
-//          })
-//       })
-//       this.loadFeatures(0)
-//     },
-//     loadFeatures (index) {
-//       if (!this.stations[index]) {
-//         if (this.bounds) {
-//           this.map.fitBounds(this.bounds)
-//         }
-//         return
-//       }
-//       var self = this
-//       this.$http.get(this.stations[index].url)
-//       .then(resp => {
-//         console.log(resp.body)
-//         var className = resp.body.className
-//         var id = resp.body.id
-//         var icon = L.divIcon({className: className})
-       
-//         // var arrow = L.divIcon({html: })
-//         this.stations[index].feature = L.geoJSON(resp.body,{
-//           pointToLayer: function(feature, latlng) {
-//              var marker = L.marker(latlng, {icon: icon, title: feature.id})
-//              marker.on('click', self.getData )
-             
-//              return marker
-//           }
-//         }).addTo(this.map)
-//         var bounds = this.stations[index].feature.getBounds()
-//         if (!this.bounds) {
-//           this.bounds = bounds
-//         } else {
-//           this.bounds.extend(bounds)
-//         }
-//         this.layerControl.addOverlay(this.stations[index].feature, id +' <div class="' + className + '"></div>' )
-//         // this.map.fitBounds(this.stations.getBounds())
-//         this.loadFeatures(index + 1)
-//       }, resp => {
-//         alert('Erreur chargement station ' + (index + 1 ) + ': ' + resp.status)
-//         this.loadFeatures(index + 1)
-//       })
-//     },
-       getData (e) {
-         if (this.selected && this.selected.id === e.target.feature.id) {
-           this.closePopup()
-           return
-         }
-         this.mode = 'image'
-         this.selected = e.target.feature
-         this.show = true
-         this.popup.setLatLng(e.target.getLatLng())
-         this.popup.openOn(this.map)
-         return false
-       },
+    getData (e) {
+      if (this.selected && this.selected.id === e.target.feature.id) {
+        this.closePopup()
+        return
+      }
+      this.mode = 'image'
+      this.selected = e.target.feature
+      this.show = true
+      this.popup.setLatLng(e.target.getLatLng())
+      this.popup.openOn(this.map)
+      return false
+    },
 //     getData (e) {
 //       this.mode = 'graph'
 //        
