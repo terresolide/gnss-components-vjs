@@ -13,8 +13,10 @@
    :defaut="defaultDate" @setref="changeRef" @select="searchObservations"></fmt-timeline>
   -->
    </div>
+    <div>
+    </div>
     <div id="map" ></div>
-    <div  id="json" v-show="show" style="background:white;max-width:250px;min-height:350px;max-height:350px;">
+    <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
       <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
       <div style="min-height:100px;cursor:pointer;">
            <h4 v-if="selected" @click="goToStation($event)" >STATION {{selected.properties.name}}</h4>
@@ -47,7 +49,7 @@
 	       </div>
 	      </div>
 	      <div v-if="selected" v-show="mode == 'image'" style="min-width:250px;">
-	        <gnss-carousel :images="selected.properties.images" :height="250"></gnss-carousel>
+	        <gnss-carousel :images="selected.properties.images" :height="300"></gnss-carousel>
 	      </div>
      </div>
       </div>
@@ -91,7 +93,7 @@
 
 import moment from 'moment'
 import chroma from 'chroma-js'
-import FmtTimeline from './fmt-timeline.vue'
+// import FmtTimeline from './fmt-timeline.vue'
 var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
@@ -102,8 +104,27 @@ Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png').default,
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
+require('leaflet-draw')
+L.modLat = function( lat ){
+     lat = lat%180;
+     if( lat > 90 ){
+          lat -= 180;
+     }else if( lat < -90 ){
+          lat += 180;
+     }
+     return lat;
+}
+L.modLng = function( lng ){
+     lng = lng%360;
+     if( lng > 180 ){
+          lng -= 360;
+     }else if( lng < -180 ){
+          lng += 360;
+     }
+     return lng;
+}
 const JsonDiv = () => import('./json-div.vue')
-const SpotginsGraph = () => import('./spotgins-graph.vue')
+// const SpotginsGraph = () => import('./spotgins-graph.vue')
 const GnssCarousel = () => import('./gnss-carousel.vue')
 // const DateNavigation = () => import('./date-navigation.vue')
 
@@ -111,9 +132,9 @@ export default {
   name: 'SpotGins',
   components: {
     JsonDiv,
-    SpotginsGraph,
+  //  SpotginsGraph,
  //   DateNavigation,
-    FmtTimeline,
+  //  FmtTimeline,
     GnssCarousel
   },
   props: {
@@ -138,7 +159,7 @@ export default {
   },
   watch: {
     $route (newroute) {
-      console.log(newroute)
+      this.treatmentQuery(newroute.query)
     }
   },
   data () {
@@ -162,6 +183,8 @@ export default {
       bounds: null,
       mode: 'graph',
       selected: null,
+      search: {},
+      bbox: null,
 //      dataJsonUrl: null,
       img: null,
       imgMin: null,
@@ -192,25 +215,190 @@ export default {
         1: 'blue',
         2: 'red',
         3: 'orange'
-      }
+      },
+      drawControl: null,
+      drawLayers: null
     }
   },
   created () {
     this.date = this.defaultDate
   },
   mounted () {
-   
     this.initialize()
   },
   methods: {
+    treatmentQuery (query) {
+      if (query.center && query.radius) {
+        this.drawLayers.clearLayers()
+        var point = query.center.split(',')
+        var circle = L.circle([point[1],point[0]], query.radius * 1000, {color: 'red', weight: 1})
+        this.drawLayers.addLayer(circle)
+      }
+    },
+    changeQuery (params) {
+      var newquery = Object.assign({}, this.$route.query)
+      newquery = Object.assign(newquery, params)
+      // query = query.filter(x => x !== null)
+      for (var key in newquery) {
+        if (newquery[key] ===  null) {
+          delete newquery[key]
+        }
+      }
+      console.log(newquery)
+      this.$router.push({name: 'home', query: params}).catch(()=>{})
+    },
+    drawValidBbox (bounds) {
+      if (!this.drawLayers) {
+        return
+      }
+      if (!bounds) {
+        return null
+      }
+      let bbox = { north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getSouthWest().lng
+      }
+      // valid bbox
+      if (bbox.east > 180 || bbox.west < -180) {
+         var delta = bbox.east - bbox.west
+         if ( delta > 360) {
+           bbox.east = 180
+           bbox.west = -180
+         }else {
+           bbox.west = L.modLng(bbox.west);
+           bbox.west = bbox.west === 180 ? -180 : bbox.west
+           bbox.east = Math.min(bbox.west + delta, 180)
+         }
+      }
+      // draw or redraw if bbox change
+      var bounds = [[bbox.south, bbox.west], [bbox.north, bbox.east]]
+      var rectangle = L.rectangle(bounds, {color: '#ff0000'})
+      this.drawLayers.clearLayers()
+      this.drawLayers.addLayer(rectangle)
+      bounds = this.drawLayers.getBounds()
+//       if (this.searchArea) {
+//         bounds.extend(this.boundsLayer.getBounds())
+//       }
+      this.map.fitBounds(bounds, {padding: [20, 20]})
+      return bbox;
+    },
+    initDrawControl () {
+        if (this.drawControl) {
+          return
+        }
+        this.drawLayers = new L.FeatureGroup()
+        this.map.addLayer(this.drawLayers)
+        this.drawControl = new L.Control.Draw({
+          draw: {
+            rectangle: {
+              shapeOptions: {
+                color: '#ff0000',
+                weight: 1
+              }
+            },
+            circlemarker: false,
+            circle: {
+              shapeOptions: {
+                color: '#ff0000',
+                weight: 1
+              }
+            },
+            marker: false,
+            polygon: false,
+            polyline: false
+          },
+          edit: {
+            featureGroup: this.drawLayers
+          }
+        })
+        this.drawControl.addTo(this.map)
+        var self = this
+        this.map.on(L.Draw.Event.CREATED, function (e) {
+          console.log(e.layerType)
+          switch (e.layerType) {
+	          case 'rectangle':
+		          let layer = e.layer
+		          let bounds = e.layer.getBounds()
+		          self.bbox = self.drawValidBbox(bounds)
+		          break
+	          case 'circle':
+	            console.log(e)
+	            var center = e.layer.getLatLng()
+	            var radius = e.layer.getRadius()
+	            self.changeQuery({center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000})
+              break
+          }
+          // self.updateUrl()
+        //  self.drawIntersection()
+          // trigger event fmt:selectAreaChange
+//           let event = new CustomEvent('fmt:selectAreaChange', {detail: self.bbox})
+//           document.dispatchEvent(event)
+        })
+      
+        this.map.on(L.Draw.Event.EDITED, function (e) {
+          let bounds
+            console.log(e)
+          e.layers.eachLayer(function (layer) {
+            if (layer instanceof L.Circle) {
+              console.log(e)
+              var center = layer.getLatLng()
+              var radius = layer.getRadius()
+              self.changeQuery({center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000})
+              // self.$router.push({name: 'home', query: {center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000}})
+           
+            } else if (layer instanceof L.Rectangle) {
+              console.log('RECTANGLE')
+            }
+//             switch(e.layerType){
+// 	            case 'rectangle':
+// 	              let layer = e.layer
+// 	              let bounds = e.layer.getBounds()
+// 	              self.bbox = self.drawValidBbox(bounds)
+// 	              break
+// 	            case 'circle':
+// 	              console.log(e)
+// 	              var center = e.layer.getLatLng()
+// 	              var radius = e.layer.getRadius()
+// 	              console.log(center)
+// 	              console.log(radius)
+// 	              self.changeQuery({center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000})
+// 	              // self.$router.push({name: 'home', query: {center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000}})
+// 	              break
+// 	          }
+          })
+          // self.bbox = self.drawValidBbox(bounds)
+          // self.updateUrl()
+          // self.drawIntersection()
+          // trigger event fmt:selectAreaChange
+//           let event = new CustomEvent('fmt:selectAreaChange', {detail: self.bbox})
+//           document.dispatchEvent(event)
+        })
+      
+        this.map.on(L.Draw.Event.DELETED , function (e) {
+          var returnedBbox = { 
+            north: '',
+            south: '',
+            east: '',
+            west: ''
+          }
+          // self.bbox is null
+          self.bbox = self.drawValidBbox(null)
+         
+         // self.drawIntersection()
+          // trigger event fmt:selectAreaChange
+//           let event = new CustomEvent('fmt:selectAreaChange', {detail: returnedBbox})
+//           document.dispatchEvent(event)
+        })
+    },
     initialize () {
    
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
       this.layerControl = new L.TilesControl(null, null, {position: 'topright'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
-      this.popup = L.popup({minWidth: 250, minHeight:350, maxHeight:370, closeButton: false})
-      
+      this.popup = L.popup({minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
+      this.initDrawControl()
       var node = document.querySelector('#json')
       // container.appendChild(node)
       this.popup.setContent(node)
@@ -255,11 +443,12 @@ export default {
       // this.searchReferences('2017-02-27')
      
     },
-    changeRef (date) {
-      this.dateRef = date
-      this.searchReferences(date)
-    },
+//     changeRef (date) {
+//       this.dateRef = date
+//       this.searchReferences(date)
+//     },
     closePopup() {
+      this.selected = null
       this.map.closePopup()
     },
     goToStation (e) {
@@ -528,6 +717,7 @@ export default {
       
     },
     getClassname (status) {
+      console.log(status)
       switch (status) {
         case 'PERMANENT':
           return 'red'
@@ -560,7 +750,7 @@ export default {
       this.stations.push(feature)
       console.log(feature.properties.status)
       
-      var groupId = feature.properties.m3g ? 1 : 3
+      var groupId = feature.properties.status ? feature.properties.status : 'Unknwon'
       var html = this.getSymbol(feature.properties.networks)
       var className = this.getClassname(feature.properties.status)
       var icon = L.divIcon({
@@ -582,7 +772,7 @@ export default {
    //     this.stationLayers.addLayer(this.groupLayers[groupId])
       //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
         this.groupLayers[groupId].addTo(this.map)
-        this.layerControl.addOverlay(this.groupLayers[groupId], 'Groupe ' + groupId +' <div class="marker-' + className + '"></div>' )
+        this.layerControl.addOverlay(this.groupLayers[groupId],  groupId +' <div class="marker-' + className + '"></div>' )
       } else {
         this.groupLayers[groupId].addLayer(layer)
       }
@@ -722,8 +912,10 @@ export default {
 //       })
 //     },
        getData (e) {
-         this.selected = null
-         this.$forceUpdate()
+         if (this.selected && this.selected.id === e.target.feature.id) {
+           this.closePopup()
+           return
+         }
          this.mode = 'image'
          this.selected = e.target.feature
          this.show = true
@@ -811,7 +1003,8 @@ export default {
 
     /* global styles */
 </style> 
-<style src='../assets/css/leaflet.divicon.arrow.css'></style>
+<style src="leaflet-draw/dist/leaflet.draw.css"></style>
+<!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
 div.leaflet-marker-icon {
@@ -823,6 +1016,51 @@ transform: translate3d(255px, -215px, 0px);
 z-index: -215;
 outline: none;
 }
+div[id="map"] a.leaflet-draw-draw-circle:before {
+  content:"\f111";
+  font-family: "FontAwesome"
+}
+
+div[id="map"] a.leaflet-draw-draw-rectangle:before{
+  content:"\f04d";
+  font-family: "FontAwesome"
+}
+div[id="map"] a.leaflet-draw-edit-edit:before{
+  content:"\f040";
+  font-family: "FontAwesome"
+}
+div[id="map"] a.leaflet-draw-edit-remove:before{
+  content:"\f1f8";
+  font-family: "FontAwesome"
+}
+ /** menu leaflet draw */
+  div[id="map"] .leaflet-container .leaflet-draw-section a {
+    color: #fff;
+    font-weight: 700;
+  }
+    div[id="map"] .leaflet-draw-actions li a {
+    color: #fff;
+  }
+  div[id="map"] .leaflet-draw-actions li {
+    display: block;
+    margin: 0 0 1px 0;
+    border-radius: 0;
+  }
+  div[id="map"] .leaflet-draw-actions {
+    background: #555;
+    margin-left:5px;
+    padding: 2px;
+    -webkit-border-radius: 0 4px 4px 4px;
+    border-radius: 0 4px 4px 4px;
+  }
+  div[id="map"] .leaflet-draw-actions li:first-child a{
+    -webkit-border-radius: 0 4px 0 0;
+    border-radius: 0 4px 0 0;
+  }
+  div[id="map"] .leaflet-draw-actions li:last-child a{
+    -webkit-border-radius: 0 0px 4px 4px;
+    border-radius: 0 0px 4px 4px;
+  }
 div[id="json"] .fa-close {
   padding:3px;
   border: 1px dotted white;
@@ -890,8 +1128,7 @@ h1 {
   /**  position: relative;
     top: -50%;
     left: -50%; **/
-    background: none;
-    border:none;
+ 
 }
 div.icon-marker {
   color: white;

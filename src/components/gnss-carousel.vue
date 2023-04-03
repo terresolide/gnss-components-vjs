@@ -1,6 +1,6 @@
 <template>
  <span>
-  <ssr-carousel  :value="1" :show-dots="images.length > 1" :show-arrows="images.length > 1"> 
+  <ssr-carousel :key="componentKey" :value="index" :show-dots="images.length > 1" :show-arrows="images.length > 1"> 
              <div v-for="img, id in images"  :key="id" class="slide" style="text-align:center;">
                <img :src="img" :height="height"/>
              </div>
@@ -16,6 +16,8 @@ export default {
   },
   watch: {
     images (newimgs) {
+      this.index = 0
+      this.componentKey = this.componentKey + 1
       this.$forceUpdate()
     }
   },
@@ -26,7 +28,13 @@ export default {
     },
     height: {
       type: Number,
-      default: 250
+      default: 300
+    }
+  },
+  data () {
+    return {
+      componentKey: 0,
+      index: 1
     }
   }
 }

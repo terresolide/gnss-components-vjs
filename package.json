@@ -28,6 +28,7 @@
     "chroma-js": "^2.4.2",
     "highcharts": "^10.1.0",
     "leaflet": "^1.7.1",
+    "leaflet-draw": "^1.0.4",
     "moment": "^2.29.3",
     "vue": "^2.6.12",
     "vue-custom-element": "^1.4.4",
