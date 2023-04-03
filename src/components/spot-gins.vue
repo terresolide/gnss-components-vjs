@@ -1,8 +1,28 @@
 <template>
   <div style="position:relative;">
     <div class="form expand" >
-      <div class="fa fa-chevron-right" @click="closeForm()"></div>
-    xxx
+     <form>
+      <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
+      <div> 
+          <label>Product type</label>
+          <select name="productType" >
+             <option value="">---</option>
+             <option value="POSITION">POSITION</option>
+          </select>
+      </div>
+      <div style="width:100%;">
+          <label>Networks</label>
+          <div style="">
+            <span v-for="value in networks" style="display:inline-block;">
+               <input name="network" type="checkbox" :value="value"> {{value}}
+            </span>
+          </div>
+      </div>
+      <div style="margin-top:10px;">
+          <label></label>
+          <button @click="search($event)" type="submit" >Search <i class="fa fa-search"></i></button>
+      </div>
+      </form>
     </div>
    
     <div id="map" ></div>
@@ -175,16 +195,34 @@ export default {
         3: 'orange'
       },
       drawControl: null,
-      drawLayers: null
+      drawLayers: null,
+      networks: []
     }
   },
   created () {
     this.date = this.defaultDate
+    
   },
   mounted () {
     this.initialize()
+    this.searchNetworks()
   },
   methods: {
+    search (event) {
+      event.preventDefault()
+      console.log(event)
+      var elt = document.querySelector('form')
+      var formData = new FormData(elt)
+      const asString = new URLSearchParams(formData).toString();
+      console.log(asString)
+      console.log(formData.get('network'))
+    },
+    searchNetworks () {
+      this.$http.get(this.api + 'networks/')
+      .then(resp => {
+        this.networks = resp.body
+      })
+    },
     closeForm () {
       var elt = document.querySelector('.form')
       elt.classList.toggle('expand')
@@ -632,6 +670,16 @@ export default {
 <!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
+.button.fa-chevron-right {
+  float:right;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius:3px;
+  border:1px dotted white;
+}
+.button.fa-chevron-right:hover {
+  border-color: grey;
+}
 .leaflet-touch .leaflet-control-layers-toggle {
   width: 30px;
   height: 30px;
@@ -867,6 +915,21 @@ ul.menu-content li span.selected {
   background:white;
   color:#b8412c;
 }
+div.form label {
+  width: 100px;
+  vertical-align: baseline;
+}
+div.form > div {
+  margin-bottom: 5px;
+}
+div.form label + div {
+  vertical-align: top;
+  display:inline-block;width: calc(100% - 120px);
+  text-align: justify;
+}
+div.form label + div > span {
+  margin-right: 8px;
+}
 div.form {
   position: absolute;
   transform: translateX(400px);
@@ -875,11 +938,16 @@ div.form {
   z-index: 1001;
   background: white;
   right: 10px;
-  top: 65px;
-  border-radius: 5px 0 5px 5px;
+  top: 10px;
+  border-radius: 5px;
   padding: 10px;
+  border: 2px solid rgba(0,0,0,0.2);
+  background-clip: padding-box;
+  transition: transform 330ms ease-in-out;
+  font-size: 0.8rem;
 }
 div.form.expand {
   transform: translateX(0px);
+  transition: transform 330ms ease-in-out;
 }
 </style>
