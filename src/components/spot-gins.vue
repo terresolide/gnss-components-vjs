@@ -5,7 +5,7 @@
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
       <div> 
           <label>Product type</label>
-          <select name="productType" >
+          <select v-model="searchparams.productType" >
              <option value="">---</option>
              <option value="POSITION">POSITION</option>
           </select>
@@ -14,7 +14,7 @@
           <label>Networks</label>
           <div style="">
             <span v-for="value in networks" style="display:inline-block;">
-               <input name="network" type="checkbox" :value="value"> {{value}}
+               <input v-model="searchparams.network" type="checkbox" :value="value"> {{value}}
             </span>
           </div>
       </div>
@@ -196,7 +196,18 @@ export default {
       },
       drawControl: null,
       drawLayers: null,
-      networks: []
+      networks: [],
+      searchparams: {
+        productType: null,
+        solution: null,
+        network: [],
+        start: null,
+        end: null,
+        lenMin: null,
+        lenMax: null,
+        fill: null
+        
+      }
     }
   },
   created () {
@@ -210,12 +221,9 @@ export default {
   methods: {
     search (event) {
       event.preventDefault()
-      console.log(event)
-      var elt = document.querySelector('form')
-      var formData = new FormData(elt)
-      const asString = new URLSearchParams(formData).toString();
-      console.log(asString)
-      console.log(formData.get('network'))
+      var self = this
+      this.searchparams.network = this.searchparams.network.filter(nt => self.networks.indexOf(nt) >= 0)
+      this.changeQuery(this.searchparams)
     },
     searchNetworks () {
       this.$http.get(this.api + 'networks/')
@@ -242,6 +250,13 @@ export default {
           // remove query bbox?
         }
       }
+      for (var key in query) {
+        if (key === 'network') {
+          this.searchparams.network = query['network'].split(',')
+        } else if (['center', 'radius', 'bbox'].indexOf(key) < 0) {
+          this.searchparams[key] = query[key]
+        }
+      }
       this.load(0)
     },
     changeQuery (params) {
@@ -249,8 +264,11 @@ export default {
       newquery = Object.assign(newquery, params)
       // query = query.filter(x => x !== null)
       for (var key in newquery) {
-        if (newquery[key] ===  null) {
+        if (newquery[key] ===  null || newquery[key].length == 0) {
           delete newquery[key]
+        }
+        if (key === 'network' && Array.isArray(newquery['network'])){
+            newquery['network'] = newquery['network'].join(',')
         }
       }
       console.log(newquery)
