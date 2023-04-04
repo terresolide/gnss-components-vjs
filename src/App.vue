@@ -16,9 +16,20 @@ export default {
   components: {
     // SpotGins
   },
+  created () {
+    this.searchCodeLists()
+  },
   mounted () {
     if (this.$route) {
       console.log(this.$route)
+    }
+  },
+  methods: {
+    searchCodeLists () {
+      this.$http.get(this.$store.getters['api'] + 'codelists/')
+      .then(resp => {
+        this.$store.commit('setCodeList', resp.body)
+      })
     }
   }
 }

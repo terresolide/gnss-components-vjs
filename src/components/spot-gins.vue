@@ -3,14 +3,28 @@
     <div class="form expand" >
      <form>
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
-      <div> 
-          <label>Product type</label>
-          <select v-model="searchparams.productType" >
-             <option value="">---</option>
-             <option value="POSITION">POSITION</option>
+       <div v-if="solutions"> 
+          <label>Solution</label>
+          <select v-model="searchparams.solution" >
+             <option :value="null">---</option>
+             <option v-for="pt in solutions" :value="pt">{{pt}}</option>
           </select>
       </div>
-      <div style="width:100%;">
+       <div v-if="productors"> 
+          <label>Operator</label>
+          <select v-model="searchparams.productor" >
+             <option :value="null">---</option>
+             <option v-for="pt in productors" :value="pt">{{pt}}</option>
+          </select>
+      </div>
+      <div v-if="productTypes"> 
+          <label>Product type</label>
+          <select v-model="searchparams.productType" >
+             <option :value="null">---</option>
+             <option v-for="pt in productTypes" :value="pt">{{pt}}</option>
+          </select>
+      </div>
+      <div style="width:100%;" v-if="networks">
           <label>Networks</label>
           <div style="">
             <span v-for="value in networks" style="display:inline-block;">
@@ -133,15 +147,16 @@ L.modLng = function( lng ){
      }
      return lng;
 }
-const JsonDiv = () => import('./json-div.vue')
+// const JsonDiv = () => import('./json-div.vue')
 // const SpotginsGraph = () => import('./spotgins-graph.vue')
-const GnssCarousel = () => import('./gnss-carousel.vue')
+//const GnssCarousel = () => import('./gnss-carousel.vue')
+import GnssCarousel from './gnss-carousel.vue'
 // const DateNavigation = () => import('./date-navigation.vue')
 
 export default {
   name: 'SpotGins',
   components: {
-    JsonDiv,
+   // JsonDiv,
   //  SpotginsGraph,
  //   DateNavigation,
   //  FmtTimeline,
@@ -161,10 +176,17 @@ export default {
     api () {
       return this.$store.getters['api']
     },
-    sens () {
-      var start = moment.utc(this.dateRef).valueOf()
-      var end = moment.utc(this.date).valueOf()
-      return (end - start > 0) ? 1 : -1
+    networks () {
+      return this.$store.getters['networks']
+    },
+    productors () {
+      return this.$store.getters['productors']
+    },
+    solutions () {
+      return this.$store.getters['solutions']
+    },
+    productTypes () {
+      return this.$store.getters['productTypes']
     }
   },
   watch: {
@@ -196,10 +218,10 @@ export default {
       },
       drawControl: null,
       drawLayers: null,
-      networks: [],
       searchparams: {
         productType: null,
         solution: null,
+        productor: null,
         network: [],
         start: null,
         end: null,
@@ -216,7 +238,6 @@ export default {
   },
   mounted () {
     this.initialize()
-    this.searchNetworks()
   },
   methods: {
     search (event) {
@@ -224,12 +245,6 @@ export default {
       var self = this
       this.searchparams.network = this.searchparams.network.filter(nt => self.networks.indexOf(nt) >= 0)
       this.changeQuery(this.searchparams)
-    },
-    searchNetworks () {
-      this.$http.get(this.api + 'networks/')
-      .then(resp => {
-        this.networks = resp.body
-      })
     },
     closeForm () {
       var elt = document.querySelector('.form')
