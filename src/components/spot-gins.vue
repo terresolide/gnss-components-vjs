@@ -1,7 +1,7 @@
 <template>
   <div style="position:relative;">
     <div class="form expand" >
-     <form>
+    
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
        <div v-if="solutions"> 
           <label>Solution</label>
@@ -9,6 +9,29 @@
              <option :value="null">---</option>
              <option v-for="pt in solutions" :value="pt">{{pt}}</option>
           </select>
+      </div>
+       <div > 
+          <label>From</label>
+          <input type="date" v-model="searchparams.start" />
+      </div>
+       <div > 
+       <label>To</label>
+          <input type="date" v-model="searchparams.end" />
+      </div>
+      <div>
+          <label style="width:auto;">Extend in (years)</label>
+         
+      </div>
+      <div>
+         <label style="margin-left:10px;width:90px;">min</label>
+         <input type="number" v-model="searchparams.lenmin" style="width:80px;"/></div>
+      <div>
+          <label style="margin-left:10px;width:90px;">max</label>
+          <input type="number" v-model="searchparams.lenmax" style="width:80px;"/>
+      </div>
+      <div>
+          <label >fill rate > </label>
+          <input type="number" v-model="searchparams.fill" min="0" max="100" style="width:80px;"/> %
       </div>
        <div v-if="productors"> 
           <label>Operator</label>
@@ -24,7 +47,7 @@
              <option v-for="pt in productTypes" :value="pt">{{pt}}</option>
           </select>
       </div>
-      <div style="width:100%;" v-if="networks">
+      <div style="width:100%;margin-bottom:5px;" v-if="networks">
           <label>Networks</label>
           <div style="">
             <span v-for="value in networks" style="display:inline-block;">
@@ -32,11 +55,19 @@
             </span>
           </div>
       </div>
+       <div v-if="constels"> 
+          <label>Constel</label>
+          <select v-model="searchparams.constel" >
+             <option :value="null">---</option>
+             <option v-for="pt in constels" :value="pt">{{pt}}</option>
+          </select>
+      </div>
       <div style="margin-top:10px;">
           <label></label>
+          <button @click="reset()" type="button" >Resest</button>
           <button @click="search($event)" type="submit" >Search <i class="fa fa-search"></i></button>
       </div>
-      </form>
+  
     </div>
    
     <div id="map" ></div>
@@ -187,6 +218,9 @@ export default {
     },
     productTypes () {
       return this.$store.getters['productTypes']
+    },
+    constels () {
+      return this.$store.getters['constels']
     }
   },
   watch: {
@@ -223,6 +257,7 @@ export default {
         solution: null,
         productor: null,
         network: [],
+        constel: null,
         start: null,
         end: null,
         lenMin: null,
@@ -240,6 +275,10 @@ export default {
     this.initialize()
   },
   methods: {
+    reset() {
+      console.log('RESET')
+      this.$router.push({name:'home', query: {}}).catch(()=>{})
+    },
     search (event) {
       event.preventDefault()
       var self = this
@@ -272,6 +311,17 @@ export default {
           this.searchparams[key] = query[key]
         }
       }
+      console.log(query)
+      for (var key in this.searchparams) {
+        if (!query[key]) {
+          if (key === 'network') {
+            this.searchparams[key] = []
+          } else {
+            this.searchparams[key] = null
+          }
+        }
+      }
+      console.log(this.searchparams)
       this.load(0)
     },
     changeQuery (params) {
@@ -400,7 +450,7 @@ export default {
       this.layerControl.addTo(this.map)
       var control = new L.Control.Form()
       control.addTo(this.map)
-      this.popup = L.popup({minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
+      this.popup = L.popup({autoPan:false, minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
       this.initDrawControl()
       var node = document.querySelector('#json')
       this.popup.setContent(node)
@@ -447,16 +497,16 @@ export default {
           resp => {alert('Erreur de chargement: ' + resp.status)}
        )
     },
-    reset () {
-      this.loaded = false
-      this.img = null
-      this.imgMin = null
-      this.stationId = null
-      this.json = null
-    //  this.dataJsonUrl = null
-      this.dataAsciiUrl = null
-    //  this.sitelog = null
-    },
+//     reset () {
+//       this.loaded = false
+//       this.img = null
+//       this.imgMin = null
+//       this.stationId = null
+//       this.json = null
+//     //  this.dataJsonUrl = null
+//       this.dataAsciiUrl = null
+//     //  this.sitelog = null
+//     },
     display (data, index) {
       var self = this
       if (index === 0) {
@@ -833,14 +883,7 @@ div.navigator {
    z-index:1000;
    pointer-events:none;
 }
-h1 {
-   position: fixed;
-   bottom:0;
-   width:100%;
-   text-align:center;
-   z-index:1000;
-   pointer-events:none;
-}
+ 
 .leaflet-div-icon {
   /**  position: relative;
     top: -50%;
@@ -966,7 +1009,7 @@ div.form label + div > span {
 div.form {
   position: absolute;
   transform: translateX(400px);
-  height: 300px;
+  height: 400px;
   width: 320px;
   z-index: 1001;
   background: white;

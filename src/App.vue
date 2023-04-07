@@ -40,10 +40,8 @@ export default {
   line-height:1;
 }
 #page {
-  position: absolute;
   width:100%;
   height: 100vh;
-  width: 100vw;
   min-height:500px;
   top:0;
   left:0;
@@ -51,5 +49,6 @@ export default {
   padding:0;
   z-index:3000;
   background: white;
+  overflow:hidden;
 }
 </style>

@@ -50,6 +50,12 @@ export default function makeStore( config ) {
           return state.codelists.productTypes
         }
         return null
+      },
+      constels (state, getters) {
+         if (state.codelists.constels) {
+          return state.codelists.constels
+        }
+        return null
       }
     }
   })
