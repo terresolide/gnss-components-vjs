@@ -1,6 +1,6 @@
 {
   "name": "spot-gins-vjs",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Component to display spot gins data",
   "preproduction": {
     "url": "http://api.formater/data/spotgins"

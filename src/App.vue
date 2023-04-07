@@ -47,8 +47,6 @@ export default {
   left:0;
   margin:0;
   padding:0;
-  z-index:3000;
   background: white;
-  overflow:hidden;
 }
 </style>

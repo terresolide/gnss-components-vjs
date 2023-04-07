@@ -993,6 +993,7 @@ ul.menu-content li span.selected {
 }
 div.form label {
   width: 100px;
+  min-width:100px;
   vertical-align: baseline;
 }
 div.form > div {
@@ -1021,6 +1022,7 @@ div.form {
   background-clip: padding-box;
   transition: transform 330ms ease-in-out;
   font-size: 0.8rem;
+  box-sizing:content-box;
 }
 div.form.expand {
   transform: translateX(0px);
