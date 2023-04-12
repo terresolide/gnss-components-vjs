@@ -39,7 +39,7 @@
    <div v-if="files.length > 0"style="clear:left;padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
      <span class="fa fa-close" @click="unselect"></span>
-     <h3>Time Series Plots of {{selected.name}}</h3>
+     <h3> {{selected.station}} {{selected.solution }} {{selected.productType}}</h3>
      <div v-html="plot.div" >STATION INCONNUE</div>
    </div>
      <h3>Data</h3>
@@ -48,7 +48,12 @@
 		     <div style="">
 		       <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
 		         -->
+		        <div class="product-link">
+		         <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
+		            :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
+		            target="_blank">SARI</a> 
 		         <a  :href="file.properties.file" :download="file.name" ><span class="fa fa-download"></span></a>
+		        </div>
 		       <div><label>Name</label>{{file.name}}</div>
 		       <div style="font-size:0.8rem;">
 		        
@@ -88,6 +93,7 @@ export default {
   name: 'Station',
   data () {
     return {
+      sari: 'https://alvarosg.shinyapps.io/sari/',
       plot: {div: null, script: null},
       script: null,
       stationId: null,
@@ -367,7 +373,7 @@ div[id="stationMap"] {
     display:inline-block;
     cursor:pointer;
   }
-  div.file-container a {
+  div.file-container div.product-link {
     position: absolute;
     right:10px;
     top:5px;

@@ -1,5 +1,5 @@
 <template>
-  <div style="position:relative;">
+  <div style="position:relative;overflow:hidden;">
     <div class="form expand" >
     
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
