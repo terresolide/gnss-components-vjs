@@ -2,71 +2,7 @@
   <div style="position:relative;overflow:hidden;">
     <div class="form expand" >
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
-       <div v-if="solutions"> 
-          <label>Solution</label>
-          <select v-model="searchparams.solution" >
-             <option :value="null">---</option>
-             <option v-for="pt in solutions" :value="pt">{{pt}}</option>
-          </select>
-      </div>
-       <div > 
-          <label>From</label>
-          <input type="date" v-model="searchparams.start" />
-      </div>
-       <div > 
-       <label>To</label>
-          <input type="date" v-model="searchparams.end" />
-      </div>
-      <div>
-          <label style="width:auto;">Extend in (years)</label>
-         
-      </div>
-      <div>
-         <label style="margin-left:10px;width:90px;">min</label>
-         <input type="number" v-model="searchparams.lenmin" style="width:80px;"/></div>
-      <div>
-          <label style="margin-left:10px;width:90px;">max</label>
-          <input type="number" v-model="searchparams.lenmax" style="width:80px;"/>
-      </div>
-      <div>
-          <label >fill rate > </label>
-          <input type="number" v-model="searchparams.fill" min="0" max="100" style="width:80px;"/> %
-      </div>
-       <div v-if="productors"> 
-          <label>Operator</label>
-          <select v-model="searchparams.productor" >
-             <option :value="null">---</option>
-             <option v-for="pt in productors" :value="pt">{{pt}}</option>
-          </select>
-      </div>
-      <div v-if="productTypes"> 
-          <label>Product type</label>
-          <select v-model="searchparams.productType" >
-             <option :value="null">---</option>
-             <option v-for="pt in productTypes" :value="pt">{{pt}}</option>
-          </select>
-      </div>
-      <div style="width:100%;margin-bottom:5px;" v-if="networks">
-          <label>Networks</label>
-          <div style="">
-            <span v-for="value in networks" style="display:inline-block;">
-               <input v-model="searchparams.network" type="checkbox" :value="value"> {{value}}
-            </span>
-          </div>
-      </div>
-       <div v-if="constels"> 
-          <label>Constel</label>
-          <select v-model="searchparams.constel" >
-             <option :value="null">---</option>
-             <option v-for="pt in constels" :value="pt">{{pt}}</option>
-          </select>
-      </div>
-      <div style="margin-top:10px;">
-          <label></label>
-          <button @click="reset()" type="button" >Resest</button>
-          <button @click="search($event)" type="submit" >Search <i class="fa fa-search"></i></button>
-      </div>
-  
+      <file-form mode="map"></file-form>
     </div>
    
     <div id="map" ></div>
@@ -128,7 +64,7 @@ Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png').default,
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
-// import FileForm from './file-form.vue'
+import FileForm from './file-form.vue'
 require('leaflet-draw')
 L.modLat = function( lat ){
      lat = lat%180;
@@ -157,7 +93,7 @@ import GnssCarousel from './gnss-carousel.vue'
 export default {
   name: 'SpotGins',
   components: {
-  //  FileForm,
+    FileForm,
     GnssCarousel
   },
   props: {
@@ -173,21 +109,6 @@ export default {
     },
     api () {
       return this.$store.getters['api']
-    },
-    networks () {
-      return this.$store.getters['networks']
-    },
-    productors () {
-      return this.$store.getters['productors']
-    },
-    solutions () {
-      return this.$store.getters['solutions']
-    },
-    productTypes () {
-      return this.$store.getters['productTypes']
-    },
-    constels () {
-      return this.$store.getters['constels']
     }
   },
   watch: {
@@ -219,38 +140,28 @@ export default {
       },
       drawControl: null,
       drawLayers: null,
-      searchparams: {
-        productType: null,
-        solution: null,
-        productor: null,
-        network: [],
-        constel: null,
-        start: null,
-        end: null,
-        lenMin: null,
-        lenMax: null,
-        fill: null
-        
-      }
+      
     }
   },
   created () {
-    this.date = this.defaultDate
+    
     
   },
   mounted () {
     this.initialize()
   },
   methods: {
-    reset() {
-      console.log('RESET')
-      this.$router.push({name:'home', query: {}}).catch(()=>{})
-    },
-    search (event) {
-      event.preventDefault()
-      var self = this
-      this.searchparams.network = this.searchparams.network.filter(nt => self.networks.indexOf(nt) >= 0)
-      this.changeQuery(this.searchparams)
+    
+    changeQuery (params) {
+      var newquery = Object.assign({}, this.$route.query)
+      newquery = Object.assign(newquery, params)
+      // query = query.filter(x => x !== null)
+      for (var key in newquery) {
+        if (newquery[key] ===  null || newquery[key].length == 0) {
+          delete newquery[key]
+        }
+      }
+      this.$router.push({name: 'home', query: newquery}).catch(()=>{})
     },
     closeForm () {
       var elt = document.querySelector('.form')
@@ -271,41 +182,9 @@ export default {
           // remove query bbox?
         }
       }
-      for (var key in query) {
-        if (key === 'network') {
-          this.searchparams.network = query['network'].split(',')
-        } else if (['center', 'radius', 'bbox'].indexOf(key) < 0) {
-          this.searchparams[key] = query[key]
-        }
-      }
-      console.log(query)
-      for (var key in this.searchparams) {
-        if (!query[key]) {
-          if (key === 'network') {
-            this.searchparams[key] = []
-          } else {
-            this.searchparams[key] = null
-          }
-        }
-      }
-      console.log(this.searchparams)
       this.load(0)
     },
-    changeQuery (params) {
-      var newquery = Object.assign({}, this.$route.query)
-      newquery = Object.assign(newquery, params)
-      // query = query.filter(x => x !== null)
-      for (var key in newquery) {
-        if (newquery[key] ===  null || newquery[key].length == 0) {
-          delete newquery[key]
-        }
-        if (key === 'network' && Array.isArray(newquery['network'])){
-            newquery['network'] = newquery['network'].join(',')
-        }
-      }
-      console.log(newquery)
-      this.$router.push({name: 'home', query: newquery}).catch(()=>{})
-    },
+   
     initDrawControl () {
         if (this.drawControl) {
           return
@@ -487,26 +366,6 @@ export default {
           return 'Unknown'
       }
     },
-//     getSymbol (networks) {
-//       if (networks && networks.length > 0) {
-//         var symbol = 'circle'
-//         var text = ''
-//         if (networks.indexOf('RENAG')>= 0) {
-//           symbol = 'caret-up'
-//           if (networks.indexOf('EPOS') >= 0) {
-//             symbol = 'star'
-//           }
-//         } else if (networks.indexOf('EPOS') >= 0) {
-//            symbol = ''
-//            text = '&#9660;'
-//         } else if (networks.indexOf('IGS') >= 0) {
-//           symbol = 'square'
-//         }
-//         return '<span class="fa fa-' + symbol + '" style="font-size:8px;">' + text + '</span>' 
-//       } else {
-//         return ''
-//       }
-//     },
     addStation(feature) {
       this.stations.push(feature)
       var groupId = this.getStatus(feature)
@@ -583,78 +442,20 @@ export default {
       this.popup.openOn(this.map)
       return false
     },
-//     getData (e) {
-//       this.mode = 'graph'
-//        
-//       this.show = true
-//       console.log('loaded', this.loaded)
-//       console.log(e.target.feature)
-//       this.stationId = e.target.feature.properties.Thing.name
-//       this.selected = e.target.feature.properties.name
-//       this.img = e.target.feature.properties.properties.img
-//       this.imgMin = this.img
-//       this.datastreamId = e.target.feature.properties['@iot.id']
-//       this.average = e.target.feature.properties.properties.average
-//       this.feature = e.target.feature
-//       this.dataAsciiUrl = e.target.feature.properties.properties.file
-//      // this.json = e.target.feature.properties
 
-      
+//     getStation () {
+//       this.mode = 'station'
+
+//       if (!this.json || this.json['@datastream.id'] !== this.datastreamId) {
+//         this.json = null
+//         this.$http.get(this.feature.properties['Thing@iot.navigationLink'])
+//         .then(resp => {
+//           this.json = resp.body
+//           this.json['@datastream.id'] = this.datastreamId})
+//       }
 //     },
-    getStation () {
-      this.mode = 'station'
-
-      if (!this.json || this.json['@datastream.id'] !== this.datastreamId) {
-        this.json = null
-        this.$http.get(this.feature.properties['Thing@iot.navigationLink'])
-        .then(resp => {
-          this.json = resp.body
-          this.json['@datastream.id'] = this.datastreamId})
-      }
-    },
-    getDataOld (e) {
-//       this.imgUrl = null
-//       this.dataJsonUrl = null
-//       this.json = null
-//       this.dataAsciiUrl = null
-      this.mode = 'graph'
-      if (this.loaded === e.target.id) {
-        return
-      }
-    
-     // e.target.bindPopup('Recherche en cours ...', {minWidth: 500, minHeight:600})
-     // e.target.openPopup()
-      var id = e.target.feature.id
-      this.loaded = id
-      this.selected = id
-      this.img = this.scheme.img.replaceAll('[id]', id)
-      this.imgMin = this.scheme.imgMin.replaceAll('[id]', id)
-      // console.log(url)
-      this.popup.setLatLng(e.target.getLatLng())
-     this.popup.openOn(this.map)
-//        this.img = this.scheme.img.replaceAll('[id]', id)
-//       this.imgMin = this.scheme.imgMin.replaceAll('[id]', id)
-      this.dataJsonUrl = this.scheme.dataJSON.replaceAll('[id]', id)
-      this.dataAsciiUrl = this.scheme.dataASCII.replaceAll('[id]', id)
-       this.sitelog = this.scheme.sitelog.replaceAll('[id]', id)
-     
-      var self = this
-      // self.createPopup(e.target)
-      
-      
-    },
     createPopup(marker) {
-     // marker.closePopup();
-     // marker.unbindPopup();
       this.mode = 'graph'
-     // var container = document.createElement('div')
-//       var node = document.querySelector('#json')
-//       container.appendChild(node)
-     // marker.bindPopup(container, {minWidth: 450, minHeight:500}).openPopup()
-//       this.img = this.scheme.img.replaceAll('[id]', marker.feature.id)
-//       this.imgMin = this.scheme.imgMin.replaceAll('[id]', marker.feature.id)
-//       this.dataJsonUrl = this.scheme.dataJSON.replaceAll('[id]', marker.feature.id)
-//       this.dataAsciiUrl = this.scheme.dataASCII.replaceAll('[id]', marker.feature.id)
     }
   }
 }
@@ -905,33 +706,17 @@ ul.menu-content li span.selected {
   background:white;
   color:#b8412c;
 }
-div.form label {
-  width: 110px;
-  min-width:110px;
-  /** vertical-align: baseline;**/
-}
-div.form > div {
-  margin-bottom: 5px;
-}
-/*div.form label + div {
-  vertical-align: top;
-  display:inline-block;width: calc(100% - 120px);
-  text-align: justify;
-}*/
-div.form label + div > span {
-  margin-right: 8px;
-}
 div.form {
   position: absolute;
   transform: translateX(400px);
-  height: 400px;
-  width: 380px;
+  height: 450px;
+  width: 350px;
   z-index: 1001;
   background: white;
   right: 10px;
   top: 10px;
   border-radius: 5px;
-  padding: 10px 20px;
+  padding: 10px;
   border: 2px solid rgba(0,0,0,0.2);
   background-clip: padding-box;
   transition: transform 330ms ease-in-out;

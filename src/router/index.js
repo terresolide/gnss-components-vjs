@@ -8,13 +8,13 @@ Vue.use(Router)
 //
 // import { createRouter, createWebHashHistory } from 'vue-router'
 import Station from '../components/station.vue'
-import Spotgins from '../components/spot-gins.vue'
+import Map from '../components/map.vue'
 
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: Spotgins
+    component: Map
   },
    {
     path: '/station/:id',
