@@ -37,10 +37,11 @@
     </div>
    </div>
    <div style="clear:left;"> 
-   <h3 >Filters</h3>
+ <!--   <h3 >Filters</h3>
     <div style="margin-left:10px;">
-      
+      ICI LE FUTUR FORMULAIRE
     </div>
+     -->
    </div>
    <div v-if="files.length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
@@ -184,7 +185,7 @@ export default {
         return
       }
       var center = this.location.geometry.coordinates
-      this.$http.get(this.api + "stations?center=" + this.stationId + "&radius=100&strict=1")
+      this.$http.get(this.api + "stations/?center=" + this.stationId + "&radius=100&strict=1")
       .then(resp => {
         if (resp.body.stations && resp.body.stations.length > 0) {
           var neighbours = resp.body.stations
