@@ -16,7 +16,7 @@
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
 	       <div v-if="station.properties.height"><label>Height:</label>{{station.properties.height.toLocaleString()}} m</div>
   
-      <h3>Informations</h3>
+      <h3 style="margin-left:-10px;">Informations</h3>
        <div v-if="station.properties.m3g"><label>M3g:</label>  <a :href="station.properties.m3g" target="_blank">sitelog</a></div>
        <div><label>Domes:</label> {{station.properties.domes}}</div>
        <div v-if="neighbours.length > 0" style="margin-left:-10px;">
@@ -36,7 +36,13 @@
       </div>
     </div>
    </div>
-   <div v-if="files.length > 0"style="clear:left;padding-top:10px;position:relative;">
+   <div style="clear:left;"> 
+   <h3 >Filters</h3>
+    <div style="margin-left:10px;">
+      
+    </div>
+   </div>
+   <div v-if="files.length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
      <span class="fa fa-close" @click="unselect"></span>
      <h3> {{selected.station}} {{selected.solution }} {{selected.productType}}</h3>
@@ -282,7 +288,7 @@ export default {
     },
     getFiles() {
       this.files = []
-      this.$http.get(this.api + 'stations/' + this.stationId + '/files')
+      this.$http.get(this.api + 'stations/' + this.stationId + '/files', {params: this.$route.query})
       .then(resp => {
         this.files = resp.body.files
         console.log(this.files)

@@ -1,7 +1,6 @@
 <template>
   <div style="position:relative;overflow:hidden;">
     <div class="form expand" >
-    
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
        <div v-if="solutions"> 
           <label>Solution</label>
@@ -108,37 +107,7 @@
 	      </div>
      </div>
       </div>
-     <!--  <ul class="menu-content">
-        <li @click="getStation" >
-        <span :class="{'selected': mode === 'station'}" >Station</span>
-        </li>
-        <li @click="mode='graph'" >
-            <span :class="{'selected': mode === 'graph'}" >Graphique</span>
-        </li>
-      
-         <li @click="mode='download'" >
-            <span :class="{'selected': mode === 'download'}" >Téléchargement</span>
-        </li>
-         <li v-if="$route" @click="goToStation($event)" >
-            <span :class="{'selected': mode === 'more'}" >Plus d'info</span>
-        </li>
-      </ul>
-      <div v-show="mode === 'station'" style="max-height:500px;overflow-y:scroll;">
-      <json-div :json="json" :selected="mode === 'station'" :deployed="true"></json-div>
-      </div>
-      <div v-show="mode === 'graph'" style="text-align:center;max-height:420px;overflow:scroll;">
-       <div v-if="imgMin" v-show="loaded">
-        <a :href="img" target="_blank">
-          <img  :src="imgMin" width="350" @click="goToStation($event)" @load="loaded = true">
-        </a>
-       </div>
-      </div>
-      <div v-show="mode === 'data'" style="text-align:center;max-height:420px;overflow:scroll;">
-        <spotgins-graph :url="root" :id="datastreamId" :average="average" :selected="mode === 'data'"></spotgins-graph>
-      </div>
-      <div v-show="mode === 'download'" style="margin:20px;">     
-         <input type="button" value="Télécharger ASCII" @click="download('ascii')" />
-      </div> -->
+    
     </div>
    </div>
 </template>
@@ -159,6 +128,7 @@ Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png').default,
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
+// import FileForm from './file-form.vue'
 require('leaflet-draw')
 L.modLat = function( lat ){
      lat = lat%180;
@@ -187,10 +157,7 @@ import GnssCarousel from './gnss-carousel.vue'
 export default {
   name: 'SpotGins',
   components: {
-   // JsonDiv,
-  //  SpotginsGraph,
- //   DateNavigation,
-  //  FmtTimeline,
+  //  FileForm,
     GnssCarousel
   },
   props: {
@@ -438,9 +405,10 @@ export default {
       e.preventDefault()
       e.stopPropagation()
       this.$store.commit('setQuery', this.$route.query)
-      var query = Object.assign({}, this.$route.query)
-      delete query.network
-      this.$router.push({ name: 'station', params: { id: this.selected.properties.name }, query: query})
+      this.$router.push({ name: 'station', params: { id: this.selected.properties.name }})
+//       var query = Object.assign({}, this.$route.query)
+//       delete query.network
+//       this.$router.push({ name: 'station', params: { id: this.selected.properties.name }, query: query})
     },
 
     load (i) {
@@ -939,18 +907,18 @@ ul.menu-content li span.selected {
   color:#b8412c;
 }
 div.form label {
-  width: 100px;
-  min-width:100px;
-  vertical-align: baseline;
+  width: 110px;
+  min-width:110px;
+  /** vertical-align: baseline;**/
 }
 div.form > div {
   margin-bottom: 5px;
 }
-div.form label + div {
+/*div.form label + div {
   vertical-align: top;
   display:inline-block;width: calc(100% - 120px);
   text-align: justify;
-}
+}*/
 div.form label + div > span {
   margin-right: 8px;
 }
@@ -958,13 +926,13 @@ div.form {
   position: absolute;
   transform: translateX(400px);
   height: 400px;
-  width: 320px;
+  width: 380px;
   z-index: 1001;
   background: white;
   right: 10px;
   top: 10px;
   border-radius: 5px;
-  padding: 10px;
+  padding: 10px 20px;
   border: 2px solid rgba(0,0,0,0.2);
   background-clip: padding-box;
   transition: transform 330ms ease-in-out;

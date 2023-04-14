@@ -8,7 +8,7 @@ Vue.use(Router)
 //
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Station from '../components/station.vue'
-import SpotGins from '../components/spot-gins.vue'
+import SpotGins from '../components/map.vue'
 
 const routes = [
   {
