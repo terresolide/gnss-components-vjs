@@ -372,7 +372,7 @@ export default {
         this.layerControl.addOverlay(this.drawLayers, 'Selected area')
         var self = this
         this.map.on(L.Draw.Event.CREATED, function (e) {
-          console.log(e.layerType)
+          // console.log(e.layerType)
           switch (e.layerType) {
 	          case 'rectangle':
 		          let layer = e.layer
@@ -438,9 +438,9 @@ export default {
       e.preventDefault()
       e.stopPropagation()
       this.$store.commit('setQuery', this.$route.query)
-      var query = Object.assign({}, this.$route.query)
-      delete query.network
-      this.$router.push({ name: 'station', params: { id: this.selected.properties.name }, query: query})
+//       var query = Object.assign({}, this.$route.query)
+//       delete query.network
+      this.$router.push({ name: 'station', params: { id: this.selected.properties.name }})
     },
 
     load (i) {

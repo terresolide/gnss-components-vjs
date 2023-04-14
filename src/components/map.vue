@@ -405,10 +405,9 @@ export default {
       e.preventDefault()
       e.stopPropagation()
       this.$store.commit('setQuery', this.$route.query)
-      this.$router.push({ name: 'station', params: { id: this.selected.properties.name }})
-//       var query = Object.assign({}, this.$route.query)
-//       delete query.network
-//       this.$router.push({ name: 'station', params: { id: this.selected.properties.name }, query: query})
+      var query = Object.assign({}, this.$route.query)
+      delete query.network
+      this.$router.push({ name: 'station', params: { id: this.selected.properties.name }, query: query})
     },
 
     load (i) {
