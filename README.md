@@ -1,4 +1,4 @@
-# spotgins-component-vjs
+# gnss-components-vjs
 
 ## Project setup
 ```
