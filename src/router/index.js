@@ -17,10 +17,15 @@ const routes = [
     component: Map
   },
    {
-    path: '/station/:id',
-    name: 'station',
+    path: '/station/:name',
+    name: 'stations',
     component: Station
   },
+   {
+    path: '/station/:name/:id',
+    name: 'station',
+    component: Station
+  }
 ]
 
 const router = new Router({

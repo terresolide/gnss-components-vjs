@@ -1,11 +1,11 @@
 <template>
-  <div style="position:relative;overflow:hidden;">
-    <div class="form expand" >
+  <div style="position:relative;overflow:clip visible;">
+    <div class="form" >
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
       <file-form mode="map"></file-form>
     </div>
    
-    <div id="map" ></div>
+    <div id="map" style="overflow:auto;"></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
       <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
       <div style="min-height:100px;cursor:pointer;">
@@ -43,7 +43,9 @@
 	      </div>
      </div>
       </div>
-    
+      <div style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
+        <span class="fa fa-arrows-alt button"  @click="goToStation($event)"></span>
+      </div>
     </div>
    </div>
 </template>
@@ -112,7 +114,14 @@ export default {
     }
   },
   watch: {
-    $route (newroute) {
+    $route (newroute, oldroute) {
+      if (newroute.name === oldroute.name && newroute.query.hasOwnProperty('bounds')
+         && (newroute.query.selected !== oldroute.query.selected ||
+           newroute.query.bounds !== oldroute.query.bounds)) {
+        // open close popup
+        console.log('gestion des popups')
+        return
+      }
       this.treatmentQuery(newroute.query)
     }
   },
@@ -167,7 +176,7 @@ export default {
       var elt = document.querySelector('.form')
       elt.classList.toggle('expand')
     },
-    treatmentQuery (query) {
+    treatmentQuery (query, first) {
       this.drawLayers.clearLayers()
       if (query.center && query.radius) {
         var point = query.center.split(',')
@@ -182,7 +191,8 @@ export default {
           // remove query bbox?
         }
       }
-      this.load(0)
+      console.log('first dans trq ', first)
+      this.load(0, first)
     },
    
     initDrawControl () {
@@ -218,7 +228,6 @@ export default {
         this.layerControl.addOverlay(this.drawLayers, 'Selected area')
         var self = this
         this.map.on(L.Draw.Event.CREATED, function (e) {
-          console.log(e.layerType)
           switch (e.layerType) {
 	          case 'rectangle':
 		          let layer = e.layer
@@ -259,21 +268,41 @@ export default {
         })
     },
     initialize () {
-   
+      console.log('initialize')
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
       this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
       var control = new L.Control.Form()
       control.addTo(this.map)
-      this.popup = L.popup({autoPan:false, minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
+      this.popup = L.popup({autoPan:true, minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
       this.initDrawControl()
+      var self = this
+//       this.map.whenReady(function (e) {
+//         var container = self.map.getContainer()
+//         var panes = self.map.getPanes()
+//         console.log(container)
+//         console.log(panes)
+// //         var div = L.DomUtil.create('div', 'gnss-panes leaflet-pane leaflet-map-pane')
+// //         container.append(div)
+//         for (var name in panes) {
+// //           if (name !== 'popupPane') {
+// //             div.append(panes[name])
+// //           }
+//         }
+//       })
+      this.map.on('zoomend moveend', function (e) {
+        var bbox = self.map.getBounds().toBBoxString()
+        var query = Object.assign({}, self.$route.query)
+        query.bounds = bbox
+        self.$router.push({name: 'home', query: query}).catch(()=>{})
+      })
       var node = document.querySelector('#json')
       this.popup.setContent(node)
       var self = this
 
       this.dateLayers = L.layerGroup()
-      this.treatmentQuery(this.$route.query)
+      this.treatmentQuery(this.$route.query, true)
      
     },
     closePopup() {
@@ -286,21 +315,24 @@ export default {
       this.$store.commit('setQuery', this.$route.query)
       var query = Object.assign({}, this.$route.query)
       delete query.network
-      this.$router.push({ name: 'station', params: { id: this.selected.properties.name }, query: query})
+      delete query.selected
+      delete query.bounds
+      this.$router.push({ name: 'station', params: { name: this.selected.properties.name, id: this.selected.id}, query: query})
     },
 
-    load (i) {
+    load (i, first) {
+      console.log('first dans load', first)
       if (!this.api) {
         alert('Pas de service SensorThings!')
       }
       var url = this.api + 'stations/'
       this.$http.get(url, {params: this.$route.query})
       .then(
-          resp => {this.display(resp.body, i)},
+          resp => {this.display(resp.body, i, first)},
           resp => {alert('Erreur de chargement: ' + resp.status)}
        )
     },
-    display (data, index) {
+    display (data, index, init) {
       var self = this
       if (index === 0) {
         for (var key in this.groupLayers) {
@@ -318,7 +350,7 @@ export default {
       }
       data.stations.forEach(function (value) {
           var feature = value.location
-          feature.id = value.name
+          feature.id = value.id
           if (!value.properties) {
             value.properties =  {}
           }
@@ -340,10 +372,32 @@ export default {
         var className = self.getClassname(group)
         self.layerControl.addOverlay(self.groupLayers[group],  group +' <div class="marker-' + className + '"></div>' )
       })
-      if (this.drawLayers.getBounds()) {
-        this.bounds.extend(this.drawLayers.getBounds())
+      if (!init) {
+        this.closePopup()
       }
-      this.map.fitBounds(this.bounds)
+      if (init && this.$route.query.selected) {
+        var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
+        this.openPopup(station)
+      }
+      if (init && this.$route.query.bounds) {
+        var tab = this.$route.query.bounds.split(',')
+        if (tab.length === 4) {
+          this.bounds = [
+            [parseFloat(tab[1]), parseFloat(tab[0])],
+            [parseFloat(tab[3]), parseFloat(tab[2])]
+          ]
+        }
+      } 
+      if (!this.bounds && this.drawLayers.getBounds()) {
+        if (!this.bounds) {
+          this.bounds = this.drawLayers.getBounds()
+        } else {
+          this.bounds.extend(this.drawLayers.getBounds())
+        }
+      }
+      if (this.bounds) {
+          this.map.fitBounds(this.bounds)
+      }
       
     },
     getClassname (status) {
@@ -379,7 +433,7 @@ export default {
       var self = this
       var layer = L.geoJSON(feature,{
         pointToLayer: function(feature, latlng) {
-           var marker = L.marker(latlng, {icon: icon, title: feature.id})
+           var marker = L.marker(latlng, {icon: icon, title: feature.properties.name})
            marker.on('click', self.getData )
           // L.marker(latlng, {icon: arrow}).addTo(self.map)
            return marker
@@ -430,8 +484,20 @@ export default {
 //       var blob = new Blob([data], {type: MIME_TYPE});
 //       window.location.href = window.URL.createObjectURL(blob);
     },
+    openPopup (station) {
+	      this.selected = station
+	      this.mode = 'image'
+	      var coord = station.geometry.coordinates
+	      this.show = true
+	      this.popup.setLatLng([coord[1], coord[0]])
+	      this.popup.openOn(this.map)
+    },
     getData (e) {
+      var query = Object.assign({}, this.$route.query)
       if (this.selected && this.selected.id === e.target.feature.id) {
+        delete query['selected']
+        this.$router.push({name: 'home', query: query}).catch(()=>{})
+        
         this.closePopup()
         return
       }
@@ -440,6 +506,9 @@ export default {
       this.show = true
       this.popup.setLatLng(e.target.getLatLng())
       this.popup.openOn(this.map)
+      
+      query.selected = e.target.feature.id
+      this.$router.push({name: 'home', query: query}).catch(()=>{})
       return false
     },
 
@@ -468,6 +537,9 @@ export default {
 <!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
+div.gnss-panes {
+  overflow:hidden;
+}
 .button.fa-chevron-right {
   float:right;
   cursor: pointer;
@@ -576,6 +648,7 @@ margin-left:35px;
   min-height:500px;
   height:100vh;
   width:100%;
+  overflow: visible;
 }
 #map .leaflet-popup-scrolled {
   border: none;

@@ -1,7 +1,14 @@
 <template>
-<div class="file-form" >
+<div class="file-form" :class="{'station-form': mode === 'station'}">
+<div >
   <div v-if="solutions">
-    <label>Solution
+    <label >Solution  
+      <i class="fa fa-question-circle" @click="showTooltip($event)"></i>
+        <div class="gdm-tooltip" @click="hideTooltip($event)">
+        <h4 >Solution</h4>
+        <div>more info about solutions here @todo<br>
+        </div>
+     </div>
     </label><select class="gnss-control" v-model="searchparams.solution">
        <option :value="null">---</option>
        <option v-for="pt in solutions" :value="pt">{{pt}}</option>
@@ -11,31 +18,34 @@
     <label >Temporal extent</label>
 	  <div >
 	    <label>From</label>
-	    <input type="date" v-model="searchparams.from" class="gnss-control" />
+	    <input type="date" v-model="searchparams.start" class="gnss-control" />
 	  </div>
 	  <div >
 	    <label>To</label>
-	    <input type="date" v-model="searchparams.to" class="gnss-control" />
+	    <input type="date" v-model="searchparams.end" class="gnss-control" />
 	  </div>
   </div>
-   <div class="extent-years">
-    <label style="margin-top:15px;display:block;width:auto;">Extend in years</label>
+ 
+   <div class="fillrate" style="margin-top:12px;">
+    <label >Extend (years)</label>
     <div >
-      <span>
-	      <label style="max-width:50px;margin-left:60px;">Min</label>
-	      <input type="number" v-model="searchparams.lenmin" min="0" max="40" class="gnss-control" />
-      </span>
-      <span >
-	      <label style="max-width:50px;margin-left:20px;"">Max</label>
-	      <input type="number" v-model="searchparams.lenmax"  min="0" max="40" class="gnss-control" />
-      </span>
+       <vue-slider v-model="length.values" :dot-options="length.dotoptions" 
+       :marks="length.marks"
+       :data="length.points" ></vue-slider>
+      
     </div>
   </div>
-  <div>
+ 
+ 
+  <div class="fillrate">
       <label>Fill rate > </label>
-      <input type="number" v-model="searchparams.fill" class="gnss-control" />
-      %
+      <div > 
+        
+      <vue-slider v-model="fillrate.values" :dot-options="fillrate.dotoptions" :marks="fillrate.marks"></vue-slider></div>
+      
   </div>
+  </div>
+ <div>
   <div v-if="productors">
     <label>Operator</label>
     <select class="gnss-control" v-model="searchparams.productor">
@@ -71,12 +81,14 @@
           <button @click="reset()" type="button" >Resest</button>
           <button @click="search($event)" type="submit" >Search <i class="fa fa-search"></i></button>
       </div>
-   
+  </div>
 </div>
 </template>
 <script>
+import VueSlider from 'vue-slider-component'
 export default {
   name: 'FileForm',
+  components: {VueSlider},
   props: {
     mode: {
       type: String,
@@ -107,10 +119,41 @@ export default {
     }
   },
   created () {
+    this.length.points = []
+    for(var i=0; i < this.length.max + 1; i++) {
+      this.length.points.push(i)
+    }
+    this.length.marks = []
+    for (var i=0; i < this.length.max + 1; i=i+25) {
+      this.length.marks.push(i)
+    }
     this.initSearchParams(this.$route.query)
+  },
+  mounted () {
+    console.log(this.length.points)
   },
   data () {
     return  {
+      fillrate: {
+        values: [0,100],
+        dotoptions: [{
+          disabled: false
+        }, {
+          disabled: true
+        }],
+        marks: [0, 25, 50, 75, 100]
+      },
+      length: {
+        values: [0, 50],
+        dotoptions: [{
+          disabled: false
+        }, {
+          disabled: false
+        }],
+        max: 50,
+        points: [],
+        marks: []
+      },
       searchparams: {
 	      productType: null,
 	      solution: null,
@@ -130,17 +173,40 @@ export default {
     search (event) {
       event.preventDefault()
       var self = this
-      console.log(this.searchparams.network)
+      if (this.fillrate.values[0] !== 0) {
+        this.searchparams.fill = this.fillrate.values[0]
+      }
+      if (this.length.values[0] !== 0) {
+        this.searchparams.lenmin = this.length.values[0] 
+      }
+      if (this.length.values[1] !== this.length.max) {
+        this.searchparams.lenmax = this.length.values[1] 
+        
+      }
       this.searchparams.network = this.searchparams.network.filter(nt => self.networks.indexOf(nt) >= 0)
       this.changeQuery(this.searchparams)
     },
     initSearchParams (query) {
+      this.length.values = [0, 50]
+      this.fillrate.values = [0, 100]
       for (var key in query) {
         if (key === 'network') {
           this.searchparams.network = query['network'].split(',')
         } else if (['center', 'radius', 'bbox'].indexOf(key) < 0) {
           this.searchparams[key] = query[key]
         }
+        if (key === 'fill') {
+          this.fillrate.values[0] = parseInt(query['fill'])
+        }
+        if (key.toLowerCase() === 'lenmin') {
+          console.log(key)
+          console.log(query[key])
+          this.length.values[0] = parseInt(query[key])
+          console.log(this.length.values[0])
+        } 
+        if (key.toLowerCase() === 'lenmax') {
+          this.length.values[1] = parseInt(query[key])
+        } 
       }
       for (var key in this.searchparams) {
         if (!query[key]) {
@@ -151,6 +217,7 @@ export default {
           }
         }
       }
+
     },
     changeQuery (params) {
       var newquery = Object.assign({}, this.$route.query)
@@ -165,20 +232,35 @@ export default {
         }
       }
       console.log(newquery)
-      this.$router.push({name: 'home', query: newquery}).catch(()=>{})
+      this.$router.push({name: this.$route.name, query: newquery}).catch(()=>{})
     },
     reset() {
       console.log('RESET')
-      this.$router.push({name:'home', query: {}}).catch(()=>{})
+      this.$router.push({name:this.$route.name, query: {}}).catch(()=>{})
     },
-    test () {
-      console.log(this.searchparams.solution)
+    hideTooltip (event) {
+      document.querySelectorAll('.tooltip-show').forEach(function (node) {
+        node.classList.remove('tooltip-show')
+      })
+    },
+    showTooltip (event) {
+      event.preventDefault()
+      if (event.target.classList.contains('tooltip-show')) {
+        event.target.classList.remove('tooltip-show')
+        return
+      }
+      document.querySelectorAll('.tooltip-show').forEach(function (node) {
+        node.classList.remove('tooltip-show')
+      })
+      event.target.classList.add('tooltip-show')
     }
   }
 }
 
 </script>
+<style src='vue-slider-component/theme/default.css' />
 <style>
+
 div.custom-checkbox label.custom-control-label {
   width:auto;
   min-width:0;
@@ -191,29 +273,61 @@ input[id="fillrate"]::after {
 }
 </style>
 <style scoped>
+.fa-question-circle{ 
+  cursor:pointer;
+  opacity:0.8;
+}
+.fa-question-circle:hover {
+  opacity:1;
+}
 .file-form {
   clear:both;
 }
-.file-form > div {
+.file-form > div > div {
   margin: 3px 0;
 }
-.file-form > div > div {
+.file-form > div > div > div {
   margin: 0px 0 2px 10px;
   width: calc(100% - 10px);
+}
+div.station-form > div{
+  display:inline-block;
+  width:calc(50% - 15px);
+  vertical-align:top;
+}
+div.station-form > div:first-child {
+  margin-right: 20px;
 }
 label {
   width: 110px;
   min-width:110px;
   color:#666;
+  position:relative;
+  overflow:visible;
   /** vertical-align: baseline;**/
 }
-.temp-extent > label {
+div.station-form label {
+  width: 130px;
+  min-width:130px;
+  color:#666;
+  /** vertical-align: baseline;**/
+}
+ 
+.temp-extent > label,
+div.station-form .temp-extent > label {
   margin-top:15px;display:block;width:auto;
 }
 .temp-extent > div > label {
   min-width: 95px;
   width: 95px;
   
+}
+div.station-form .temp-extent > div > label {
+  min-width: 115px;
+  width: 115px;
+}
+.temp-extent > div {
+  margin-left:15px;
 }
 .extent-years label {
   width: 40px;
@@ -235,9 +349,9 @@ label {
 div.gnss-networks > label {
   vertical-align:top;
 }
-div.gnss-networks > div {
+.file-form  div.gnss-networks > div {
   display:inline-block;
-  width:calc(100% - 140px);
+  width:calc(100% - 150px);
 }
 span.network-span {
   display:inline-block;
@@ -249,23 +363,24 @@ span.network-span {
 span.network-span span {
   line-height:1.3em;
 }
-.gnss-control {
-   display: inline-block;
-   color: #495057;
-   vertical-align: middle;
-   background-color: #fff;
-   background-clip: padding-box;
-   border: 1px solid #ced4da;
-   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-   height: calc(1.3em + 0.5rem + 2px);
-   padding: 0.2rem 0.5rem;
-  font-size: 0.875rem;
-   line-height: 1.5;
-  border-radius: 0.2rem;
-   max-width: calc(100% - 140px);
-   width:calc(100% - 140px);
-   cursor:pointer;
+.file-form div.fillrate {
+  margin-top: 8px 0;
 }
+.fillrate > label {
+  vertical-align:top;
+}
+.file-form .fillrate > div {
+   display: inline-block;
+   max-width: calc(100% - 160px);
+   width:calc(100% - 160px);
+   height: 40px;
+   margin-left: -2px;
+   vertical-align:top;
+}
+.fillrate .vue-slider-mark-label {
+  font-size: inherit;
+}
+
 input.gnss-checkbox {
 	cursor: pointer;
 	border-radius: .25em;
@@ -316,44 +431,5 @@ select {
   outline: 0;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
-[type="button"],
-[type="submit"] {
-	display: inline-block;
-	font-weight: 400;
-	line-height: 1.5;
-	color: #212529;
-	text-align: center;
-	text-decoration: none;
-	vertical-align: middle;
-	cursor: pointer;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	user-select: none;
-	background-color: transparent;
-	border: 1px solid transparent;
-	border-top-color: transparent;
-	border-right-color: transparent;
-	border-bottom-color: transparent;
-	border-left-color: transparent;
-	padding: .35rem .7rem;
-	font-size: 0.9rem;
-	border-radius: .25rem;
-	transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-  color: #000;
-  background-color: #f8f9fa;
-  border-color: #f0F0F0;
-  cursor: pointer;
-}
-[type="button"]:hover,
-[type="submit"]:hover{
-  color: #000;
-  background-color: #f0F0F0;
-  border-color: #f9fafb;
-}
-[type="button"]:active,
-[type="submit"]:active {
-	color: #212529;
-	background-color: #dae0e5;
-	border-color: #d3d9df;
-}
+
 </style>

@@ -1,55 +1,87 @@
 <template>
  <div style="margin:auto;">
 	 <div class="station-header">
-	    <span class="fa fa-close" @click="close" style="margin-right:20px;"></span>
-	    <h2 v-if="stationId">Station {{stationId}}</h2>
+	    <span class="fa fa-close button" @click="close" style="margin-right:20px;"></span>
+	    <h2 v-if="stationId">Station {{stationName}}</h2>
+	    <h2 v-else-if="stations">{{stations.length}} stations with the identifier {{stationName}}</h2>
 	    <h2 v-else>UNKNOWN STATION</h2>
 	 </div>
   <div class="station-body">
-  <div v-if="location">
+  <div v-if="location || stations">
+	  <div v-if="!station && stations" style="float:left;">
+	      <div v-for="st in stations" class="box-station">
+		       <router-link class="station-link"  :to="{name: 'station', params: {name: st.name, id: st.id}}">
+		       
+		       <h3>{{st.name}} N°{{st.id}}</h3>
+		        <div>Latitude: {{st.location.geometry.coordinates[1].toLocaleString()}}°</div>
+		        <div>Longitude: {{st.location.geometry.coordinates[0].toLocaleString()}}°</div>
+		  
+		      </router-link>
+	      </div>
+	  </div>
+ 
+  
    
-    <div>
+    <div v-if="location">
       <h3 style="margin-bottom:0;">Coordinates</h3>
       <div style="float:left;min-width:300px;width:40%;margin-left:10px;margin-top:18px;margin-right:50px;">
        
-	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
+	       <div><label>Latitude:</label> </div>
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
 	       <div v-if="station.properties.height"><label>Height:</label>{{station.properties.height.toLocaleString()}} m</div>
-  
+
       <h3 style="margin-left:-10px;">Informations</h3>
        <div v-if="station.properties.m3g"><label>M3g:</label>  <a :href="station.properties.m3g" target="_blank">sitelog</a></div>
        <div><label>Domes:</label> {{station.properties.domes}}</div>
-       <div v-if="neighbours.length > 0" style="margin-left:-10px;">
-        <h3>Nearest stations</h3>
-        <div v-if="map && neighboursLayer" style="margin-left:10px;">
-           <button v-if="onMap"
-              title="Remove from map" @click="removeNeighboursFromMap">Remove from map</button>
-           <button v-else title="Show on map" @click="addNeighboursToMap">Show on map</button>
-        </div>
-        <div v-for="st in neighbours" style="margin-left:10px;">
-          <span class="station-link" @click="goToStation(st)">{{st.name}}</span>
-          ({{Math.round(st.distance)}} km)
-        </div>
+ 
+ 
+ 
+        <h3  v-if="stationId" style="margin-left:-10px;">Nearest stations
+            <span class="fa button in-title" @click="show.nearest = !show.nearest">{{show.nearest ? '-' : '+'}}</span>
+        </h3>
+        <div  style="margin-left:10px;" :style="{display: show.nearest ? 'block': 'none'}">
+          <div style="margin-bottom:10px;">
+	            <input type="number" step="10" v-model="radius" @change="radiusChanged=true"
+	           class="gnss-control" /> km &nbsp;
+	           <button type="button" @click="getNeighbours()"
+	           style="margin-right:20px;">Search</button>
+	           <button type="button" v-if="onMap"
+	              value="Remove" @click="removeNeighboursFromMap">Hide <i class="fa fa-map-marker"></i></button>
+	           <button type="button" v-else title="Show on map" @click="addNeighboursToMap">Display <i class="fa fa-map-marker"></i></button>
+          </div>
+	        <div v-if="neighbours.length > 0">
+		        <div  v-for="st in neighbours" class="gnss-neighbour">
+		          <span class="station-link" @click="goToStation(st)">{{st.name}}</span>
+		          ({{Math.round(st.distance)}} km)
+		        </div>
+	        </div>
+	        <div v-else ><em>No other stations within {{searchRadius}}km radius</em></div>
+	        </div>
        </div>
-      </div>
-      <div id="stationMap"  >
-      </div>
+      
     </div>
+     <div v-show="station || stations" id="stationMap"  >
    </div>
+    
+  </div>
    <div style="clear:left;"> 
- <!--   <h3 >Filters</h3>
-    <div style="margin-left:10px;">
-      ICI LE FUTUR FORMULAIRE
-    </div>
-     -->
    </div>
+   <h3 v-if="stationId">Filters 
+      <span class="fa button in-title" @click="show.filter = !show.filter">{{show.filter ? '-' : '+'}}</span>
+   </h3>
+    <div :style="{display: show.filter ? 'block': 'none'}" style="margin-left:10px;max-width:950px;font-size:0.9rem;">
+      <file-form mode="station"></file-form>
+    </div>
+   
+
    <div v-if="files.length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
      <span class="fa fa-close" @click="unselect"></span>
      <h3> {{selected.station}} {{selected.solution }} {{selected.productType}}</h3>
      <div v-html="plot.div" >STATION INCONNUE</div>
    </div>
-     <h3>Data</h3>
+ 
+   <h3>Data</h3>
      <div style="margin-left:10px;">
 		   <div  v-for="file in files" class="file-container" >
 		     <div style="">
@@ -67,7 +99,7 @@
 		        <div><label>ProductType</label>{{file.productType}}</div>
 		        <div><label>Phenomenon Time</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
 		        <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
-		        <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file'">
+		        <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate'">
 		        <label>{{key}}</label> {{value}}
 		        </div>
 		     </div>
@@ -77,10 +109,11 @@
 	   </div>
    </div>
    
-   <div v-if="!station">
+   
+   <div v-if="!station && !stations">
       No station found with this code
    </div>
-  </div>
+ </div>
  </div>
 </template>
 
@@ -95,25 +128,36 @@ Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png').default,
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
+import FileForm from './file-form.vue'
 // import Bokeh from '@bokeh/bokehjs/build/js/bokeh.esm.min.js';
 export default {
   name: 'Station',
+  components: {FileForm},
   data () {
     return {
       sari: 'https://alvarosg.shinyapps.io/sari/',
       plot: {div: null, script: null},
       script: null,
       stationId: null,
+      stationName: null,
       station: null,
+      stations: null,
       icon: null,
       stationLayer: null,
       neighboursLayer: null,
+      radiusChanged:true,
+      radius: 100,
+      searchRadius: 100,
       files: [],
       selected: null,
       onMap: false,
       map: null,
       location: null,
-      neighbours: []
+      neighbours: [],
+      show: {
+        filter: false,
+        nearest: false
+      }
     }
   },
   computed: {
@@ -126,16 +170,24 @@ export default {
   },
   watch: {
     $route (route) {
-      this.stationId = route.params.id
+      this.initStation()
+      this.stationName = route.params.name
+      if (route.params.id) {
+        this.stationId = route.params.id
+      } 
       this.getStation()
     }
   },
-  mounted () {
-    if (!this.$route.params.id) {
+  created () {
+    if (!this.$route.params.name) {
       return
     } 
-    
-    this.stationId = this.$route.params.id
+    this.stationName = this.$route.params.name
+    if (this.$route.params.id) {
+      this.stationId = this.$route.params.id
+    } else {
+      this.stationId = null
+    }
     this.getStation()
 //     this.$http.get('https://catalog.formater/flask/component/' + this.stationId)
 //     .then(resp => {
@@ -152,6 +204,15 @@ export default {
     }
   },
   methods: {
+    initStation () {
+      this.station = null
+      this.stations = null
+      this.stationId = null
+      this.location = null
+      this.neighbours = []
+      this.files = []
+      this.map = null
+    },
     addNeighboursToMap () {
       if (this.neighboursLayer) {
         this.neighboursLayer.addTo(this.map)
@@ -185,44 +246,14 @@ export default {
         return
       }
       var center = this.location.geometry.coordinates
-      this.$http.get(this.api + "stations/?center=" + this.stationId + "&radius=100&strict=1")
+      this.$http.get(this.api + "stations/?center=" + center.join(',') + "&radius=" + this.radius)
       .then(resp => {
         if (resp.body.stations && resp.body.stations.length > 0) {
+          this.initNeighboursLayer()
+          this.searchRadius = this.radius
           var neighbours = resp.body.stations
           var center = this.location.geometry.coordinates
-          neighbours.forEach(function (st, index) {
-            var pos = st.location.geometry.coordinates
-            var distance  = Util.getDistanceFromLatLonInKm(pos[1], pos[0], center[1], center[0])
-            console.log(distance)
-            neighbours[index].distance = distance
-          })
-          this.neighbours = neighbours
-
-          var self = this
-          this.neighbours.forEach(function (st) {
-            var layer = L.geoJSON(st.location, {
-              pointToLayer (feature, latlng) {
-                return L.marker(latlng, {title: st.name})
-              }
-            })
-            self.neighboursLayer.addLayer(layer)
-          })
-          if (this.onMap) {
-            this.addNeighboursToMap()
-          }
-        }      
-      })
-    },
-    getNeighboursOld () {
-      if (!this.location) {
-        return
-      }
-      var center = this.location.geometry.coordinates
-      this.$http.get(this.root + "/Locations?$filter=geo.distance(location,geography'POINT(" + center.join(' ') + ")') lt 2 and not name eq '"+ this.stationId + "'")
-      .then(resp => {
-        if (resp.body.value && resp.body.value.length > 0) {
-          var neighbours = resp.body.value
-          var center = this.location.geometry.coordinates
+          neighbours = neighbours.filter(st => st.id !== this.stationId)
           neighbours.forEach(function (st, index) {
             var pos = st.location.geometry.coordinates
             var distance  = Util.getDistanceFromLatLonInKm(pos[1], pos[0], center[1], center[0])
@@ -267,11 +298,16 @@ export default {
     getStation () {
         this.initNeighboursLayer()
         // this.$http.get(this.root + "/Things?$filter=substringof('" + this.stationId + "',name)&$expand=Locations($top=1)")
-        this.$http.get(this.api + 'stations/' + this.stationId)
+        var url = this.api + 'stations/' + this.stationName
+        if (this.stationId) {
+          url += '/' + this.stationId
+        }
+        this.$http.get(url)
         .then(resp => {
           if (resp.body.id) {
-            if (resp.body.name === this.stationId) {
+            if (resp.body.name === this.stationName) {
 	            this.station = resp.body
+	            this.stationId = this.station.id
 	            this.location = this.station.location
 	           // this.initMap()
 	            this.getFiles()
@@ -282,6 +318,9 @@ export default {
             }
             //             var self = this
 //             setTimeout(function () {self.initMap()}, 0)
+          } else if (resp.body.stations && resp.body.stations.length > 0) {
+            this.stations = resp.body.stations
+            this.$nextTick(() => this.initMap())
           } else {
             this.setNoStation()
           }
@@ -296,16 +335,17 @@ export default {
       })
     },
     goToStation (station) {
-      this.$router.push({name: 'station', params: {id: station.name}})
+      this.$router.push({name: 'station', params: {name: station.name, id: station.id}})
     },
     setNoStation () {
       if (this.stationLayer) {
         this.stationLayer.remove()
       }
+      this.stationName = null
       this.stationId = null
     },
     
-    initMap () {
+    initMap (map) {
       if (!this.map) {
 	      this.map= L.map( "stationMap", {scrollWheelZoom: true})
 	      var tile = {
@@ -333,13 +373,26 @@ export default {
         });
      }
      var self = this
-     this.stationLayer = L.geoJSON(this.location, {
-       pointToLayer: function (feature, latlng) {
-         return L.marker(latlng, {title: self.station.name, icon: self.icon})
-       }
-     }).addTo(this.map)
-     this.map.setView([this.location.geometry.coordinates[1], this.location.geometry.coordinates[0]], 6)
-     this.getNeighbours()
+	   if (this.location) {
+	     this.stationLayer = L.geoJSON(this.location, {
+	       pointToLayer: function (feature, latlng) {
+	         return L.marker(latlng, {title: self.station.name, icon: self.icon})
+	       }
+	     }).addTo(this.map)
+	     this.map.setView([this.location.geometry.coordinates[1], this.location.geometry.coordinates[0]], 6)
+       this.getNeighbours()
+     } else if (this.stations) {
+       this.stationLayer = L.featureGroup().addTo(this.map)
+       var self = this
+       this.stations.forEach(function (st) {
+         var coords = st.location.geometry.coordinates
+         var marker = L.marker([coords[1],coords[0]], {icon: self.icon, title: 'Station N°' + st.id})
+         self.stationLayer.addLayer(marker)
+       })
+       var bounds = this.stationLayer.getBounds()
+       this.map.fitBounds(bounds)
+     }
+     
     },
     close () {
       this.$router.push({name: 'home', query: this.$store.state.query})
@@ -348,6 +401,27 @@ export default {
 }
 </script>
 <style>
+div.box-station {
+  display: inline-block;
+overflow: hidden;
+padding: 5px 20px 20px 20px;
+margin:20px;
+ border: 1px solid grey;
+ border-radius: 10px;
+-webkit-box-shadow: 0 0 3px rgba(0,0,0,.5);
+box-shadow: 0 0 3px rgba(0,0,0,.5);
+}
+div.box-station h3 {
+  margin-top: 10px;
+}
+div.box-station a.station-link {
+  margin: 5px;
+  line-height: 1.1;
+  text-decoration: none;
+  color: #000;
+  cursor:pointer;
+}
+
 div[id="stationMap"] {
   position: relative;
   width:300px;
@@ -356,6 +430,11 @@ div[id="stationMap"] {
 }
 </style>
 <style scoped>
+  div.gnss-neighbour {
+    margin:3px 20px 3px 0;
+    display:inline-block;
+    width:200px;
+  }
   div.file-selected {
      position:absolute;background:white;top:0;
      border:1px solid lightgrey;
@@ -414,14 +493,13 @@ div[id="stationMap"] {
   span.station-link:hover {
     border-color: grey;
   }
+  span.in-title {
+    font-size: 1rem;
+  }
   span.fa-close {
     position: absolute;
     right: 15px;
-    cursor: pointer;
-    padding: 5px;
-    border: 1px dotted lightgrey;
+   
   }
-  span.fa-close:hover {
-    border-color: black;
-  }
+
 </style>
