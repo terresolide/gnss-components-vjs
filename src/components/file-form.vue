@@ -175,13 +175,19 @@ export default {
       var self = this
       if (this.fillrate.values[0] !== 0) {
         this.searchparams.fill = this.fillrate.values[0]
+      } else {
+        this.searchparams.fill = null
       }
       if (this.length.values[0] !== 0) {
-        this.searchparams.lenmin = this.length.values[0] 
+        this.searchparams.lenMin = this.length.values[0] 
+      } else {
+        this.searchparams.lenMin = null
       }
       if (this.length.values[1] !== this.length.max) {
-        this.searchparams.lenmax = this.length.values[1] 
+        this.searchparams.lenMax = this.length.values[1] 
         
+      } else {
+        this.searchparams.lenMax = null
       }
       this.searchparams.network = this.searchparams.network.filter(nt => self.networks.indexOf(nt) >= 0)
       this.changeQuery(this.searchparams)
