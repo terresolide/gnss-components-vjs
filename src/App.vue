@@ -1,5 +1,5 @@
 <template>
- <div class="spotgins" style="position:relative;">
+ <div class="gnss-terresolide" style="position:relative;">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
  <div  id="page">
@@ -35,7 +35,7 @@ export default {
 }
 </script>
 <style>
-.spotgins {
+.gnss-terresolide {
   font-family: sans-serif;
   line-height:1;
 }
@@ -78,8 +78,8 @@ export default {
    width:calc(100% - 140px);
    cursor:pointer;
 }
-[type="button"],
-[type="submit"] {
+.gnss-terresolide [type="button"],
+.gnss-terresolide [type="submit"] {
   display: inline-block;
   font-weight: 400;
   line-height: 1.5;
