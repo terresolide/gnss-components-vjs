@@ -7,16 +7,11 @@ var buildName = PACKAGE.name;
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 var UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
-// var vueLoaderConfig = require('./vue-loader.conf')
-var preUrl = PACKAGE.preproduction.url + "/webcomponents/";
+
+// var preUrl = PACKAGE.preproduction.url + "/webcomponents/";
 var prodUrl = PACKAGE.production.url + '/' + buildName + '@' + buildVersion +  '/dist/' ;
 var FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
-// var HtmlWebpackPlugin = require('html-webpack-plugin')
-//if (process.env.NODE_ENV === 'production') {
-//  var appURL = prodUrl;
-//} else {
-//  var appURL = 'dist/';
-//}
+
 
 var pathsToClean = [
   'dist/*.*'
@@ -172,47 +167,33 @@ if (process.env.NODE_ENV === 'production') {
   ])
 }
 
-if (process.env.NODE_ENV === 'preproduction') {
-//  var indexPath = path.resolve(__dirname, '/webcomponents/index.html')
-  module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.DefinePlugin({
-      'process.env': '"production"'
-    }),
-    new VueLoaderPlugin(),
-//    new HtmlWebpackPlugin({
-//      filename: indexPath,
-//      template: 'index2.html',
-//      root: preUrl + buildName + '.' + buildVersion + '.js',
-//      inject: false,
-//      minify: {
-//        removeComments: true,
-//        collapseWhitespace: false,
-//        removeAttributeQuotes: false
-//        // more options:
-//        // https://github.com/kangax/html-minifier#options-quick-reference
-//      },
-//      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-//      chunksSortMode: 'dependency'
-//    })
-  ])
-    module.exports.mode = 'production'
-    module.exports.devtool = '#source-map';
-    module.exports.output.path =  path.resolve(__dirname, './webcomponents'),
-    module.exports.output.publicPath = preUrl;
-    module.exports.output.filename =   buildName+'.'+buildVersion+'.js'
-    //module.exports.output.publicPath= PACKAGE.url+ buildName +'/master/dist/';
-
-    // http://vue-loader.vuejs.org/en/workflow/production.html
-    module.exports.plugins = (module.exports.plugins || []).concat([
-    //  new CleanWebpackPlugin(["webcomponents/*.*"]),
-      new UglifyJsPlugin({
-          sourceMap: true
-        }),
-      new webpack.LoaderOptionsPlugin({
-        minimize: true,
-        options: {
-          assetsSubDirectory: 'assets/'
-        }
-      })
-    ])
-  }
+//if (process.env.NODE_ENV === 'preproduction') {
+////  var indexPath = path.resolve(__dirname, '/webcomponents/index.html')
+//  module.exports.plugins = (module.exports.plugins || []).concat([
+//    new webpack.DefinePlugin({
+//      'process.env': '"production"'
+//    }),
+//    new VueLoaderPlugin(),
+//
+//  ])
+//    module.exports.mode = 'production'
+//    module.exports.devtool = '#source-map';
+//    module.exports.output.path =  path.resolve(__dirname, './webcomponents'),
+//    module.exports.output.publicPath = preUrl;
+//    module.exports.output.filename =   buildName+'.'+buildVersion+'.js'
+//    //module.exports.output.publicPath= PACKAGE.url+ buildName +'/master/dist/';
+//
+//    // http://vue-loader.vuejs.org/en/workflow/production.html
+//    module.exports.plugins = (module.exports.plugins || []).concat([
+//    //  new CleanWebpackPlugin(["webcomponents/*.*"]),
+//      new UglifyJsPlugin({
+//          sourceMap: true
+//        }),
+//      new webpack.LoaderOptionsPlugin({
+//        minimize: true,
+//        options: {
+//          assetsSubDirectory: 'assets/'
+//        }
+//      })
+//    ])
+//  }
