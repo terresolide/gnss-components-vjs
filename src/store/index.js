@@ -3,8 +3,9 @@ import Vuex from 'vuex'
 
 export default function makeStore( config ) {
   var defaultConfig = {
-    frost: 'http://localhost:8080/FROST-Server/v1.1/',
     api: 'http://127.0.0.1:8083/api/',
+    solution: null,
+    productor: null,
     query: {},
     codelists: {}
   }
@@ -21,9 +22,6 @@ export default function makeStore( config ) {
       }
     },
     getters: {
-      frost (state, getters) {
-        return state.frost
-      },
       api (state, getters) {
         return state.api
       },
@@ -38,6 +36,16 @@ export default function makeStore( config ) {
           return state.codelists.productors
         }
         return null
+      },
+      request (state, getters) {
+        var rq = {}
+        if (state.solution) {
+          rq.solution = state.solution
+        }
+        if (state.productor) {
+          rq.productor = state.productor
+        }
+        return rq
       },
       solutions (state, getters) {
          if (state.codelists.solutions) {

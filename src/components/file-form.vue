@@ -1,7 +1,7 @@
 <template>
 <div class="file-form" :class="{'station-form': mode === 'station'}">
 <div >
-  <div v-if="solutions">
+  <div v-if="solutions && !$store.state.solution">
     <label >Solution  
       <i class="fa fa-question-circle" @click="showTooltip($event)"></i>
         <div class="gdm-tooltip" @click="hideTooltip($event)">
@@ -46,7 +46,7 @@
   </div>
   </div>
  <div>
-  <div v-if="productors">
+  <div v-if="productors && !$store.state.productor">
     <label>Operator</label>
     <select class="gnss-control" v-model="searchparams.productor">
        <option :value="null">---</option>
@@ -241,7 +241,7 @@ export default {
       this.$router.push({name: this.$route.name, query: newquery}).catch(()=>{})
     },
     reset() {
-      console.log('RESET')
+      this.$emit('reset')
       this.$router.push({name:this.$route.name, query: {}}).catch(()=>{})
     },
     hideTooltip (event) {

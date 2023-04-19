@@ -163,9 +163,6 @@ export default {
     }
   },
   computed: {
-    root () {
-      return this.$store.getters['frost']
-    },
     api () {
       return this.$store.getters['api']
     }
@@ -428,6 +425,7 @@ div[id="stationMap"] {
   position: relative;
   width:300px;
   height:200px;
+  z-index:0;
   float:left;
 }
 </style>

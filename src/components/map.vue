@@ -2,7 +2,7 @@
   <div style="position:relative;overflow:clip visible;">
     <div class="form" >
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
-      <file-form mode="map"></file-form>
+      <file-form mode="map" ></file-form>
     </div>
    
     <div id="map" style="overflow:auto;"></div>
@@ -106,20 +106,22 @@ export default {
     }
   },  
   computed: {
-    root () {
-      return this.$store.getters['frost']
-    },
     api () {
       return this.$store.getters['api']
+    },
+    defaultRequest() {
+      return this.$store.getters['request']
     }
   },
   watch: {
     $route (newroute, oldroute) {
+      console.log('ROUTE CHANGE')
+      console.log(newroute)
       if (newroute.name === oldroute.name && newroute.query.hasOwnProperty('bounds')
          && (newroute.query.selected !== oldroute.query.selected ||
            newroute.query.bounds !== oldroute.query.bounds)) {
         // open close popup
-        console.log('gestion des popups')
+        console.log('ici')
         return
       }
       this.treatmentQuery(newroute.query)
@@ -139,6 +141,7 @@ export default {
       selected: null,
 //      dataJsonUrl: null,
       show: false,
+      maxRecords: 100,
       popup: null,
       groups: [],
       groupLayers: [],
@@ -160,7 +163,6 @@ export default {
     this.initialize()
   },
   methods: {
-    
     changeQuery (params) {
       var newquery = Object.assign({}, this.$route.query)
       newquery = Object.assign(newquery, params)
@@ -325,8 +327,13 @@ export default {
       if (!this.api) {
         alert('Pas de service SensorThings!')
       }
+      console.log(this.$route.query)
       var url = this.api + 'stations/'
-      this.$http.get(url, {params: this.$route.query})
+      var params = Object.assign({}, this.defaultRequest)
+      params = Object.assign(params, this.$route.query)
+      params['page'] = i + 1
+      params['maxRecords'] = this.maxRecords
+      this.$http.get(url, {params: params})
       .then(
           resp => {this.display(resp.body, i, first)},
           resp => {alert('Erreur de chargement: ' + resp.status)}
@@ -361,10 +368,15 @@ export default {
           
 	        self.addStation(feature)
       })
+    
+     
+      if (data.stations.length === this.maxRecords ) {
+         this.load(index + 1, false)
+         return
+      }
       // next step
       // add layer to control
       this.groups.sort()
-      var self = this
       var first = 'STATION STATUS'
       this.groups.forEach(function (group) {
         self.groupLayers[group].first = first ? {title:first,separator:true}:false
@@ -382,10 +394,10 @@ export default {
       if (init && this.$route.query.bounds) {
         var tab = this.$route.query.bounds.split(',')
         if (tab.length === 4) {
-          this.bounds = [
-            [parseFloat(tab[1]), parseFloat(tab[0])],
-            [parseFloat(tab[3]), parseFloat(tab[2])]
-          ]
+          this.bounds = L.latLngBounds(
+            L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
+            L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
+          )
         }
       } 
       if (!this.bounds && this.drawLayers.getBounds()) {
@@ -395,7 +407,8 @@ export default {
           this.bounds.extend(this.drawLayers.getBounds())
         }
       }
-      if (this.bounds) {
+      console.log(this.bounds)
+      if (this.bounds && this.bounds.isValid()) {
           this.map.fitBounds(this.bounds)
       }
       
@@ -648,7 +661,7 @@ margin-left:35px;
   min-height:500px;
   height:100vh;
   width:100%;
-  overflow: visible;
+  z-index:0;
 }
 #map .leaflet-popup-scrolled {
   border: none;
@@ -799,6 +812,7 @@ div.form {
   transition: transform 330ms ease-in-out;
   font-size: 0.8rem;
   box-sizing:content-box;
+  z-index:2;
 }
 div.form.expand {
   transform: translateX(0px);
