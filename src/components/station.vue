@@ -1,5 +1,6 @@
 <template>
- <div style="margin:auto;">
+<div class="page-station" style="width:100%;">
+ <div style="margin:auto;max-width:1400px;">
 	 <div class="station-header">
 	    <span class="fa fa-close button" @click="close" style="margin-right:20px;"></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
@@ -26,7 +27,7 @@
       <h3 style="margin-bottom:0;">Coordinates</h3>
       <div style="float:left;min-width:300px;width:40%;margin-left:10px;margin-top:18px;margin-right:50px;">
        
-	       <div><label>Latitude:</label> </div>
+	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
 	       <div v-if="station.properties.height"><label>Height:</label>{{station.properties.height.toLocaleString()}} m</div>
 
@@ -115,6 +116,7 @@
    </div>
  </div>
  </div>
+</div>
 </template>
 
 <script>
@@ -430,6 +432,18 @@ div[id="stationMap"] {
 }
 </style>
 <style scoped>
+  div.page-station {
+    width:100%;
+    background: url('./../assets/img/background-gnss.png') no-repeat center center fixed;
+     -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  }
+  div.page-station > div {
+    background:white;
+    box-shadow: 0 0 3px rgba(0,0,0,.5);
+  }
   div.gnss-neighbour {
     margin:3px 20px 3px 0;
     display:inline-block;

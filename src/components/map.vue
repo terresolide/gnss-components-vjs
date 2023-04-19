@@ -759,8 +759,12 @@ div.leaflet-control-layers-overlays div.marker-orange {
   margin: 0;
   background: #efefef;
   text-transform: capitalize;
+  vertical-align:top;
 }
-
+.wrapper-content ul.menu-content li:last-child, 
+.wrapper-layout ul.menu-content li:last-child {
+  margin-bottom:0;
+}
 ul.menu-content li span {
     text-transform: capitalize;
     vertical-align: middle;

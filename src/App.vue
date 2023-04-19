@@ -39,6 +39,11 @@ export default {
   font-family: sans-serif;
   line-height:1;
 }
+.gnss-terresolide h3{
+  font-family: sans-serif;
+  line-height:1;
+  margin-top:20px;
+}
 #page {
   width:100%;
   height: 100vh;

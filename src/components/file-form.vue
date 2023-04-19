@@ -304,12 +304,14 @@ div.station-form > div{
 div.station-form > div:first-child {
   margin-right: 20px;
 }
-label {
+.file-form label {
   width: 110px;
   min-width:110px;
   color:#666;
   position:relative;
   overflow:visible;
+  display:inline-block;
+  font-weight:700;
   /** vertical-align: baseline;**/
 }
 div.station-form label {
