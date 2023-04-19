@@ -1,11 +1,11 @@
 <template>
-  <div style="position:relative;overflow:clip visible;">
+  <div style="position:relative;">
     <div class="form" >
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
       <file-form mode="map" ></file-form>
     </div>
    
-    <div id="map" style="overflow:auto;"></div>
+    <div id="map" ></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
       <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
       <div style="min-height:100px;cursor:pointer;">
@@ -550,9 +550,6 @@ export default {
 <!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
-div.gnss-panes {
-  overflow:hidden;
-}
 .button.fa-chevron-right {
   float:right;
   cursor: pointer;
@@ -799,7 +796,7 @@ ul.menu-content li span.selected {
 div.form {
   position: absolute;
   transform: translateX(400px);
-  height: 450px;
+  max-height: calc(100vh - 50px);
   width: 350px;
   z-index: 1001;
   background: white;
@@ -811,7 +808,8 @@ div.form {
   background-clip: padding-box;
   transition: transform 330ms ease-in-out;
   font-size: 0.8rem;
-  box-sizing:content-box;
+  box-sizing: border-box;
+  overflow-y: scroll;
   z-index:2;
 }
 div.form.expand {
