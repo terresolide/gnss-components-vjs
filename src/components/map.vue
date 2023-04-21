@@ -1,6 +1,5 @@
 <template>
   <div style="position:relative;overflow:hidden;">
-   <div><a href="http://localhost:8080/#/station/BRST00FRA/121">Un lien</a></div>
     <div class="form" >
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
       <file-form mode="map" ></file-form>
@@ -116,13 +115,7 @@ export default {
   },
   watch: {
     $route (newroute, oldroute) {
-      console.log('ROUTE CHANGE')
-      console.log(newroute)
-      if (newroute.name === oldroute.name && newroute.query.hasOwnProperty('bounds')
-         && (newroute.query.selected !== oldroute.query.selected ||
-           newroute.query.bounds !== oldroute.query.bounds)) {
-        // open close popup
-        console.log('ici')
+      if (newroute.name === oldroute.name && newroute.query.selected && newroute.query.selected !== oldroute.query.selected) {
         return
       }
       this.treatmentQuery(newroute.query)
@@ -295,12 +288,12 @@ export default {
 // //           }
 //         }
 //       })
-      this.map.on('zoomend moveend', function (e) {
-//         var bbox = self.map.getBounds().toBBoxString()
-//         var query = Object.assign({}, self.$route.query)
-//         query.bounds = bbox
-//         self.$router.push({name: 'home', query: query}).catch(()=>{})
-      })
+// 	     this.map.on('zoomend moveend', function (e) {
+// 	        var bbox = self.map.getBounds().toBBoxString()
+// 	        var query = Object.assign({}, self.$route.query)
+// 	        query.bounds = bbox
+// 	        self.$router.push({name: 'home', query: query}).catch(()=>{})
+// 	     })
       var node = document.querySelector('#json')
       this.popup.setContent(node)
       var self = this
@@ -316,7 +309,9 @@ export default {
     goToStation (e) {
       e.preventDefault()
       e.stopPropagation()
-      this.$store.commit('setQuery', this.$route.query)
+      var query = Object.assign({}, this.$route.query)
+      var bbox = this.map.getBounds().toBBoxString()
+      this.$store.commit('setQuery', Object.assign(query, {bounds: bbox}))
       var query = Object.assign({}, this.$route.query)
       delete query.network
       delete query.selected
@@ -393,15 +388,15 @@ export default {
         var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
         this.openPopup(station)
       }
-//       if (init && this.$route.query.bounds) {
-//         var tab = this.$route.query.bounds.split(',')
-//         if (tab.length === 4) {
-//           this.bounds = L.latLngBounds(
-//             L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
-//             L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
-//           )
-//         }
-//       } 
+      if (init && this.$route.query.bounds) {
+        var tab = this.$route.query.bounds.split(',')
+        if (tab.length === 4) {
+          this.bounds = L.latLngBounds(
+            L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
+            L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
+          )
+        }
+      } 
       if (!this.bounds && this.drawLayers.getBounds()) {
         if (!this.bounds) {
           this.bounds = this.drawLayers.getBounds()

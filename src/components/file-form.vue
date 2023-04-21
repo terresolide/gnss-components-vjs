@@ -27,7 +27,12 @@
   </div>
  
    <div class="fillrate" style="margin-top:12px;">
-    <label >Extend (years)</label>
+    <label >Extend <i class="fa fa-question-circle" @click="showTooltip($event)"></i>
+        <div class="gdm-tooltip" @click="hideTooltip($event)">
+          <h4 >Extend in years</h4>
+          <div>Number of years of data<br>
+          </div>
+        </div></label>
     <div >
        <vue-slider v-model="length.values" :dot-options="length.dotoptions" 
        :marks="length.marks"
@@ -36,8 +41,14 @@
     </div>
   </div>
   <div class="fillrate">
-      <label>Fill rate > </label>
-      <div > 
+      <label>Fill rate <i class="fa fa-question-circle" @click="showTooltip($event)"></i>
+        <div class="gdm-tooltip" @click="hideTooltip($event)">
+	        <h4 >Fill rate</h4>
+	        <div>percent of days with data<br>
+	        </div>
+        </div>
+      </label>
+      <div> 
          <vue-slider v-model="fillrate.values" :dot-options="fillrate.dotoptions" 
          :marks="fillrate.marks"></vue-slider>
       </div> 

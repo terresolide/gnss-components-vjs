@@ -16,6 +16,11 @@ export default {
   components: {
     // SpotGins
   },
+  watch: {
+    $route (newroute) {
+      console.log(newroute)
+    }
+  },
   created () {
     this.searchCodeLists()
     var self = this
@@ -31,7 +36,13 @@ export default {
   },
   methods: {
     searchCodeLists () {
-      this.$http.get(this.$store.getters['api'] + 'codelists/')
+      var url = this.$store.getters['api'] + 'codelists/'
+      if (this.$store.state.solution) {
+        url += this.$store.state.solution
+      } else if (this.$store.state.productor) {
+        url += this.$store.state.productor
+      }
+      this.$http.get(url)
       .then(resp => {
         this.$store.commit('setCodeList', resp.body)
       })
