@@ -35,16 +35,15 @@
       
     </div>
   </div>
- 
- 
   <div class="fillrate">
       <label>Fill rate > </label>
       <div > 
-        
-      <vue-slider v-model="fillrate.values" :dot-options="fillrate.dotoptions" :marks="fillrate.marks"></vue-slider></div>
+         <vue-slider v-model="fillrate.values" :dot-options="fillrate.dotoptions" 
+         :marks="fillrate.marks"></vue-slider>
+      </div> 
       
   </div>
-  </div>
+ </div>
  <div>
   <div v-if="productors && !$store.state.productor">
     <label>Operator</label>
@@ -115,6 +114,7 @@ export default {
   watch: {
     $route (newroute) {
      // this.treatmentQuery(newroute.query)
+       console.log(newroute)
        this.initSearchParams(newroute.query)
     }
   },

@@ -1,8 +1,9 @@
 <template>
 <div class="page-station" style="width:100%;">
+
  <div style="margin:auto;max-width:1400px;">
 	 <div class="station-header">
-	    <span class="fa fa-close button" @click="close" style="margin-right:20px;"></span>
+	    <span class="fa fa-close button" @click="close($event)" style="margin-right:20px;"></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
 	    <h2 v-else-if="stations">{{stations.length}} stations with the identifier {{stationName}}</h2>
 	    <h2 v-else>UNKNOWN STATION</h2>
@@ -148,6 +149,7 @@ export default {
       stationLayer: null,
       neighboursLayer: null,
       radiusChanged:true,
+      resizeListener: null,
       radius: 100,
       searchRadius: 100,
       files: [],
@@ -178,6 +180,7 @@ export default {
     }
   },
   created () {
+    console.log(window.location)
     if (!this.$route.params.name) {
       return
     } 
@@ -187,6 +190,8 @@ export default {
     } else {
       this.stationId = null
     }
+    this.resizeListener = this.resize.bind(this)
+    window.addEventListener('resize', this.resizeListener)
     this.getStation()
 //     this.$http.get('https://catalog.formater/flask/component/' + this.stationId)
 //     .then(resp => {
@@ -201,8 +206,16 @@ export default {
     if (this.script) {
       this.script.remove()
     }
+    window.removeEventListener('resize', this.resizeListener)
   },
   methods: {
+    resize (e) {
+      console.log(e)
+      e.stopImmediatePropagation()
+      e.preventDefault()
+
+      return false
+    },
     initStation () {
       this.station = null
       this.stations = null
@@ -393,7 +406,8 @@ export default {
      }
      
     },
-    close () {
+    close (event) {
+      console.log(event)
       this.$router.push({name: 'home', query: this.$store.state.query})
     }
   }

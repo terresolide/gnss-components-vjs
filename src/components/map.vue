@@ -1,5 +1,6 @@
 <template>
-  <div style="position:relative;">
+  <div style="position:relative;overflow:hidden;">
+   <div><a href="http://localhost:8080/#/station/BRST00FRA/121">Un lien</a></div>
     <div class="form" >
       <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
       <file-form mode="map" ></file-form>
@@ -156,10 +157,11 @@ export default {
     }
   },
   created () {
-    
+    console.log('create map')
     
   },
   mounted () {
+    console.log('mount map')
     this.initialize()
   },
   methods: {
@@ -294,10 +296,10 @@ export default {
 //         }
 //       })
       this.map.on('zoomend moveend', function (e) {
-        var bbox = self.map.getBounds().toBBoxString()
-        var query = Object.assign({}, self.$route.query)
-        query.bounds = bbox
-        self.$router.push({name: 'home', query: query}).catch(()=>{})
+//         var bbox = self.map.getBounds().toBBoxString()
+//         var query = Object.assign({}, self.$route.query)
+//         query.bounds = bbox
+//         self.$router.push({name: 'home', query: query}).catch(()=>{})
       })
       var node = document.querySelector('#json')
       this.popup.setContent(node)
@@ -391,15 +393,15 @@ export default {
         var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
         this.openPopup(station)
       }
-      if (init && this.$route.query.bounds) {
-        var tab = this.$route.query.bounds.split(',')
-        if (tab.length === 4) {
-          this.bounds = L.latLngBounds(
-            L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
-            L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
-          )
-        }
-      } 
+//       if (init && this.$route.query.bounds) {
+//         var tab = this.$route.query.bounds.split(',')
+//         if (tab.length === 4) {
+//           this.bounds = L.latLngBounds(
+//             L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
+//             L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
+//           )
+//         }
+//       } 
       if (!this.bounds && this.drawLayers.getBounds()) {
         if (!this.bounds) {
           this.bounds = this.drawLayers.getBounds()
@@ -508,10 +510,11 @@ export default {
     getData (e) {
       var query = Object.assign({}, this.$route.query)
       if (this.selected && this.selected.id === e.target.feature.id) {
+        this.closePopup()
         delete query['selected']
         this.$router.push({name: 'home', query: query}).catch(()=>{})
         
-        this.closePopup()
+       
         return
       }
       this.mode = 'image'
