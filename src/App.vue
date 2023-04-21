@@ -2,8 +2,10 @@
  <div class="gnss-terresolide" style="position:relative;">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
+ 
  <div  id="page">
-           <router-view></router-view>
+     <div class="gnss-attribution">Component by <a href="https://www.poleterresolide.fr" title="ForM@Ter"><img :src="require('./assets/img/favicon.png').default" width="24" /></a></div>
+     <router-view></router-view>
  </div>
  </div>
 </template>
@@ -60,9 +62,18 @@ export default {
   line-height:1;
   margin-top:20px;
 }
+.gnss-attribution {
+  position:absolute;
+  bottom:0px;
+  left:0px;
+  padding: 0 6px;
+  font-size:0.8rem;
+  background: rgba(255,255,255,0.2);
+  z-index:10;
+}
 #page {
   width:100%;
-  height: 100vh;
+  height: auto;
   min-height:500px;
   top:0;
   left:0;

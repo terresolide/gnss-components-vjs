@@ -1,7 +1,7 @@
 <template>
 <div class="page-station" style="width:100%;">
 
- <div style="margin:auto;max-width:1400px;">
+ <div style="margin:auto;max-width:1400px;padding-bottom:20px;">
 	 <div class="station-header">
 	    <span class="fa fa-close button" @click="close($event)" style="margin-right:20px;"></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
