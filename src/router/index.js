@@ -7,8 +7,8 @@ Vue.use(Router)
 // vue 3
 //
 // import { createRouter, createWebHashHistory } from 'vue-router'
-// const Station = () => import('../components/station.vue')
-import Station from '../components/station.vue'
+const Station = () => import('../components/station.vue')
+// import Station from '../components/station.vue'
 import Map from '../components/map.vue'
 
 const routes = [

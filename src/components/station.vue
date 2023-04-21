@@ -93,7 +93,7 @@
 		         <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
 		            :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
 		            target="_blank">SARI</a> 
-		         <a  :href="file.properties.file" :download="file.name" ><span class="fa fa-download"></span></a>
+		         <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><span class="fa fa-download"></span></a>
 		        </div>
 		       <div><label>Name</label>{{file.name}}</div>
 		       <div style="font-size:0.8rem;">
