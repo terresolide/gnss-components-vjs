@@ -188,14 +188,6 @@ export default {
       this.stationId = null
     }
     this.getStation()
-//     this.$http.get('https://catalog.formater/flask/component/' + this.stationId)
-//     .then(resp => {
-//       this.plot.div = resp.body.div
-//       this.plot.script = resp.body.script
-//       this.script = document.createElement('script')
-//       this.script.append(this.plot.script)
-//       this.$el.appendChild(this.script)
-//     })
   },
   destroyed () {
     if (this.script) {
@@ -308,15 +300,11 @@ export default {
 	            this.station = resp.body
 	            this.stationId = this.station.id
 	            this.location = this.station.location
-	           // this.initMap()
 	            this.getFiles()
-	            // this.getNeighbours()
 	            this.$nextTick(() => this.initMap())
             } else {
               this.setNoStation()
             }
-            //             var self = this
-//             setTimeout(function () {self.initMap()}, 0)
           } else if (resp.body.stations && resp.body.stations.length > 0) {
             this.stations = resp.body.stations
             this.$nextTick(() => this.initMap())
