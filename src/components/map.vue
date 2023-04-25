@@ -1,8 +1,10 @@
 <template>
   <div style="position:relative;overflow:hidden;">
     <div class="form" >
-      <div class="button fa fa-chevron-right" @click="closeForm()" ></div>
-      <file-form mode="map" ></file-form>
+     <div>
+        <file-form mode="map" ></file-form>
+      </div>
+      <div class="gnss-shortcut"   @click="toggleForm()"><i class="fa fa-search"></i></div>
     </div>
    
     <div id="map" ></div>
@@ -59,7 +61,7 @@ var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
 L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
-L.Control.Form = require('../modules/leaflet.control.form.js')
+// L.Control.Form = require('../modules/leaflet.control.form.js')
 delete Icon.Default.prototype._getIconUrl;
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
@@ -169,7 +171,7 @@ export default {
       }
       this.$router.push({name: 'home', query: newquery}).catch(()=>{})
     },
-    closeForm () {
+    toggleForm () {
       var elt = document.querySelector('.form')
       elt.classList.toggle('expand')
     },
@@ -270,8 +272,8 @@ export default {
       this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
-      var control = new L.Control.Form()
-      control.addTo(this.map)
+//       var control = new L.Control.Form()
+//       control.addTo(this.map)
       this.popup = L.popup({autoPan:true, minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
       this.initDrawControl()
       var self = this
@@ -791,27 +793,5 @@ ul.menu-content li span.selected {
   background:white;
   color:#b8412c;
 }
-div.form {
-  position: absolute;
-  transform: translateX(400px);
-  max-height: calc(100vh - 50px);
-  width: 350px;
-  z-index: 1001;
-  background: white;
-  right: 10px;
-  top: 10px;
-  border-radius: 5px;
-  padding: 10px;
-  border: 2px solid rgba(0,0,0,0.2);
-  background-clip: padding-box;
-  transition: transform 330ms ease-in-out;
-  font-size: 0.8rem;
-  box-sizing: border-box;
-  overflow-y: scroll;
-  z-index:2;
-}
-div.form.expand {
-  transform: translateX(0px);
-  transition: transform 330ms ease-in-out;
-}
+
 </style>

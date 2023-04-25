@@ -1,7 +1,12 @@
 <template>
-<div class="page-station" style="width:100%;">
-
- <div style="margin:auto;max-width:1400px;padding-bottom:20px;">
+<div class="page-station" style="width:100%;position:relative;overflow:hidden;">
+  <div class="form" >
+     <div>
+        <file-form mode="station" ></file-form>
+      </div>
+      <div class="gnss-shortcut"   @click="toggleForm()"><i class="fa fa-search"></i></div>
+    </div>
+ <div class="station-content" >
 	 <div class="station-header">
 	    <span class="fa fa-close button" @click="close($event)" style="margin-right:20px;"></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
@@ -68,14 +73,7 @@
   </div>
    <div style="clear:left;"> 
    </div>
-   <h3 v-if="stationId">Filters 
-      <span class="fa button in-title" @click="show.filter = !show.filter">{{show.filter ? '-' : '+'}}</span>
-   </h3>
-    <div :style="{display: show.filter ? 'block': 'none'}" style="margin-left:10px;max-width:950px;font-size:0.9rem;">
-      <file-form mode="station"></file-form>
-    </div>
    
-
    <div v-if="files.length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
      <span class="fa fa-close" @click="unselect"></span>
@@ -244,6 +242,10 @@ export default {
         this.neighboursLayer.remove()
         this.onMap = false
       } 
+    },
+    toggleForm () {
+      var elt = document.querySelector('.form')
+      elt.classList.toggle('expand')
     },
     getNeighbours () {
       if (!this.location) {
@@ -440,8 +442,14 @@ div[id="stationMap"] {
   -o-background-size: cover;
   background-size: cover;
   }
-  div.page-station > div {
+  div.page-station div.form {
+    top: 60px;
+  }
+  div.station-content {
     background:white;
+    margin:auto;
+    max-width:1400px;
+    padding-bottom:20px;
     box-shadow: 0 0 3px rgba(0,0,0,.5);
   }
   div.gnss-neighbour {

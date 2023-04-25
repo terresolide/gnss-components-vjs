@@ -307,14 +307,7 @@ input[id="fillrate"]::after {
   margin: 0px 0 2px 10px;
   width: calc(100% - 10px);
 }
-div.station-form > div{
-  display:inline-block;
-  width:calc(50% - 15px);
-  vertical-align:top;
-}
-div.station-form > div:first-child {
-  margin-right: 20px;
-}
+
 .file-form label {
   width: 110px;
   min-width:110px;
@@ -325,15 +318,9 @@ div.station-form > div:first-child {
   font-weight:700;
   /** vertical-align: baseline;**/
 }
-div.station-form label {
-  width: 130px;
-  min-width:130px;
-  color:#666;
-  /** vertical-align: baseline;**/
-}
+
  
-.temp-extent > label,
-div.station-form .temp-extent > label {
+.temp-extent > label{
   margin-top:15px;display:block;width:auto;
 }
 .temp-extent > div > label {
@@ -341,10 +328,7 @@ div.station-form .temp-extent > label {
   width: 95px;
   
 }
-div.station-form .temp-extent > div > label {
-  min-width: 115px;
-  width: 115px;
-}
+
 .temp-extent > div {
   margin-left:15px;
 }

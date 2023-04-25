@@ -53,6 +53,9 @@ export default {
 }
 </script>
 <style>
+ul[id="shortcuts"] {
+ display:none;
+}
 .gnss-terresolide {
   font-family: sans-serif;
   line-height:1;
@@ -177,5 +180,50 @@ export default {
 
 .tooltip-show + .gdm-tooltip {
   display:block;
+}
+div.gnss-shortcut {
+  float:right;
+  cursor:pointer;
+  font-size:22px;
+  background:#b8412c;
+  color:white;
+  padding:12px 15px 12px 12px;
+  margin-right:-1px;
+  font-weight:700;
+  border-radius: 5px 0 0 5px;
+  vertical-align:top;
+  box-shadow: -1px 1px 5px rgba(0,0,0,0.5);
+}
+div.form {
+  position: absolute;
+  transform: translateX(353px);
+ 
+  width: 400px;
+  z-index: 1001;
+  right: 0px;
+  top: 12px;
+  background-clip: padding-box;
+  transition: transform 330ms ease-in-out;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+
+  z-index:2;
+ 
+}
+div.form > div:nth-child(1) {
+     float:right;
+     background: white;
+     display:inline-block;
+     width:350px;
+     margin:0;
+     border-radius: 0 0 0 5px;
+    padding: 10px;
+     box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      max-height: calc(100vh - 50px);
+       overflow-y: scroll;
+}
+div.form.expand {
+  transform: translateX(0px);
+  transition: transform 330ms ease-in-out;
 }
 </style>
