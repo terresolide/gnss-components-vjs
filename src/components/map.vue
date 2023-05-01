@@ -1,15 +1,19 @@
 <template>
   <div style="position:relative;overflow:hidden;">
+   
     <div class="form" >
      <div>
         <file-form mode="map" ></file-form>
       </div>
-      <div class="gnss-shortcut"   @click="toggleForm()"><i class="fa fa-search"></i></div>
+      <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
+    </div>
+     <div style="position:absolute;top:5px;right:0;z-index:2">
+       <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-bars" /></div>
     </div>
    
     <div id="map" ></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
-      <div style="position: absolute;right:10px;top:10px;" @click="closePopup"><span class="fa fa-close"></span></div>
+      <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
            <h4 v-if="selected" @click="goToStation($event)" >STATION {{selected.properties.name}}</h4>
            <ul v-if="selected"  class="menu-content">
@@ -581,21 +585,21 @@ z-index: -215;
 outline: none;
 }
 div[id="map"] a.leaflet-draw-draw-circle:before {
-  content:"\f111";
-  font-family: "FontAwesome"
+  content:"\2B24";
 }
 
 div[id="map"] a.leaflet-draw-draw-rectangle:before{
-  content:"\f04d";
-  font-family: "FontAwesome"
+  content:"\2B1B";
 }
 div[id="map"] a.leaflet-draw-edit-edit:before{
-  content:"\f040";
-  font-family: "FontAwesome"
+  content:"\e800";
+  font-size:14px;
+  font-family: "fontello"
 }
 div[id="map"] a.leaflet-draw-edit-remove:before{
   content:"\f1f8";
-  font-family: "FontAwesome"
+  font-size:14px;
+   font-family: "fontello"
 }
  /** menu leaflet draw */
   div[id="map"] .leaflet-container .leaflet-draw-section a {
@@ -625,13 +629,16 @@ div[id="map"] a.leaflet-draw-edit-remove:before{
     -webkit-border-radius: 0 0px 4px 4px;
     border-radius: 0 0px 4px 4px;
   }
-div[id="json"] .fa-close {
+div[id="json"] .gnss-close {
   padding:3px;
   border: 1px dotted white;
   border-radius: 3px;
   cursor: pointer;
+  position: absolute;
+  top:5px;
+  right:10px;font-size:14px;
 }
-div[id="json"] .fa-close:hover {
+div[id="json"] .gnss-close:hover {
  border-color: grey;
 }
 .step {

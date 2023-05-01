@@ -2,7 +2,6 @@
  <div class="gnss-terresolide" style="position:relative;">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
- 
  <div  id="page">
      <div class="gnss-attribution">Component by <a href="https://www.poleterresolide.fr" title="ForM@Ter"><img :src="require('./assets/img/favicon.png').default" width="24" /></a></div>
      <router-view></router-view>
@@ -52,6 +51,7 @@ export default {
   }
 }
 </script>
+<style src='./assets/fontello/css/fontello.css' />
 <style>
 ul[id="shortcuts"] {
  display:none;
