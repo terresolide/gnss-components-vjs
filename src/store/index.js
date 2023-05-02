@@ -7,7 +7,9 @@ export default function makeStore( config ) {
     solution: null,
     productor: null,
     query: {},
-    codelists: {}
+    codelists: {},
+    reseting: false,
+    boundsChanged: false
   }
   var finalConfig = Object.assign(defaultConfig, config)
   return new Vuex.Store( {
@@ -19,6 +21,13 @@ export default function makeStore( config ) {
       setCodeList(state, codelists){
         console.log(codelists)
         state.codelists = codelists
+      },
+      setReset(state, value) {
+        console.log('setReset', value)
+        state.reseting = value
+      },
+      changeBounds(state, value) {
+        state.boundsChanged = value
       }
     },
     getters: {

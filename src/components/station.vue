@@ -4,11 +4,11 @@
      <div>
         <file-form mode="station" ></file-form>
       </div>
-      <div class="gnss-shortcut"   @click="toggleForm()"><i class="fa fa-search"></i></div>
+      <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
     </div>
  <div class="station-content" >
 	 <div class="station-header">
-	    <span class="fa fa-close button" @click="close($event)" style="margin-right:20px;"></span>
+	    <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
 	    <h2 v-else-if="stations">{{stations.length}} stations with the identifier {{stationName}}</h2>
 	    <h2 v-else>UNKNOWN STATION</h2>
@@ -53,8 +53,8 @@
 	           <button type="button" @click="getNeighbours()"
 	           style="margin-right:20px;">Search</button>
 	           <button type="button" v-if="onMap"
-	              value="Remove" @click="removeNeighboursFromMap">Hide <i class="fa fa-map-marker"></i></button>
-	           <button type="button" v-else title="Show on map" @click="addNeighboursToMap">Display <i class="fa fa-map-marker"></i></button>
+	              value="Remove" @click="removeNeighboursFromMap">Hide <font-awesome-icon icon="fa-solid fa-location-dot" /></button>
+	           <button type="button" v-else title="Show on map" @click="addNeighboursToMap">Show <font-awesome-icon icon="fa-solid fa-location-dot" /></button>
           </div>
 	        <div v-if="neighbours.length > 0">
 		        <div  v-for="st in neighbours" class="gnss-neighbour">
@@ -76,7 +76,7 @@
    
    <div v-if="files.length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
-     <span class="fa fa-close" @click="unselect"></span>
+     <span class="close button" @click="unselect"><font-awesome-icon icon="fa-solid fa-close" /></span>
      <h3> {{selected.station}} {{selected.solution }} {{selected.productType}}</h3>
      <div v-html="plot.div" >STATION INCONNUE</div>
    </div>
@@ -147,7 +147,7 @@ export default {
       stationLayer: null,
       neighboursLayer: null,
       radiusChanged:true,
-      resizeListener: null,
+  //    resizeListener: null,
       radius: 100,
       searchRadius: 100,
       files: [],
@@ -175,6 +175,7 @@ export default {
         this.stationId = route.params.id
       } 
       this.getStation()
+      this.$store.commit('setReset', false)
     }
   },
   created () {
@@ -188,24 +189,29 @@ export default {
     } else {
       this.stationId = null
     }
-    this.resizeListener = this.resize.bind(this)
-    window.addEventListener('resize', this.resizeListener)
+//     this.resizeListener = this.resize.bind(this)
+//     window.addEventListener('resize', this.resizeListener)
     this.getStation()
   },
   destroyed () {
     if (this.script) {
       this.script.remove()
     }
-    window.removeEventListener('resize', this.resizeListener)
+    if (this.map) {
+      this.map.off()
+      this.map.remove()
+      this.map = null
+    }
+//    window.removeEventListener('resize', this.resizeListener)
   },
   methods: {
-    resize (e) {
-      console.log(e)
-      e.stopImmediatePropagation()
-      e.preventDefault()
+//     resize (e) {
+//       console.log(e)
+//       e.stopImmediatePropagation()
+//       e.preventDefault()
 
-      return false
-    },
+//       return false
+//     },
     initStation () {
       this.station = null
       this.stations = null
@@ -355,6 +361,7 @@ export default {
 	        url: 'https://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
 	        attribution: 'Tiles © <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer">ArcGIS</a>'
 	      }
+	      this.map.off('resize')
 	     L.tileLayer(tile.url, {attribution: tile.attribution})
 	     .addTo(this.map)
      }
@@ -518,10 +525,15 @@ div[id="stationMap"] {
   span.in-title {
     font-size: 1rem;
   }
-  span.fa-close {
+  span.button.close {
     position: absolute;
     right: 15px;
+    opacity:1;
+    border: 1px dotted transparent;
    
+  }
+  span.button.close:hover {
+    border-color:grey;
   }
 
 </style>

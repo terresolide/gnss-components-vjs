@@ -31,9 +31,9 @@ export default {
     })
   },
   mounted () {
-//     let bokeh = document.createElement('script')
-//     bokeh.setAttribute('src', 'http://cdn.pydata.org/bokeh/release/bokeh-2.4.3.min.js')
-//     document.head.appendChild(bokeh)
+    let bokeh = document.createElement('script')
+    bokeh.setAttribute('src', 'http://cdn.pydata.org/bokeh/release/bokeh-2.4.3.min.js')
+    document.head.appendChild(bokeh)
   },
   methods: {
     searchCodeLists () {
@@ -153,18 +153,27 @@ ul[id="shortcuts"] {
   background-color: #dae0e5;
   border-color: #d3d9df;
 }
+.bookmark-tooltip,
 .gdm-tooltip {
   position:absolute;
-  top:18px;
+
   padding:5px;
   z-index:10;
   background-color: #fafafa;
   border: 1px solid #a3a3a3;
   font-size: smaller;
   box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.4);
+  color:#666;
+  display:none;
+}
+.bookmark-tooltip {
+  max-width:180px;
+  white-space: normal;
+}
+.gdm-tooltip {
+  top:18px;
   max-width:270px;
   min-width: 200px;
-  display:none;
 }
 .gdm-tooltip > div {
   font-weight: 500;
@@ -194,6 +203,15 @@ div.gnss-shortcut {
   vertical-align:top;
   box-shadow: -1px 1px 5px rgba(0,0,0,0.5);
 }
+
+div.form.expand div.gnss-shortcut,
+div.gnss-shortcut.selected {
+  background: #8c0209;
+}
+div.gnss-shortcut:hover
+ {
+  background:#7b080e;
+}
 div.form {
   position: absolute;
   transform: translateX(353px);
@@ -201,7 +219,7 @@ div.form {
   width: 400px;
   z-index: 1001;
   right: 0px;
-  top: 12px;
+  top: 55px;
   background-clip: padding-box;
   transition: transform 330ms ease-in-out;
   font-size: 0.8rem;

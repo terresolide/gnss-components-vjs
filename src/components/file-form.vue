@@ -3,7 +3,9 @@
 <div >
   <div v-if="solutions && !$store.state.solution">
     <label >Solution  
-      <i class="fa fa-question-circle" @click="showTooltip($event)"></i>
+       <span class="gnss-question" @click="showTooltip($event)">
+         <font-awesome-icon icon="fa-solid fa-circle-question" />
+        </span>
         <div class="gdm-tooltip" @click="hideTooltip($event)">
         <h4 >Solution</h4>
         <div>more info about solutions here @todo<br>
@@ -27,7 +29,10 @@
   </div>
  
    <div class="fillrate" style="margin-top:12px;">
-    <label >Extend <i class="fa fa-question-circle" @click="showTooltip($event)"></i>
+    <label >Extend 
+        <span class="gnss-question" @click="showTooltip($event)">
+         <font-awesome-icon icon="fa-solid fa-circle-question" />
+        </span>
         <div class="gdm-tooltip" @click="hideTooltip($event)">
           <h4 >Extend in years</h4>
           <div>Number of years of data<br>
@@ -41,7 +46,8 @@
     </div>
   </div>
   <div class="fillrate">
-      <label>Fill rate <i class="fa fa-question-circle" @click="showTooltip($event)"></i>
+      <label>Fill rate <span class="gnss-question"@click="showTooltip($event)">
+         <font-awesome-icon icon="fa-solid fa-circle-question" /></span>
         <div class="gdm-tooltip" @click="hideTooltip($event)">
 	        <h4 >Fill rate</h4>
 	        <div>percent of days with data<br>
@@ -89,7 +95,8 @@
     <div style="margin-top:10px;">
           <label></label>
           <button @click="reset()" type="button" >Resest</button>
-          <button @click="search($event)" type="submit" >Search <i class="fa fa-search"></i></button>
+          <button @click="search($event)" type="submit" >Search
+          <font-awesome-icon icon="fa-solid fa-search" /></button>
       </div>
   </div>
 </div>
@@ -252,6 +259,7 @@ export default {
       this.$router.push({name: this.$route.name, query: newquery}).catch(()=>{})
     },
     reset() {
+      this.$store.commit('setReset', true)
       this.$emit('reset')
       this.$router.push({name:this.$route.name, query: {}}).catch(()=>{})
     },
@@ -261,15 +269,18 @@ export default {
       })
     },
     showTooltip (event) {
+      var el  = event.target
+      while ((el = el.parentElement) && !el.classList.contains('gnss-question'));
+  
       event.preventDefault()
-      if (event.target.classList.contains('tooltip-show')) {
-        event.target.classList.remove('tooltip-show')
+      if (el.classList.contains('tooltip-show')) {
+        el.classList.remove('tooltip-show')
         return
       }
       document.querySelectorAll('.tooltip-show').forEach(function (node) {
         node.classList.remove('tooltip-show')
       })
-      event.target.classList.add('tooltip-show')
+      el.classList.add('tooltip-show')
     }
   }
 }
@@ -290,11 +301,11 @@ input[id="fillrate"]::after {
 }
 </style>
 <style scoped>
-.fa-question-circle{ 
+.gnss-question{ 
   cursor:pointer;
   opacity:0.8;
 }
-.fa-question-circle:hover {
+.gnss-question:hover {
   opacity:1;
 }
 .file-form {

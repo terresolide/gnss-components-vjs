@@ -8,7 +8,21 @@
       <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
     </div>
      <div style="position:absolute;top:5px;right:0;z-index:2">
-       <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-bars" /></div>
+       <div class="gnss-shortcut gnss-bars" @click="toggle($event)"><font-awesome-icon icon="fa-solid fa-bars" /></div>
+       <div class="gnss-bars-content" >
+         <ul>
+           <li class="gnss-bars-link" title="Record state in clipboard" @click="copyClipboard()">
+                <font-awesome-icon icon="fa-solid fa-bookmark" />
+           
+               Record state url
+                <div class="bookmark-tooltip" >The url has been copied to clipboard</div>
+           </li>
+           <li class="gnss-hr"><hr /></li>
+           <li class="gnss-bars-link" style="margin-top:5px;" @click="goToList()">
+             <font-awesome-icon icon="fa-solid fa-list" />
+             View list</li>
+         </ul>
+       </div>
     </div>
    
     <div id="map" ></div>
@@ -50,7 +64,7 @@
      </div>
       </div>
       <div style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
-        <span class="fa fa-arrows-alt button"  @click="goToStation($event)"></span>
+        <span class="fa button"  @click="goToStation($event)"><font-awesome-icon icon="fa-solid fa-arrows-alt" /></span>
       </div>
     </div>
    </div>
@@ -121,10 +135,23 @@ export default {
   },
   watch: {
     $route (newroute, oldroute) {
-      if (newroute.name === oldroute.name && newroute.query.selected && newroute.query.selected !== oldroute.query.selected) {
+      if (newroute.name === oldroute.name  && !this.$store.state.reseting &&
+          ((newroute.query.selected !== oldroute.query.selected)
+              || this.$store.state.boundsChanged)) {
+        if (this.selected && parseInt(newroute.query.selected) !== this.selected.id) {
+          // open popup
+          var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
+	        if (station) {
+	           this.openPopup(station)
+	        }
+        }
+        this.$store.commit('setReset', false)
+        this.$store.commit('changeBounds', false)
         return
       }
       this.treatmentQuery(newroute.query)
+      this.$store.commit('setReset', false)
+      this.$store.commit('changeBounds', false)
     }
   },
   data () {
@@ -152,18 +179,71 @@ export default {
       },
       drawControl: null,
       drawLayers: null,
-      
+      init: false
     }
   },
   created () {
     console.log('create map')
     
   },
+  destroyed () {
+    if (this.map) {
+      this.map.off()
+      this.map.remove()
+      this.map = null
+    }
+  },
   mounted () {
     console.log('mount map')
     this.initialize()
   },
   methods: {
+    getQuery () {
+      var query = Object.assign({}, this.$route.query)
+      var bbox = this.map.getBounds().toBBoxString()
+      query.bounds = bbox
+      var expand = this.$el.querySelector('.expand')
+      if (expand) {
+        query['expand'] = 1
+      } else {
+        delete query['expand']
+      }
+      if (!this.map.hasLayer(this.drawLayers)) {
+        query['nodraw'] = 1
+      } else {
+        delete query['nodraw']
+      }
+      return query
+    },
+    getUrl () {
+      var queryString = new URLSearchParams(this.getQuery()).toString();
+
+      var base = window.location.href.split(/#/)[0] + '#'
+      var url = base + this.$route.path + '?' + queryString
+      return url
+    },
+    copyClipboard () {
+      var tooltip = this.$el.querySelector('.bookmark-tooltip')
+      tooltip.style.display = 'block'
+      setTimeout(function () {
+          tooltip.style.display = 'none'
+      }, 2000)
+      navigator.clipboard.writeText(this.getUrl());
+    },
+    toggle (event) {
+      var el  = event.target
+      while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
+        el = el.parentElement
+      };
+      console.log(el)
+      
+      if (el.classList.contains('selected')) {
+        el.classList.remove('selected')
+        return
+      }
+     
+      el.classList.add('selected')
+    },
     changeQuery (params) {
       var newquery = Object.assign({}, this.$route.query)
       newquery = Object.assign(newquery, params)
@@ -294,12 +374,18 @@ export default {
 // //           }
 //         }
 //       })
-// 	     this.map.on('zoomend moveend', function (e) {
-// 	        var bbox = self.map.getBounds().toBBoxString()
-// 	        var query = Object.assign({}, self.$route.query)
-// 	        query.bounds = bbox
-// 	        self.$router.push({name: 'home', query: query}).catch(()=>{})
-// 	     })
+	     this.map.on('zoomend moveend', function (e) {
+	        if (this.init) {
+	          this.init = false
+	          return
+	        }
+	        var bbox = self.map.getBounds().toBBoxString()
+	        var query = Object.assign({}, self.$route.query)
+	        query.bounds = bbox
+	        self.$store.commit('changeBounds', true)
+	        // self.$store.commit('setReset', true)
+	        self.$router.push({name: 'home', query: query}).catch(()=>{})
+	     })
       var node = document.querySelector('#json')
       this.popup.setContent(node)
       var self = this
@@ -309,15 +395,27 @@ export default {
      
     },
     closePopup() {
-      this.selected = null
       this.map.closePopup()
+      this.selected = null
+      var query = Object.assign({}, this.$route.query) 
+      delete query['selected']
+      this.$router.push({name: 'home', query: query}).catch(()=>{})
+    },
+    goToList () {
+      var query = Object.assign({}, this.$route.query)
+      var bbox = this.map.getBounds().toBBoxString()
+      this.$store.commit('setQuery', this.getQuery())
+      var query = Object.assign({}, this.$route.query)
+      delete query.selected
+      delete query.bounds
+      this.$router.push({ name: 'files', params: {}, query: query})
     },
     goToStation (e) {
       e.preventDefault()
       e.stopPropagation()
       var query = Object.assign({}, this.$route.query)
       var bbox = this.map.getBounds().toBBoxString()
-      this.$store.commit('setQuery', Object.assign(query, {bounds: bbox}))
+      this.$store.commit('setQuery', this.getQuery())
       var query = Object.assign({}, this.$route.query)
       delete query.network
       delete query.selected
@@ -387,14 +485,23 @@ export default {
         var className = self.getClassname(group)
         self.layerControl.addOverlay(self.groupLayers[group],  group +' <div class="marker-' + className + '"></div>' )
       })
-      if (!init) {
-        this.closePopup()
-      }
+
+//       if (!init) {
+//         this.closePopup()
+//       }
       if (init && this.$route.query.selected) {
         var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
-        this.openPopup(station)
+        if (station) {
+           this.openPopup(station)
+        }
       }
-      if (init && this.$route.query.bounds) {
+      if (init && this.$route.query.expand) {
+        this.toggleForm()
+      }
+      if (init && this.$route.query.nodraw) {
+        this.drawLayers.remove()
+      }
+      if (this.$route.query.bounds) {
         var tab = this.$route.query.bounds.split(',')
         if (tab.length === 4) {
           this.bounds = L.latLngBounds(
@@ -402,6 +509,7 @@ export default {
             L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
           )
         }
+        this.init = true
       } 
       if (!this.bounds && this.drawLayers.getBounds()) {
         if (!this.bounds) {
@@ -409,8 +517,8 @@ export default {
         } else {
           this.bounds.extend(this.drawLayers.getBounds())
         }
+        this.init = false
       }
-      console.log(this.bounds)
       if (this.bounds && this.bounds.isValid()) {
           this.map.fitBounds(this.bounds)
       }
@@ -512,8 +620,8 @@ export default {
       var query = Object.assign({}, this.$route.query)
       if (this.selected && this.selected.id === e.target.feature.id) {
         this.closePopup()
-        delete query['selected']
-        this.$router.push({name: 'home', query: query}).catch(()=>{})
+        // delete query['selected']
+        // this.$router.push({name: 'home', query: query}).catch(()=>{})
         
        
         return
@@ -554,6 +662,54 @@ export default {
 <!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
+.gnss-bars-content {
+  display:none;
+  background:white;
+  position:absolute;
+  top:0px;
+  right:50px;
+  padding:5px;
+  background: #555;
+  padding: 2px;
+  -webkit-border-radius: 0 4px 4px 4px;
+  border-radius: 4px 0px 4px 4px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+.gnss-shortcut.selected + .gnss-bars-content {
+  display:block;
+}
+.gnss-bars-content ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  left: 26px;
+  top: 0;
+  padding: 4px;
+  color: white;
+  white-space: nowrap
+}
+.gnss-bars-content ul li.gnss-bars-link{
+  background: #919187;
+  color: white;
+  padding: 4px 6px ;
+  margin:2px 0;
+  cursor: pointer;
+  border-radius:0;
+}
+.gnss-bars-content ul li.gnss-bars-link:hover {
+  background: #777;
+}
+/** .gnss-bars:hover + .gnss-bars-content {
+  display:block;
+}
+.gnss-bars-content:hover {
+  display:block;
+} **/
+.gnss-hr hr {
+  margin:0;
+  color:#919187;
+  margin-top:5px;
+}
 .button.fa-chevron-right {
   float:right;
   cursor: pointer;
