@@ -74,6 +74,54 @@ ul[id="shortcuts"] {
   background: rgba(255,255,255,0.2);
   z-index:10;
 }
+.gnss-bars-content {
+  display:none;
+  background:white;
+  position:absolute;
+  top:0px;
+  right:50px;
+  padding:5px;
+  background: #555;
+  padding: 2px;
+  -webkit-border-radius: 0 4px 4px 4px;
+  border-radius: 4px 0px 4px 4px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+.gnss-shortcut.selected + .gnss-bars-content {
+  display:block;
+}
+.gnss-bars-content ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  left: 26px;
+  top: 0;
+  padding: 4px;
+  color: white;
+  white-space: nowrap
+}
+.gnss-bars-content ul li.gnss-bars-link{
+  background: #919187;
+  color: white;
+  padding: 4px 6px ;
+  margin:2px 0;
+  cursor: pointer;
+  border-radius:0;
+}
+.gnss-bars-content ul li.gnss-bars-link:hover {
+  background: #777;
+}
+/** .gnss-bars:hover + .gnss-bars-content {
+  display:block;
+}
+.gnss-bars-content:hover {
+  display:block;
+} **/
+.gnss-hr hr {
+  margin:0;
+  color:#919187;
+  margin-top:5px;
+}
 #page {
   width:100%;
   height: auto;
@@ -211,6 +259,11 @@ div.gnss-shortcut.selected {
 div.gnss-shortcut:hover
  {
   background:#7b080e;
+}
+.gnss-hr hr {
+  margin:0;
+  color:#919187;
+  margin-top:5px;
 }
 div.form {
   position: absolute;

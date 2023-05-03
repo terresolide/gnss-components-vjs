@@ -140,10 +140,14 @@ export default {
               || this.$store.state.boundsChanged)) {
         if (this.selected && parseInt(newroute.query.selected) !== this.selected.id) {
           // open popup
-          var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
-	        if (station) {
-	           this.openPopup(station)
-	        }
+          if (!newroute.query.selected) {
+            this.closePopup()
+          } else {
+	          var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
+		        if (station) {
+		           this.openPopup(station)
+		        }
+          }
         }
         this.$store.commit('setReset', false)
         this.$store.commit('changeBounds', false)
@@ -404,10 +408,11 @@ export default {
     goToList () {
       var query = Object.assign({}, this.$route.query)
       var bbox = this.map.getBounds().toBBoxString()
-      this.$store.commit('setQuery', this.getQuery())
+      this.$store.commit('setQueryList', this.getQuery())
       var query = Object.assign({}, this.$route.query)
       delete query.selected
       delete query.bounds
+      delete query.expand
       this.$router.push({ name: 'files', params: {}, query: query})
     },
     goToStation (e) {
@@ -415,7 +420,7 @@ export default {
       e.stopPropagation()
       var query = Object.assign({}, this.$route.query)
       var bbox = this.map.getBounds().toBBoxString()
-      this.$store.commit('setQuery', this.getQuery())
+      this.$store.commit('setQuery',{name: 'home', query: this.getQuery()})
       var query = Object.assign({}, this.$route.query)
       delete query.network
       delete query.selected
@@ -705,21 +710,8 @@ export default {
 .gnss-bars-content:hover {
   display:block;
 } **/
-.gnss-hr hr {
-  margin:0;
-  color:#919187;
-  margin-top:5px;
-}
-.button.fa-chevron-right {
-  float:right;
-  cursor: pointer;
-  padding: 3px 5px;
-  border-radius:3px;
-  border:1px dotted white;
-}
-.button.fa-chevron-right:hover {
-  border-color: grey;
-}
+
+
 .leaflet-touch .leaflet-control-layers-toggle {
   width: 30px;
   height: 30px;

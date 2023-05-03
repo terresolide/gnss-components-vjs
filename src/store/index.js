@@ -6,7 +6,8 @@ export default function makeStore( config ) {
     api: 'http://127.0.0.1:8083/api/',
     solution: null,
     productor: null,
-    query: {},
+    query: {name: 'home', query: {}},
+    queryList: {},
     codelists: {},
     reseting: false,
     boundsChanged: false
@@ -17,6 +18,9 @@ export default function makeStore( config ) {
     mutations: {
       setQuery (state, query) {
         state.query = query
+      },
+      setQueryList (state, query) {
+        state.queryList = query
       },
       setCodeList(state, codelists){
         console.log(codelists)

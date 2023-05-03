@@ -91,7 +91,7 @@
 		         <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
 		            :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
 		            target="_blank">SARI</a> 
-		         <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><span class="fa fa-download"></span></a>
+		         <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
 		        </div>
 		       <div><label>Name</label>{{file.name}}</div>
 		       <div style="font-size:0.8rem;">
@@ -405,7 +405,7 @@ export default {
     },
     close (event) {
       console.log(event)
-      this.$router.push({name: 'home', query: this.$store.state.query})
+      this.$router.push({name: this.$store.state.query.name, query: this.$store.state.query.query})
     }
   }
 }

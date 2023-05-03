@@ -6,7 +6,7 @@
       </div>
       <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
     </div>
-  <div style="position:absolute;top:5px;right:0;z-index:2">
+  <div style="position:absolute;top:55px;right:0;z-index:2">
        <div class="gnss-shortcut gnss-bars" @click="toggle($event)"><font-awesome-icon icon="fa-solid fa-bars" /></div>
        <div class="gnss-bars-content" >
          <ul>
@@ -18,8 +18,8 @@
            </li>
            <li class="gnss-hr"><hr /></li>
            <li class="gnss-bars-link" style="margin-top:5px;">
-             <font-awesome-icon icon="fa-solid fa-list" />
-             View list</li>
+             <font-awesome-icon icon="fa-solid fa-map" />
+             View Map</li>
          </ul>
        </div>
     </div>
@@ -29,8 +29,13 @@
 	    <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
 	    <h2 >List of files</h2>
 	 </div>
-  <div class="station-body">
-    xxx
+  <div class="station-body" style="min-height:calc(100vh - 70px);">
+    <div class="file-header">
+      header
+    </div>
+    <div style="height:calc(100vh - 120px);overflow-y:scroll;">
+      <file-row v-for="file in files" :file="file"></file-row>
+    </div>
  </div>
  </div>
 </div>
@@ -38,12 +43,13 @@
 
 <script>
 
-import moment from 'moment'
+
 
 import FileForm from './file-form.vue'
+import FileRow from './file-row.vue'
 export default {
   name: 'FileList',
-  components: {FileForm},
+  components: {FileForm, FileRow},
   data () {
     return {
      
@@ -52,32 +58,70 @@ export default {
   computed: {
     api () {
       return this.$store.getters['api']
+    },
+    defaultRequest () {
+      var obj = Object.assign({page: 1, maxRecords: 50}, this.$store.getters['request'] )
     }
   },
   watch: {
-    $route (route) {
-      
+    $route (newroute, oldroute) {
+      this.treatmentQuery(newroute.query)
+    }
+  },
+  data () {
+    return {
+      files: []
     }
   },
   created () {
-   
+    this.treatmentQuery(this.$route.query)
   },
   destroyed () {
-   
+    
   },
   methods: {
-    toggle () {
-      
-    },
-    toggleForm() {
-      
-    },
     copyClipboard () {
       
     },
+    display (data) {
+      this.files = data.files
+    },
+    treatmentQuery (query) {
+      if (!this.api) {
+        alert('Pas de service SensorThings!')
+      }
+      console.log(this.$route.query)
+      var url = this.api + 'files/'
+      var params = Object.assign({}, this.defaultRequest)
+      params = Object.assign(params, this.$route.query)
+      this.$http.get(url, {params: params})
+      .then(
+          resp => {this.display(resp.body)},
+          resp => {alert('Erreur de chargement: ' + resp.status)}
+       )
+    },
+    toggle () {
+      var el  = event.target
+      while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
+        el = el.parentElement
+      };
+      console.log(el)
+      
+      if (el.classList.contains('selected')) {
+        el.classList.remove('selected')
+        return
+      }
+     
+      el.classList.add('selected')
+    },
+    toggleForm () {
+      var elt = document.querySelector('.form')
+      elt.classList.toggle('expand')
+    },
+   
     close (event) {
       console.log(event)
-      this.$router.push({name: 'home', query: this.$store.state.query})
+      this.$router.push({name: 'home', query: this.$store.state.queryList})
     }
   }
 }
@@ -114,8 +158,11 @@ div.box-station a.station-link {
   -o-background-size: cover;
   background-size: cover;
   }
-  div.page-station div.form {
-    top: 60px;
+  div.page-list div.form {
+    top: 105px;
+  }
+  div.gnss-file:nth-child(2n) {
+   background: #eee;
   }
   div.station-content {
     background:white;
