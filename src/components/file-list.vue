@@ -17,7 +17,7 @@
                 <div class="bookmark-tooltip" >The url has been copied to clipboard</div>
            </li>
            <li class="gnss-hr"><hr /></li>
-           <li class="gnss-bars-link" style="margin-top:5px;">
+           <li class="gnss-bars-link" style="margin-top:5px;" @click="goToMap()">
              <font-awesome-icon icon="fa-solid fa-map" />
              View Map</li>
          </ul>
@@ -30,12 +30,24 @@
 	    <h2 >List of files</h2>
 	 </div>
   <div class="station-body" style="min-height:calc(100vh - 70px);">
-    <div class="file-header">
-      header
-    </div>
-    <div style="height:calc(100vh - 120px);overflow-y:scroll;">
-      <file-row v-for="file in files" :file="file"></file-row>
-    </div>
+	   <div><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
+	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging></div>
+	   <div class="array-list">
+	    <div class="gnss-file header">
+	     <div class="gnss-file-1"></div>
+	     <div class="gnss-file-2">Station</div>
+	     <div class="gnss-file-3-header">
+	       <div style="margin-top:5px;">Solution </div>
+	       <div>ProductType</div>
+	      </div>
+	     <div class="gnss-file-4">Dates</div>
+	     <div class="gnss-file-5">Productor</div>
+	    </div>
+	    
+	    <div style="height:calc(100vh - 120px);overflow-y:scroll;">
+	      <file-row v-for="file in files" :file="file"></file-row>
+	    </div>
+   </div>
  </div>
  </div>
 </div>
@@ -47,9 +59,10 @@
 
 import FileForm from './file-form.vue'
 import FileRow from './file-row.vue'
+import GnssPaging from './gnss-paging.vue'
 export default {
   name: 'FileList',
-  components: {FileForm, FileRow},
+  components: {FileForm, FileRow, GnssPaging},
   data () {
     return {
      
@@ -60,7 +73,8 @@ export default {
       return this.$store.getters['api']
     },
     defaultRequest () {
-      var obj = Object.assign({page: 1, maxRecords: 50}, this.$store.getters['request'] )
+      var obj = Object.assign({page: 1, maxRecords: 10}, this.$store.getters['request'] )
+      return obj
     }
   },
   watch: {
@@ -70,10 +84,20 @@ export default {
   },
   data () {
     return {
-      files: []
+      files: [],
+      pagination: {
+        page: 1,
+        maxRecords: 10
+      }
     }
   },
   created () {
+    if (this.$route.query.page) {
+      this.pagination.page = parseInt(this.$route.query.page)
+    }
+    if (this.$route.query.maxRecords) {
+      this.pagination.maxRecords = parseInt(this.$route.query.maxRecords)
+    }
     this.treatmentQuery(this.$route.query)
   },
   destroyed () {
@@ -85,15 +109,29 @@ export default {
     },
     display (data) {
       this.files = data.files
+      this.pagination.tot = data.query.tot
+    },
+    goToMap () {
+      var query = Object.assign({}, this.$route.query)
+      delete query.page
+      delete query.maxRecords
+      this.$router.push({name: 'home', query: query})
+    },
+    paginationChange (event) {
+      console.log(event)
+      var query = Object.assign({}, this.$route.query)
+      query.page = event.page
+      query.maxRecords = event.maxRecords
+      this.$router.push({name: this.$route.name, query: query})
     },
     treatmentQuery (query) {
       if (!this.api) {
         alert('Pas de service SensorThings!')
       }
-      console.log(this.$route.query)
       var url = this.api + 'files/'
+      console.log(this.defaultRequest)
       var params = Object.assign({}, this.defaultRequest)
-      params = Object.assign(params, this.$route.query)
+      params = Object.assign(params, query)
       this.$http.get(url, {params: params})
       .then(
           resp => {this.display(resp.body)},
@@ -105,7 +143,6 @@ export default {
       while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
         el = el.parentElement
       };
-      console.log(el)
       
       if (el.classList.contains('selected')) {
         el.classList.remove('selected')
@@ -153,10 +190,10 @@ div.box-station a.station-link {
   div.page-list {
     width:100%;
     background: url('./../assets/img/background-gnss.png') no-repeat center center fixed;
-     -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
   }
   div.page-list div.form {
     top: 105px;
@@ -184,6 +221,9 @@ div.box-station a.station-link {
   div.station-header h2 {
     padding:0;
     margin:5px;
+  }
+  div.array-list {
+    border:1px solid grey;
   }
   span.station-link {
     color: darkblue;
