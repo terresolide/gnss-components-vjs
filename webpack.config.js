@@ -141,7 +141,12 @@ if (process.env.NODE_ENV === 'production') {
    
     new CleanWebpackPlugin({cleanAfterEveryBuildPatterns: ['dist']}),
     new UglifyJsPlugin({
-        sourceMap: true
+        sourceMap: true,
+        uglifyOptions: {
+          compress: {
+            collapse_vars: false
+          }
+        }
     }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
