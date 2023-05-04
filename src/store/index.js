@@ -10,7 +10,8 @@ export default function makeStore( config ) {
     queryList: {},
     codelists: {},
     reseting: false,
-    boundsChanged: false
+    boundsChanged: false,
+    drawing: false
   }
   var finalConfig = Object.assign(defaultConfig, config)
   return new Vuex.Store( {
@@ -29,6 +30,9 @@ export default function makeStore( config ) {
       setReset(state, value) {
         console.log('setReset', value)
         state.reseting = value
+      },
+      setDraw(state, value) {
+        state.drawing = value
       },
       changeBounds(state, value) {
         state.boundsChanged = value

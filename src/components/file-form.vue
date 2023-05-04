@@ -131,8 +131,6 @@ export default {
   },
   watch: {
     $route (newroute) {
-     // this.treatmentQuery(newroute.query)
-       console.log(newroute)
        this.initSearchParams(newroute.query)
     }
   },
@@ -146,9 +144,6 @@ export default {
       this.length.marks.push(i)
     }
     this.initSearchParams(this.$route.query)
-  },
-  mounted () {
-    console.log(this.length.points)
   },
   data () {
     return  {
@@ -223,10 +218,7 @@ export default {
           this.fillrate.values[0] = parseInt(query['fill'])
         }
         if (key.toLowerCase() === 'lenmin') {
-          console.log(key)
-          console.log(query[key])
           this.length.values[0] = parseInt(query[key])
-          console.log(this.length.values[0])
         } 
         if (key.toLowerCase() === 'lenmax') {
           this.length.values[1] = parseInt(query[key])
@@ -255,7 +247,6 @@ export default {
             newquery['network'] = newquery['network'].join(',')
         }
       }
-      console.log(newquery)
       this.$router.push({name: this.$route.name, query: newquery}).catch(()=>{})
     },
     reset() {

@@ -34,18 +34,30 @@
 	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging></div>
 	   <div class="array-list">
 	    <div class="gnss-file header">
-	     <div class="gnss-file-1"></div>
-	     <div class="gnss-file-2">Station</div>
+	     <div class="gnss-file-title">Name  
+	       <span class="gnss-sort" @click="changeSort('name')" :class="{unactive: !sort.name}" >{{sort.name === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	     </div>
+	     <div class="gnss-file-2">Station 
+	        <span class="gnss-sort" @click="changeSort('station')" :class="{unactive: !sort.station}" >{{sort.station === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	      </div>
 	     <div class="gnss-file-3-header">
-	       <div style="margin-top:5px;">Solution </div>
-	       <div>ProductType</div>
+	       <div style="margin-top:5px;">Solution 
+	         <span class="gnss-sort" @click="changeSort('solution')" :class="{unactive: !sort.solution}" >{{sort.solution === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	       </div>
+	       <div>ProductType
+	          <span class="gnss-sort" @click="changeSort('productType')" :class="{unactive: !sort.productType}" >{{sort.productType === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+       
+	       </div>
 	      </div>
 	     <div class="gnss-file-4">Dates</div>
-	     <div class="gnss-file-5">Productor</div>
+	     <div class="gnss-file-5">Productor
+	       <span class="gnss-sort" @click="changeSort('productor')" :class="{unactive: !sort.productor}" >{{sort.productor === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+       
+	     </div>
 	    </div>
 	    
-	    <div style="height:calc(100vh - 120px);overflow-y:scroll;">
-	      <file-row v-for="file in files" :file="file"></file-row>
+	    <div style="max-height:calc(100vh - 140px);overflow-y:scroll;">
+	      <file-row v-for="file, index in files" :key="index" :file="file"></file-row>
 	    </div>
    </div>
  </div>
@@ -73,7 +85,7 @@ export default {
       return this.$store.getters['api']
     },
     defaultRequest () {
-      var obj = Object.assign({page: 1, maxRecords: 10}, this.$store.getters['request'] )
+      var obj = Object.assign({page: 1, maxRecords: 25, orderBy: 'station ASC,solution ASC'}, this.$store.getters['request'] )
       return obj
     }
   },
@@ -85,10 +97,22 @@ export default {
   data () {
     return {
       files: [],
+      sort: {
+        station: 'ASC',
+        solution: 'ASC',
+        name: null,
+        productType: null,
+        productor: null
+      },
       pagination: {
         page: 1,
-        maxRecords: 10
-      }
+        maxRecords: 25
+      },
+      orderBy: [{name: 'station',
+                value: 'ASC'}, 
+               {name: 'solution',
+                value: 'ASC'}
+              ]
     }
   },
   created () {
@@ -104,12 +128,37 @@ export default {
     
   },
   methods: {
+    changeSort(name) {
+      var index = this.orderBy.findIndex(el => el.name === name)
+      if (index >= 0) {
+        this.orderBy[index].value = this.orderBy[index].value === 'ASC' ? 'DESC' : 'ASC'
+        if (index == 1) {
+           this.orderBy = this.orderBy.reverse()
+        }
+      } else {
+        this.orderBy.pop()
+        this.orderBy.unshift({name: name, value: 'ASC'})
+      }
+      var orderBy = this.orderBy.map(el => el.name + ' ' + el.value).join(',')
+      var query = Object.assign({}, this.$route.query)
+      query.orderBy = orderBy
+      this.$router.push({name: 'files', query: query})
+    },
     copyClipboard () {
-      
+      var tooltip = this.$el.querySelector('.bookmark-tooltip')
+      tooltip.style.display = 'block'
+      setTimeout(function () {
+          tooltip.style.display = 'none'
+      }, 2000)
+      var base = window.location.href.split(/#/)[0] + '#'
+      var url = base + this.$route.fullPath
+      navigator.clipboard.writeText(url);
     },
     display (data) {
       this.files = data.files
       this.pagination.tot = data.query.tot
+      this.pagination.page = data.query.page
+      this.pagination.maxRecords = data.query.maxRecords
     },
     goToMap () {
       var query = Object.assign({}, this.$route.query)
@@ -118,7 +167,6 @@ export default {
       this.$router.push({name: 'home', query: query})
     },
     paginationChange (event) {
-      console.log(event)
       var query = Object.assign({}, this.$route.query)
       query.page = event.page
       query.maxRecords = event.maxRecords
@@ -129,7 +177,25 @@ export default {
         alert('Pas de service SensorThings!')
       }
       var url = this.api + 'files/'
-      console.log(this.defaultRequest)
+      var params = Object.assign({}, this.defaultRequest)
+      if (query.orderBy) {
+        var sorts = query.orderBy.split(/\s*,\s*/)
+        var sort = {}
+        this.orderBy = []
+        sorts.forEach(function (el) {
+          console.log(el)
+          var tab = el.split(/\s+/)
+          sort[tab[0]] = tab[1].toUpperCase()
+        })
+        for (var key in this.sort) {
+          if (sort[key]) {
+            this.sort[key] = sort[key]
+            this.orderBy.push({name: key, value: sort[key]})
+          } else {
+            this.sort[key] = null
+          }
+        }
+      }
       var params = Object.assign({}, this.defaultRequest)
       params = Object.assign(params, query)
       this.$http.get(url, {params: params})
@@ -246,5 +312,15 @@ div.box-station a.station-link {
   span.button.close:hover {
     border-color:grey;
   }
-
+  span.gnss-sort{
+    padding: 0 3px;
+    cursor: pointer;
+    border: 1px dotted transparent;
+  }
+  span.gnss-sort.unactive {
+    color: #555555;
+  }
+  span.gnss-sort:hover {
+    border-color: black;
+  }
 </style>

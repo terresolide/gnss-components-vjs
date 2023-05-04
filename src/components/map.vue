@@ -135,7 +135,7 @@ export default {
   },
   watch: {
     $route (newroute, oldroute) {
-      if (newroute.name === oldroute.name  && !this.$store.state.reseting &&
+      if (newroute.name === oldroute.name && !this.$store.state.drawing && !this.$store.state.reseting &&
           ((newroute.query.selected !== oldroute.query.selected)
               || this.$store.state.boundsChanged)) {
         if (this.selected && parseInt(newroute.query.selected) !== this.selected.id) {
@@ -149,7 +149,6 @@ export default {
 		        }
           }
         }
-        this.$store.commit('setReset', false)
         this.$store.commit('changeBounds', false)
         return
       }
@@ -183,7 +182,7 @@ export default {
       },
       drawControl: null,
       drawLayers: null,
-      init: false
+      init: false,
     }
   },
   created () {
@@ -219,6 +218,7 @@ export default {
       }
       return query
     },
+   
     getUrl () {
       var queryString = new URLSearchParams(this.getQuery()).toString();
 
@@ -315,6 +315,7 @@ export default {
         this.layerControl.addOverlay(this.drawLayers, 'Selected area')
         var self = this
         this.map.on(L.Draw.Event.CREATED, function (e) {
+          self.$store.commit('setDraw', true)
           switch (e.layerType) {
 	          case 'rectangle':
 		          let layer = e.layer
@@ -329,11 +330,13 @@ export default {
               return
 	            break
           }
+   
         
         })
       
         this.map.on(L.Draw.Event.EDITED, function (e) {
           let bounds
+          self.$store.commit('setDraw', true)
           e.layers.eachLayer(function (layer) {
             if (layer instanceof L.Circle) {
               console.log(e)
@@ -347,11 +350,15 @@ export default {
               self.changeQuery({bbox: bounds.toBBoxString(), center: null, radius: null})
             }
           })
+         
+          
         })
       
         this.map.on(L.Draw.Event.DELETED , function (e) {
+          self.$store.commit('setDraw', true)
           self.drawLayers.clearLayers()
           self.changeQuery({bbox: null, center: null, radius: null})
+     
         })
     },
     initialize () {
@@ -383,6 +390,7 @@ export default {
 	          this.init = false
 	          return
 	        }
+	        
 	        var bbox = self.map.getBounds().toBBoxString()
 	        var query = Object.assign({}, self.$route.query)
 	        query.bounds = bbox
@@ -425,6 +433,9 @@ export default {
       delete query.network
       delete query.selected
       delete query.bounds
+      delete query.bbox
+      delete query.center
+      delete query.radius
       this.$router.push({ name: 'station', params: { name: this.selected.properties.name, id: this.selected.id}, query: query})
     },
 
@@ -488,6 +499,7 @@ export default {
         self.groupLayers[group].first = first ? {title:first,separator:true}:false
         first = false
         var className = self.getClassname(group)
+       
         self.layerControl.addOverlay(self.groupLayers[group],  group +' <div class="marker-' + className + '"></div>' )
       })
 
@@ -506,7 +518,8 @@ export default {
       if (init && this.$route.query.nodraw) {
         this.drawLayers.remove()
       }
-      if (this.$route.query.bounds) {
+      
+      if (init && this.$route.query.bounds ) {
         var tab = this.$route.query.bounds.split(',')
         if (tab.length === 4) {
           this.bounds = L.latLngBounds(
@@ -517,20 +530,23 @@ export default {
         this.init = true
       } 
       if (!this.bounds && this.drawLayers.getBounds()) {
-        if (!this.bounds) {
           this.bounds = this.drawLayers.getBounds()
-        } else {
-          this.bounds.extend(this.drawLayers.getBounds())
+          this.init = false
+      }
+      if (this.$store.state.drawing) {
+        if (this.drawLayers.getBounds() && this.drawLayers.getBounds().isValid()) {
+           this.bounds = this.drawLayers.getBounds()
         }
-        this.init = false
+        this.init = true
+        this.$store.commit('setDraw', false)
       }
       if (this.bounds && this.bounds.isValid()) {
+          console.log('fit bounds')
           this.map.fitBounds(this.bounds)
       }
       
     },
     getClassname (status) {
-      console.log(status)
       switch (status) {
         case 'PERMANENT':
           return 'red'

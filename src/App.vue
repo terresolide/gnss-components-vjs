@@ -17,11 +17,6 @@ export default {
   components: {
     // SpotGins
   },
-  watch: {
-    $route (newroute) {
-      console.log(newroute)
-    }
-  },
   created () {
     this.searchCodeLists()
     var self = this

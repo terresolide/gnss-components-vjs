@@ -12,7 +12,7 @@
   <span style="margin: 0 10px;">
   Results: {{from}} to {{to}} among {{notExactly}}{{totalResults}}
   </span>
-   (<select v-model="recordPerPage">
+   (<select v-model="recordPerPage" @change="nbRecordChange">
       <option v-for="option, key in recordsPerPage" :value="key">{{option}}</option>
    </select>)
    <span :class="{disabled: (!notExactly && (currentPage===nbPage || count=== 0) ? 'disabled': ''), 'mtdt-navigation':true}">
@@ -58,16 +58,14 @@ export default {
     }
   },
   computed: {
-    startIndex () {
-      return (this.page - 1) * this.maxRecords + 1
-    },
+   
     to () {
       return this.from + this.count - 1
     },
     nbPage () {
-      var nbPage = parseInt(this.totalResults / this.maxRecords) 
-      nbPage += (this.totalResults % this.maxRecords > 0 ? 1 : 0)
-      this.currentPage = parseInt(this.startIndex  / this.maxRecords) + 1
+      var nbPage = parseInt(this.totalResults / this.recordPerPage) 
+      nbPage += (this.totalResults % this.recordPerPage > 0 ? 1 : 0)
+      this.currentPage = parseInt(this.from  / this.recordPerPage) + 1
       return nbPage
     },
     recordsPerPage () {
@@ -84,12 +82,15 @@ export default {
   },
   watch: {
     page (newvalue) {
-      console.log('nouvelle page ' + newvalue)
       this.from = (newvalue - 1) * this.maxRecords + 1
+    },
+    maxRecords (newvalue) {
+      this.recordPerPage = this.maxRecords
     }
   },
   created () {
     this.from = (this.page - 1) * this.maxRecords + 1
+    this.recordPerPage = this.maxRecords
   },
   mounted () {
   },
@@ -131,16 +132,16 @@ export default {
        return;
      }
      this.currentPage += sens
-     this.from = (this.currentPage - 1) * this.recordPerPage +1
+     // this.from = (this.currentPage - 1) * this.recordPerPage +1
      this.emitChange()
    },
    nbRecordChange (value) {
-     this.recordPerPage = parseInt(value)
+     // this.recordPerPage = parseInt(value)
      this.emitChange()
    },
    emitChange() {
      // var to = this.from + this.recordPerPage - 1
-     this.$emit('change', { maxRecords:this.recordPerPage, startIndex: (this.currentPage - 1) * this.recordPerPage, page: this.currentPage})
+     this.$emit('change', { maxRecords:this.recordPerPage, page: this.currentPage})
    }
   }
 }
