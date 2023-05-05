@@ -25,7 +25,7 @@
        </div>
     </div>
    
-    <div id="map" ></div>
+    <div id="map" class="fullmap"></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
@@ -386,6 +386,13 @@ export default {
 //         }
 //       })
 	     this.map.on('zoomend moveend', function (e) {
+	       if (e.type === 'zoomend') {
+	         if (self.map.getZoom() < 6) {
+	           self.map._container.classList.add('fullmap')
+	         } else {
+	           self.map._container.classList.remove('fullmap')
+	         }
+	       }
 	        if (this.init) {
 	          this.init = false
 	          return
@@ -442,9 +449,8 @@ export default {
     load (i, first) {
       console.log('first dans load', first)
       if (!this.api) {
-        alert('Pas de service SensorThings!')
+        alert('Service unvailable!')
       }
-      console.log(this.$route.query)
       var url = this.api + 'stations/'
       var params = Object.assign({}, this.defaultRequest)
       params = Object.assign(params, this.$route.query)
@@ -568,7 +574,8 @@ export default {
     addStation(feature) {
       this.stations.push(feature)
       var groupId = this.getStatus(feature)
-      var html = '<span>' + feature.properties.images.length + '</span>'
+      var spanclass = (feature.properties.name.indexOf('FRA') > 0 || feature.properties.name.indexOf('CHE') > 0) ? 'fra':'ext'
+      var html = '<span class="'+ spanclass + '">' + feature.properties.images.length + '</span>'
       var className = this.getClassname(feature.properties.status)
       var icon = L.divIcon({
         className: 'icon-marker marker-' + className, 
@@ -859,28 +866,43 @@ div.navigator {
     left: -50%; **/
  
 }
-div.icon-marker {
+div.icon-marker span {
   color: white;
-  width: 12px;
-  height: 12px;
-  border: 1px solid black;
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,1);
   border-radius:3px;
   text-align:center;
-  line-height:12px;
+  line-height:15px;
+  vertical-align:middle;
+  font-family:Arial;
 }
+
 div.icon-marker span {
   line-height:12px;
   font-weight:700;
   vertical-align: middle;
 }
-div.marker-red{
+div.fullmap div.icon-marker span.fra {
+  width:10px;
+  height:11px;
+  font-size:12px;
+  line-height:9px;
+  border-radius:2px;
+  border: 1px solid rgba(0,0,0,0.2);
+  padding-top:0;
+}
+.leaflet-control-layers div.marker-red,
+div.marker-red span{
   background-color: darkred;
 }
-
-div.marker-blue {
-  background-color: #0000CD;
+.leaflet-control-layers div.marker-blue,
+div.marker-blue span {
+  background-color: rgba(0, 0, 205, 0.9);
 }
-div.marker-orange {
+.leaflet-control-layers div.marker-orange,
+div.marker-orange span {
 
   background-color: darkorange;
 

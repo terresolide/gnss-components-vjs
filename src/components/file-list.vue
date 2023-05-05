@@ -35,23 +35,33 @@
 	   <div class="array-list">
 	    <div class="gnss-file header">
 	     <div class="gnss-file-title">Name  
-	       <span class="gnss-sort" @click="changeSort('name')" :class="{unactive: !sort.name}" >{{sort.name === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	       <span class="gnss-sort" @click="changeSort('name')" :class="{unactive: !sort.name}" >{{sort.name === 'DESC' ? '&uarr;' : '&darr;' }}</span>
 	     </div>
 	     <div class="gnss-file-2">Station 
-	        <span class="gnss-sort" @click="changeSort('station')" :class="{unactive: !sort.station}" >{{sort.station === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	        <span class="gnss-sort" @click="changeSort('station')" :class="{unactive: !sort.station}" >{{sort.station === 'DESC' ? '&uarr;' : '&darr;' }}</span>
 	      </div>
 	     <div class="gnss-file-3-header">
 	       <div style="margin-top:5px;">Solution 
-	         <span class="gnss-sort" @click="changeSort('solution')" :class="{unactive: !sort.solution}" >{{sort.solution === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	         <span class="gnss-sort" @click="changeSort('solution')" :class="{unactive: !sort.solution}" >{{sort.solution === 'DESC' ? '&uarr;' : '&darr;' }}</span>
 	       </div>
 	       <div>ProductType
-	          <span class="gnss-sort" @click="changeSort('productType')" :class="{unactive: !sort.productType}" >{{sort.productType === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	          <span class="gnss-sort" @click="changeSort('productType')" :class="{unactive: !sort.productType}" >{{sort.productType === 'DESC' ? '&uarr;' : '&darr;' }}</span>
        
 	       </div>
 	      </div>
-	     <div class="gnss-file-4">Dates</div>
+	     <div class="gnss-file-4-header">
+	        <div style="margin-top:5px;">Start
+	        <span class="gnss-sort" @click="changeSort('start')" :class="{unactive: !sort.start}" >{{sort.start === 'DEC' ? '&uarr;': '&darr;' }}</span>
+           End  <span class="gnss-sort" @click="changeSort('end')" :class="{unactive: !sort.end}" >{{sort.end === 'DESC' ? '&uarr;' : '&darr;' }}</span>
+	        </div>
+	        <div>
+	          Years<span class="gnss-sort" @click="changeSort('years')" :class="{unactive: !sort.years}" >{{sort.years === 'DESC' ? '&uarr;' : '&darr;' }}</span>
+            FillRate<span class="gnss-sort" @click="changeSort('fill')" :class="{unactive: !sort.fill}" >{{sort.fill === 'DESC' ? '&uarr;' : '&darr;' }}</span>
+         
+	        </div>
+	     </div>
 	     <div class="gnss-file-5">Productor
-	       <span class="gnss-sort" @click="changeSort('productor')" :class="{unactive: !sort.productor}" >{{sort.productor === 'ASC' ? '&darr;' : '&uarr;' }}</span>
+	       <span class="gnss-sort" @click="changeSort('productor')" :class="{unactive: !sort.productor}" >{{sort.productor === 'DESC' ? '&uarr;' : '&darr;' }}</span>
        
 	     </div>
 	    </div>
@@ -102,7 +112,11 @@ export default {
         solution: 'ASC',
         name: null,
         productType: null,
-        productor: null
+        productor: null,
+        start: null,
+        end: null,
+        fill: null,
+        years: null
       },
       pagination: {
         page: 1,

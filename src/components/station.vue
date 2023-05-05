@@ -269,7 +269,6 @@ export default {
           neighbours.forEach(function (st, index) {
             var pos = st.location.geometry.coordinates
             var distance  = Util.getDistanceFromLatLonInKm(pos[1], pos[0], center[1], center[0])
-            console.log(distance)
             neighbours[index].distance = distance
           })
           this.neighbours = neighbours
@@ -339,7 +338,6 @@ export default {
       this.$http.get(this.api + 'stations/' + this.stationId + '/files', {params: this.$route.query})
       .then(resp => {
         this.files = resp.body.files
-        console.log(this.files)
       })
     },
     goToStation (station) {

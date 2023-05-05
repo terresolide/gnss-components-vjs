@@ -98,6 +98,10 @@ export default {
   font-weight:600;
   color: black;
 }
+.header .gnss-file-title {
+  grid-column: 1/3;
+  grid-row:1;
+}
 .gnss-file-1{
   grid-column: 1;
   grid-row: 2;
@@ -115,6 +119,14 @@ export default {
 .gnss-file-3-header > div {
   line-height: 1.5;
 }
+.gnss-file-4-header {
+  grid-column: 4;
+  vertical-align: middle;
+  grid-row: 1/3;
+}
+.gnss-file-4-header > div {
+  line-height: 1.5;
+}
 .gnss-file-3 {
   grid-column: 3;
   grid-row: 2;
@@ -122,6 +134,14 @@ export default {
 .gnss-file-4 {
   grid-column: 4;
   grid-row: 2;
+}
+.gnss-file-4-top {
+  grid-column: 4;
+  grid-row:1;
+}
+.gnss-file-4-bottom {
+  grid-column: 4;
+  grid-row:2;
 }
 .gnss-file-5 {
   grid-column: 5;
