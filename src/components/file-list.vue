@@ -319,6 +319,7 @@ div.box-station a.station-link {
   span.button.close {
     position: absolute;
     right: 15px;
+    top:5px;
     opacity:1;
     border: 1px dotted transparent;
    
