@@ -1,11 +1,9 @@
 <template>
 <div class="page-station" style="width:100%;position:relative;overflow:hidden;">
-  <div class="form" >
-     <div>
-        <file-form mode="station" ></file-form>
-      </div>
-      <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
-    </div>
+  <gnss-menu :top="55"></gnss-menu>
+ 
+  <file-form mode="station" ></file-form>
+    
  <div class="station-content" >
 	 <div class="station-header">
 	    <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
@@ -130,10 +128,11 @@ Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 import FileForm from './file-form.vue'
+import GnssMenu from './gnss-menu.vue'
 // import Bokeh from '@bokeh/bokehjs/build/js/bokeh.esm.min.js';
 export default {
   name: 'Station',
-  components: {FileForm},
+  components: {FileForm, GnssMenu},
   data () {
     return {
       sari: 'https://alvarosg.shinyapps.io/sari/',
@@ -249,10 +248,10 @@ export default {
         this.onMap = false
       } 
     },
-    toggleForm () {
-      var elt = document.querySelector('.form')
-      elt.classList.toggle('expand')
-    },
+//     toggleForm () {
+//       var elt = document.querySelector('.form')
+//       elt.classList.toggle('expand')
+//     },
     getNeighbours () {
       if (!this.location) {
         return
@@ -448,7 +447,7 @@ div[id="stationMap"] {
   background-size: cover;
   }
   div.page-station div.form {
-    top: 60px;
+    top: 105px;
   }
   div.station-content {
     background:white;

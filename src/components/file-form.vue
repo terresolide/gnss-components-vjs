@@ -1,104 +1,110 @@
 <template>
-<div class="file-form" :class="{'station-form': mode === 'station'}">
-<div >
-  <div v-if="solutions && !$store.state.solution">
-    <label >Solution  
-       <span class="gnss-question" @click="showTooltip($event)">
-         <font-awesome-icon icon="fa-solid fa-circle-question" />
-        </span>
-        <div class="gdm-tooltip" @click="hideTooltip($event)">
-        <h4 >Solution</h4>
-        <div>more info about solutions here @todo<br>
-        </div>
-     </div>
-    </label><select class="gnss-control" v-model="searchparams.solution">
-       <option :value="null">---</option>
-       <option v-for="pt in solutions" :value="pt">{{pt}}</option>
-    </select>
-  </div>
-  <div class="temp-extent">
-    <label >Temporal extent</label>
-	  <div >
-	    <label>From</label>
-	    <input type="date" v-model="searchparams.start" class="gnss-control" />
-	  </div>
-	  <div >
-	    <label>To</label>
-	    <input type="date" v-model="searchparams.end" class="gnss-control" />
-	  </div>
-  </div>
- 
-   <div class="fillrate" style="margin-top:12px;">
-    <label >Extend 
-        <span class="gnss-question" @click="showTooltip($event)">
-         <font-awesome-icon icon="fa-solid fa-circle-question" />
-        </span>
-        <div class="gdm-tooltip" @click="hideTooltip($event)">
-          <h4 >Extend in years</h4>
-          <div>Number of years of data<br>
-          </div>
-        </div></label>
-    <div >
-       <vue-slider v-model="length.values" :dot-options="length.dotoptions" 
-       :marks="length.marks"
-       :data="length.points" ></vue-slider>
-      
+<div class="form" >
+     <div>
+		<div class="file-form" :class="{'station-form': mode === 'station'}">
+		<div >
+		  <div v-if="solutions && !$store.state.solution">
+		    <label >Solution  
+		       <span class="gnss-question" @click="showTooltip($event)">
+		         <font-awesome-icon icon="fa-solid fa-circle-question" />
+		        </span>
+		        <div class="gdm-tooltip" @click="hideTooltip($event)">
+		        <h4 >Solution</h4>
+		        <div>more info about solutions here @todo<br>
+		        </div>
+		     </div>
+		    </label><select class="gnss-control" v-model="searchparams.solution">
+		       <option :value="null">---</option>
+		       <option v-for="pt in solutions" :value="pt">{{pt}}</option>
+		    </select>
+		  </div>
+		  <div class="temp-extent">
+		    <label >Temporal extent</label>
+			  <div >
+			    <label>From</label>
+			    <input type="date" v-model="searchparams.start" class="gnss-control" />
+			  </div>
+			  <div >
+			    <label>To</label>
+			    <input type="date" v-model="searchparams.end" class="gnss-control" />
+			  </div>
+		  </div>
+		 
+		   <div class="fillrate" style="margin-top:12px;">
+		    <label >Extend 
+		        <span class="gnss-question" @click="showTooltip($event)">
+		         <font-awesome-icon icon="fa-solid fa-circle-question" />
+		        </span>
+		        <div class="gdm-tooltip" @click="hideTooltip($event)">
+		          <h4 >Extend in years</h4>
+		          <div>Number of years of data<br>
+		          </div>
+		        </div></label>
+		    <div >
+		       <vue-slider v-model="length.values" :dot-options="length.dotoptions" 
+		       :marks="length.marks"
+		       :data="length.points" ></vue-slider>
+		      
+		    </div>
+		  </div>
+		  <div class="fillrate">
+		      <label>Fill rate <span class="gnss-question"@click="showTooltip($event)">
+		         <font-awesome-icon icon="fa-solid fa-circle-question" /></span>
+		        <div class="gdm-tooltip" @click="hideTooltip($event)">
+			        <h4 >Fill rate</h4>
+			        <div>percent of days with data<br>
+			        </div>
+		        </div>
+		      </label>
+		      <div> 
+		         <vue-slider v-model="fillrate.values" :dot-options="fillrate.dotoptions" 
+		         :marks="fillrate.marks"></vue-slider>
+		      </div> 
+		      
+		  </div>
+		 </div>
+		 <div>
+		  <div v-if="productors && !$store.state.productor">
+		    <label>Operator</label>
+		    <select class="gnss-control" v-model="searchparams.productor">
+		       <option :value="null">---</option>
+		       <option v-for="pt in productors" :value="pt">{{pt}}</option>
+		    </select>
+		  </div>
+		  <div v-if="productTypes">
+		    <label>Product type</label>
+		    <select class="gnss-control" v-model="searchparams.productType">
+		       <option :value="null">---</option>
+		       <option v-for="pt in productTypes" :value="pt">{{pt}}</option>
+		    </select>
+		  </div>
+		  <div v-if="networks && mode === 'map'" class="gnss-networks"> 
+		     <label>Networks</label>
+		     <div >
+		         <span v-for="value in networks" class="network-span">
+		            <input v-model="searchparams.network" type="checkbox" :value="value" class="gnss-checkbox"> 
+		            <span >{{value}}</span>
+		         </span>
+		      </div>
+		  </div>   
+		   <div v-if="constels"> 
+		      <label>Constel</label>
+		      <select v-model="searchparams.constel" class="gnss-control" >
+		         <option :value="null">---</option>
+		         <option v-for="pt in constels" :value="pt">{{pt}}</option>
+		      </select>
+		   </div>
+		    <div style="margin-top:10px;">
+		          <label></label>
+		          <button @click="reset()" type="button" >Resest</button>
+		          <button @click="search($event)" type="submit" >Search
+		          <font-awesome-icon icon="fa-solid fa-search" /></button>
+		      </div>
+		  </div>
+		</div>
     </div>
-  </div>
-  <div class="fillrate">
-      <label>Fill rate <span class="gnss-question"@click="showTooltip($event)">
-         <font-awesome-icon icon="fa-solid fa-circle-question" /></span>
-        <div class="gdm-tooltip" @click="hideTooltip($event)">
-	        <h4 >Fill rate</h4>
-	        <div>percent of days with data<br>
-	        </div>
-        </div>
-      </label>
-      <div> 
-         <vue-slider v-model="fillrate.values" :dot-options="fillrate.dotoptions" 
-         :marks="fillrate.marks"></vue-slider>
-      </div> 
-      
-  </div>
- </div>
- <div>
-  <div v-if="productors && !$store.state.productor">
-    <label>Operator</label>
-    <select class="gnss-control" v-model="searchparams.productor">
-       <option :value="null">---</option>
-       <option v-for="pt in productors" :value="pt">{{pt}}</option>
-    </select>
-  </div>
-  <div v-if="productTypes">
-    <label>Product type</label>
-    <select class="gnss-control" v-model="searchparams.productType">
-       <option :value="null">---</option>
-       <option v-for="pt in productTypes" :value="pt">{{pt}}</option>
-    </select>
-  </div>
-  <div v-if="networks && mode === 'map'" class="gnss-networks"> 
-     <label>Networks</label>
-     <div >
-         <span v-for="value in networks" class="network-span">
-            <input v-model="searchparams.network" type="checkbox" :value="value" class="gnss-checkbox"> 
-            <span >{{value}}</span>
-         </span>
-      </div>
-  </div>   
-   <div v-if="constels"> 
-      <label>Constel</label>
-      <select v-model="searchparams.constel" class="gnss-control" >
-         <option :value="null">---</option>
-         <option v-for="pt in constels" :value="pt">{{pt}}</option>
-      </select>
-   </div>
-    <div style="margin-top:10px;">
-          <label></label>
-          <button @click="reset()" type="button" >Resest</button>
-          <button @click="search($event)" type="submit" >Search
-          <font-awesome-icon icon="fa-solid fa-search" /></button>
-      </div>
-  </div>
+     <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
+ 
 </div>
 </template>
 <script>
@@ -272,6 +278,10 @@ export default {
         node.classList.remove('tooltip-show')
       })
       el.classList.add('tooltip-show')
+    },
+    toggleForm () {
+      var elt = document.querySelector('.form')
+      elt.classList.toggle('expand')
     }
   }
 }
@@ -292,6 +302,38 @@ input[id="fillrate"]::after {
 }
 </style>
 <style scoped>
+div.form {
+  position: absolute;
+  transform: translateX(353px);
+ 
+  width: 400px;
+  z-index: 1001;
+  right: 0px;
+  top: 55px;
+  background-clip: padding-box;
+  transition: transform 330ms ease-in-out;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+
+  z-index:2;
+ 
+}
+div.form > div:nth-child(1) {
+     float:right;
+     background: white;
+     display:inline-block;
+     width:350px;
+     margin:0;
+     border-radius: 0 0 0 5px;
+    padding: 10px;
+     box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      max-height: calc(100vh - 50px);
+       overflow-y: scroll;
+}
+div.form.expand {
+  transform: translateX(0px);
+  transition: transform 330ms ease-in-out;
+}
 .gnss-question{ 
   cursor:pointer;
   opacity:0.8;

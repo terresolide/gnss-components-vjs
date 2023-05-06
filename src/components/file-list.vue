@@ -1,29 +1,10 @@
 <template>
 <div class="page-list" style="width:100%;position:relative;overflow:hidden;">
-  <div class="form" >
-     <div>
-        <file-form mode="map" ></file-form>
-      </div>
-      <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
-    </div>
-  <div style="position:absolute;top:55px;right:0;z-index:2">
-       <div class="gnss-shortcut gnss-bars" @click="toggle($event)"><font-awesome-icon icon="fa-solid fa-bars" /></div>
-       <div class="gnss-bars-content" >
-         <ul>
-           <li class="gnss-bars-link" title="Record state in clipboard" @click="copyClipboard()">
-                <font-awesome-icon icon="fa-solid fa-bookmark" />
-           
-               Record state url
-                <div class="bookmark-tooltip" >The url has been copied to clipboard</div>
-           </li>
-           <li class="gnss-hr"><hr /></li>
-           <li class="gnss-bars-link" style="margin-top:5px;" @click="goToMap()">
-             <font-awesome-icon icon="fa-solid fa-map" />
-             View Map</li>
-         </ul>
-       </div>
-    </div>
-   
+ 
+    <file-form mode="map" ></file-form>
+     
+    <gnss-menu :top="55"></gnss-menu>
+
  <div class="station-content" >
 	 <div class="station-header">
 	    <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
@@ -80,11 +61,12 @@
 
 
 import FileForm from './file-form.vue'
+import GnssMenu from './gnss-menu.vue'
 import FileRow from './file-row.vue'
 import GnssPaging from './gnss-paging.vue'
 export default {
   name: 'FileList',
-  components: {FileForm, FileRow, GnssPaging},
+  components: {FileForm, FileRow, GnssMenu, GnssPaging},
   data () {
     return {
      
@@ -158,28 +140,28 @@ export default {
       query.orderBy = orderBy
       this.$router.push({name: 'files', query: query})
     },
-    copyClipboard () {
-      var tooltip = this.$el.querySelector('.bookmark-tooltip')
-      tooltip.style.display = 'block'
-      setTimeout(function () {
-          tooltip.style.display = 'none'
-      }, 2000)
-      var base = window.location.href.split(/#/)[0] + '#'
-      var url = base + this.$route.fullPath
-      navigator.clipboard.writeText(url);
-    },
+//     copyClipboard () {
+//       var tooltip = this.$el.querySelector('.bookmark-tooltip')
+//       tooltip.style.display = 'block'
+//       setTimeout(function () {
+//           tooltip.style.display = 'none'
+//       }, 2000)
+//       var base = window.location.href.split(/#/)[0] + '#'
+//       var url = base + this.$route.fullPath
+//       navigator.clipboard.writeText(url);
+//     },
     display (data) {
       this.files = data.files
       this.pagination.tot = data.query.tot
       this.pagination.page = data.query.page
       this.pagination.maxRecords = data.query.maxRecords
     },
-    goToMap () {
-      var query = Object.assign({}, this.$route.query)
-      delete query.page
-      delete query.maxRecords
-      this.$router.push({name: 'home', query: query})
-    },
+//     goToMap () {
+//       var query = Object.assign({}, this.$route.query)
+//       delete query.page
+//       delete query.maxRecords
+//       this.$router.push({name: 'home', query: query})
+//     },
     paginationChange (event) {
       var query = Object.assign({}, this.$route.query)
       query.page = event.page
@@ -218,23 +200,20 @@ export default {
           resp => {alert('Erreur de chargement: ' + resp.status)}
        )
     },
-    toggle () {
-      var el  = event.target
-      while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
-        el = el.parentElement
-      };
+//     toggle () {
+//       var el  = event.target
+//       while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
+//         el = el.parentElement
+//       };
       
-      if (el.classList.contains('selected')) {
-        el.classList.remove('selected')
-        return
-      }
+//       if (el.classList.contains('selected')) {
+//         el.classList.remove('selected')
+//         return
+//       }
      
-      el.classList.add('selected')
-    },
-    toggleForm () {
-      var elt = document.querySelector('.form')
-      elt.classList.toggle('expand')
-    },
+//       el.classList.add('selected')
+//     },
+
    
     close (event) {
       console.log(event)

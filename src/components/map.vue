@@ -1,29 +1,32 @@
 <template>
-  <div style="position:relative;overflow:hidden;">
+  <div style="position:relative;overflow:hidden;" >
    
-    <div class="form" >
-     <div>
-        <file-form mode="map" ></file-form>
-      </div>
-      <div class="gnss-shortcut"   @click="toggleForm()"><font-awesome-icon icon="fa-solid fa-search" /></div>
-    </div>
-     <div style="position:absolute;top:5px;right:0;z-index:2">
+    
+     <file-form mode="map" ></file-form>
+    
+    <gnss-menu mode="map"></gnss-menu>
+   <!--    <div style="position:absolute;top:5px;right:0;z-index:2">
        <div class="gnss-shortcut gnss-bars" @click="toggle($event)"><font-awesome-icon icon="fa-solid fa-bars" /></div>
        <div class="gnss-bars-content" >
          <ul>
-           <li class="gnss-bars-link" title="Record state in clipboard" @click="copyClipboard()">
+           <li class="gnss-bars-link" title="Record state in clipboard" @click="copyClipboard($event)">
                 <font-awesome-icon icon="fa-solid fa-bookmark" />
            
                Record state url
                 <div class="bookmark-tooltip" >The url has been copied to clipboard</div>
            </li>
-           <li class="gnss-hr"><hr /></li>
-           <li class="gnss-bars-link" style="margin-top:5px;" @click="goToList()">
+           <li class="gnss-bars-link"  @click="goToList()">
              <font-awesome-icon icon="fa-solid fa-list" />
              View list</li>
+          <li class="gnss-hr" style="margin-bottom:5px;"><hr /></li>
+          <li class="gnss-bars-link disabled" @click="goTo('solutions')">Solutions</li>
+          <li class="gnss-bars-link disabled" @click="goTo('productTypes')">Product Types</li>
+          <li class="gnss-bars-link disabled" @click="goTo('about')">About</li>
+          
+          
          </ul>
        </div>
-    </div>
+    </div> -->
    
     <div id="map" class="fullmap"></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
@@ -79,7 +82,6 @@ var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
 L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
-// L.Control.Form = require('../modules/leaflet.control.form.js')
 delete Icon.Default.prototype._getIconUrl;
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
@@ -87,6 +89,7 @@ Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 import FileForm from './file-form.vue'
+import GnssMenu from './gnss-menu.vue'
 require('leaflet-draw')
 L.modLat = function( lat ){
      lat = lat%180;
@@ -106,17 +109,14 @@ L.modLng = function( lng ){
      }
      return lng;
 }
-// const JsonDiv = () => import('./json-div.vue')
-// const SpotginsGraph = () => import('./spotgins-graph.vue')
-//const GnssCarousel = () => import('./gnss-carousel.vue')
 import GnssCarousel from './gnss-carousel.vue'
-// const DateNavigation = () => import('./date-navigation.vue')
 
 export default {
   name: 'SpotGins',
   components: {
     FileForm,
-    GnssCarousel
+    GnssCarousel,
+    GnssMenu
   },
   props: {
     
@@ -226,28 +226,39 @@ export default {
       var url = base + this.$route.path + '?' + queryString
       return url
     },
-    copyClipboard () {
-      var tooltip = this.$el.querySelector('.bookmark-tooltip')
-      tooltip.style.display = 'block'
-      setTimeout(function () {
-          tooltip.style.display = 'none'
-      }, 2000)
-      navigator.clipboard.writeText(this.getUrl());
-    },
-    toggle (event) {
-      var el  = event.target
-      while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
-        el = el.parentElement
-      };
-      console.log(el)
+//     copyClipboard (event) {
+//       event.stopPropagation()
+//       var tooltip = this.$el.querySelector('.bookmark-tooltip')
+//       tooltip.style.display = 'block'
+//       var self = this
+//       setTimeout(function () {
+//           tooltip.style.display = 'none'
+//           self.closeMenu()
+//       }, 2000)
+//       navigator.clipboard.writeText(this.getUrl());
+//     },
+//     closeMenu() {
+//       var node = this.$el.querySelector('.gnss-shortcut.selected')
+//       if (node) {
+//         node.classList.remove('selected')
+//         return
+//       }
+//     },
+//     toggle (event) {
+//       event.stopPropagation()
+//       var el  = event.target
+//       while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
+//         el = el.parentElement
+//       };
+//       console.log(el)
       
-      if (el.classList.contains('selected')) {
-        el.classList.remove('selected')
-        return
-      }
+//       if (el.classList.contains('selected')) {
+//         el.classList.remove('selected')
+//         return
+//       }
      
-      el.classList.add('selected')
-    },
+//       el.classList.add('selected')
+//     },
     changeQuery (params) {
       var newquery = Object.assign({}, this.$route.query)
       newquery = Object.assign(newquery, params)
@@ -420,16 +431,7 @@ export default {
       delete query['selected']
       this.$router.push({name: 'home', query: query}).catch(()=>{})
     },
-    goToList () {
-      var query = Object.assign({}, this.$route.query)
-      var bbox = this.map.getBounds().toBBoxString()
-      this.$store.commit('setQueryList', this.getQuery())
-      var query = Object.assign({}, this.$route.query)
-      delete query.selected
-      delete query.bounds
-      delete query.expand
-      this.$router.push({ name: 'files', params: {}, query: query})
-    },
+
     goToStation (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -690,43 +692,7 @@ export default {
 <!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
-.gnss-bars-content {
-  display:none;
-  background:white;
-  position:absolute;
-  top:0px;
-  right:50px;
-  padding:5px;
-  background: #555;
-  padding: 2px;
-  -webkit-border-radius: 0 4px 4px 4px;
-  border-radius: 4px 0px 4px 4px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.5);
-}
-.gnss-shortcut.selected + .gnss-bars-content {
-  display:block;
-}
-.gnss-bars-content ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  left: 26px;
-  top: 0;
-  padding: 4px;
-  color: white;
-  white-space: nowrap
-}
-.gnss-bars-content ul li.gnss-bars-link{
-  background: #919187;
-  color: white;
-  padding: 4px 6px ;
-  margin:2px 0;
-  cursor: pointer;
-  border-radius:0;
-}
-.gnss-bars-content ul li.gnss-bars-link:hover {
-  background: #777;
-}
+
 /** .gnss-bars:hover + .gnss-bars-content {
   display:block;
 }

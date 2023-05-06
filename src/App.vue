@@ -1,5 +1,5 @@
 <template>
- <div class="gnss-terresolide" style="position:relative;">
+ <div class="gnss-terresolide" style="position:relative;" >
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
  <div  id="page">
@@ -69,7 +69,7 @@ ul[id="shortcuts"] {
   background: rgba(255,255,255,0.2);
   z-index:10;
 }
-.gnss-bars-content {
+/** .gnss-bars-content {
   display:none;
   background:white;
   position:absolute;
@@ -103,6 +103,11 @@ ul[id="shortcuts"] {
   cursor: pointer;
   border-radius:0;
 }
+.gnss-bars-content ul li.gnss-bars-link.disabled{
+  opacity:0.7;
+  cursor: pointer;
+  pointer-events:none;
+}
 .gnss-bars-content ul li.gnss-bars-link:hover {
   background: #777;
 }
@@ -111,12 +116,12 @@ ul[id="shortcuts"] {
 }
 .gnss-bars-content:hover {
   display:block;
-} **/
+} 
 .gnss-hr hr {
   margin:0;
   color:#919187;
   margin-top:5px;
-}
+}*/
 #page {
   width:100%;
   height: auto;
@@ -255,41 +260,10 @@ div.gnss-shortcut:hover
  {
   background:#7b080e;
 }
-.gnss-hr hr {
+/*.gnss-hr hr {
   margin:0;
   color:#919187;
   margin-top:5px;
-}
-div.form {
-  position: absolute;
-  transform: translateX(353px);
- 
-  width: 400px;
-  z-index: 1001;
-  right: 0px;
-  top: 55px;
-  background-clip: padding-box;
-  transition: transform 330ms ease-in-out;
-  font-size: 0.8rem;
-  box-sizing: border-box;
+}*/
 
-  z-index:2;
- 
-}
-div.form > div:nth-child(1) {
-     float:right;
-     background: white;
-     display:inline-block;
-     width:350px;
-     margin:0;
-     border-radius: 0 0 0 5px;
-    padding: 10px;
-     box-shadow: 0 0 5px rgba(0,0,0,0.5);
-      max-height: calc(100vh - 50px);
-       overflow-y: scroll;
-}
-div.form.expand {
-  transform: translateX(0px);
-  transition: transform 330ms ease-in-out;
-}
 </style>
