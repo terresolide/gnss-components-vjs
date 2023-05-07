@@ -278,12 +278,12 @@ export default {
       this.drawLayers.clearLayers()
       if (query.center && query.radius) {
         var point = query.center.split(',')
-        var circle = L.circle([point[1],point[0]], query.radius * 1000, {color: 'red', weight: 1})
+        var circle = L.circle([point[1],point[0]], query.radius * 1000, {color: 'red', weight: 1, fillOpacity:0.1})
         this.drawLayers.addLayer(circle)
       } else if (query.bbox) {
         var tab = query.bbox.match(/\-{0,1}\d+(?:\.\d+)?/g).map(Number)
         if (tab.length == 4) {
-          var rectangle = L.rectangle([[tab[1], tab[0]], [tab[3], tab[2]]], {color: 'red', weight: 1})
+          var rectangle = L.rectangle([[tab[1], tab[0]], [tab[3], tab[2]]], {color: 'red', weight: 1, fillOpacity:0.1})
           this.drawLayers.addLayer(rectangle)
         } else {
           // remove query bbox?
@@ -304,14 +304,16 @@ export default {
             rectangle: {
               shapeOptions: {
                 color: '#ff0000',
-                weight: 1
+                weight: 1,
+                fillOpacity:0.2
               }
             },
             circlemarker: false,
             circle: {
               shapeOptions: {
                 color: '#ff0000',
-                weight: 1
+                weight: 1,
+                fillOpacity:0.2
               }
             },
             marker: false,
@@ -344,6 +346,12 @@ export default {
    
         
         })
+//         this.map.on(L.Draw.Event.EDITSTART, function (e) {
+//           console.log(e)
+//          self.drawLayers.eachLayer(function (layer) {
+//            layer.setStyle({fillOpacity: 0.1})
+//          })
+//         })
       
         this.map.on(L.Draw.Event.EDITED, function (e) {
           let bounds

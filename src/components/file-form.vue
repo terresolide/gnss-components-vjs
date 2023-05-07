@@ -146,7 +146,7 @@ export default {
       this.length.points.push(i)
     }
     this.length.marks = []
-    for (var i=0; i < this.length.max + 1; i=i+25) {
+    for (var i=0; i < this.length.max + 1; i=i+10) {
       this.length.marks.push(i)
     }
     this.initSearchParams(this.$route.query)
@@ -163,13 +163,13 @@ export default {
         marks: [0, 25, 50, 75, 100]
       },
       length: {
-        values: [0, 50],
+        values: [0, 30],
         dotoptions: [{
           disabled: false
         }, {
           disabled: false
         }],
-        max: 50,
+        max: 30,
         points: [],
         marks: []
       },
@@ -209,10 +209,11 @@ export default {
         this.searchparams.lenMax = null
       }
       this.searchparams.network = this.searchparams.network.filter(nt => self.networks.indexOf(nt) >= 0)
+      this.$store.commit('setReset', true)
       this.changeQuery(this.searchparams)
     },
     initSearchParams (query) {
-      this.length.values = [0, 50]
+      this.length.values = [0, this.length.max]
       this.fillrate.values = [0, 100]
       for (var key in query) {
         if (key === 'network') {
