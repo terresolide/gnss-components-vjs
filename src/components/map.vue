@@ -197,7 +197,6 @@ export default {
     }
   },
   mounted () {
-    console.log('mount map')
     this.initialize()
   },
   methods: {
@@ -289,7 +288,6 @@ export default {
           // remove query bbox?
         }
       }
-      console.log('first dans trq ', first)
       this.load(0, first)
     },
    
@@ -358,7 +356,6 @@ export default {
           self.$store.commit('setDraw', true)
           e.layers.eachLayer(function (layer) {
             if (layer instanceof L.Circle) {
-              console.log(e)
               var center = layer.getLatLng()
               var radius = layer.getRadius()
               self.changeQuery({center: center.lng + ',' + center.lat, radius: Math.round(radius)/1000})
@@ -381,7 +378,6 @@ export default {
         })
     },
     initialize () {
-      console.log('initialize')
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
       this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
@@ -457,7 +453,6 @@ export default {
     },
 
     load (i, first) {
-      console.log('first dans load', first)
       if (!this.api) {
         alert('Service unvailable!')
       }
@@ -504,7 +499,7 @@ export default {
     
      
       if (data.stations.length === this.maxRecords ) {
-         this.load(index + 1, false)
+         this.load(index + 1, init)
          return
       }
       // next step
@@ -557,7 +552,6 @@ export default {
         this.$store.commit('setDraw', false)
       }
       if (this.bounds && this.bounds.isValid()) {
-          console.log('fit bounds')
           this.map.fitBounds(this.bounds)
       }
       
@@ -607,7 +601,6 @@ export default {
       //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
         this.groups.push(groupId)
         this.groupLayers[groupId].addTo(this.map)
-        console.log('add layer ' + groupId)
         // this.layerControl.addOverlay(this.groupLayers[groupId],  groupId +' <div class="marker-' + className + '"></div>' )
       } else {
         this.groupLayers[groupId].addLayer(layer)
