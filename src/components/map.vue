@@ -82,7 +82,9 @@ var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
 L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
+import {MarkerClusterGroup} from 'leaflet.markercluster'
 delete Icon.Default.prototype._getIconUrl;
+console.log(L.MarkerCluster)
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
   iconUrl: require('leaflet/dist/images/marker-icon.png').default,
@@ -172,6 +174,7 @@ export default {
 //      dataJsonUrl: null,
       show: false,
       maxRecords: 100,
+      markers: {},
       popup: null,
       groups: [],
       groupLayers: [],
@@ -470,14 +473,20 @@ export default {
     display (data, index, init) {
       var self = this
       if (index === 0) {
-        for (var key in this.groupLayers) {
-          if (this.groupLayers[key]) {
-	          this.groupLayers[key].clearLayers()
-	          this.groupLayers[key].remove(this.map)
-	          this.layerControl.removeLayer(this.groupLayers[key])
-	          this.groupLayers[key] = null
-          }
-        }
+           for (var country in this.markers) {
+             this.markers[country].clearLayers()
+             this.markers[country].remove(this.map)
+             this.markers[country] = null
+           }
+           this.markers = {}
+//         for (var key in this.groupLayers) {
+//           if (this.groupLayers[key]) {
+// 	          this.groupLayers[key].clearLayers()
+// 	          this.groupLayers[key].remove(this.map)
+// 	          this.layerControl.removeLayer(this.groupLayers[key])
+// 	          this.groupLayers[key] = null
+//           }
+//        }
         this.groupLayers = []
         this.stations = []
         this.groups = []
@@ -506,13 +515,13 @@ export default {
       // add layer to control
       this.groups.sort()
       var first = 'STATION STATUS'
-      this.groups.forEach(function (group) {
-        self.groupLayers[group].first = first ? {title:first,separator:true}:false
-        first = false
-        var className = self.getClassname(group)
+//       this.groups.forEach(function (group) {
+//         self.groupLayers[group].first = first ? {title:first,separator:true}:false
+//         first = false
+//         var className = self.getClassname(group)
        
-        self.layerControl.addOverlay(self.groupLayers[group],  group +' <div class="marker-' + className + '"></div>' )
-      })
+//         self.layerControl.addOverlay(self.groupLayers[group],  group +' <div class="marker-' + className + '"></div>' )
+//       })
 
 //       if (!init) {
 //         this.closePopup()
@@ -577,9 +586,12 @@ export default {
     },
     addStation(feature) {
       this.stations.push(feature)
+      var country = feature.properties.name.substring(6,9)
+      if (country === 'CHE') {
+        country = 'FRA'
+      }
       var groupId = this.getStatus(feature)
-      var spanclass = (feature.properties.name.indexOf('FRA') > 0 || feature.properties.name.indexOf('CHE') > 0) ? 'fra':'ext'
-      var html = '<span class="'+ spanclass + '">' + feature.properties.images.length + '</span>'
+      var html = '<span></span>'
       var className = this.getClassname(feature.properties.status)
       var icon = L.divIcon({
         className: 'icon-marker marker-' + className, 
@@ -595,16 +607,22 @@ export default {
            return marker
         }
       })
-       if (!this.groupLayers[groupId]) {
-        this.groupLayers[groupId] = L.layerGroup([layer])
-   //     this.stationLayers.addLayer(this.groupLayers[groupId])
-      //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
-        this.groups.push(groupId)
-        this.groupLayers[groupId].addTo(this.map)
-        // this.layerControl.addOverlay(this.groupLayers[groupId],  groupId +' <div class="marker-' + className + '"></div>' )
-      } else {
-        this.groupLayers[groupId].addLayer(layer)
+      if (!this.markers[country]) {
+        this.markers[country] = L.markerClusterGroup({weight:1, color: '#000055', opacity:0.1, animateAddingMarkers:true})
+        this.markers[country].addTo(this.map)
       }
+      this.markers[country].addLayer(layer)
+      
+//        if (!this.groupLayers[groupId]) {
+//         this.groupLayers[groupId] = L.layerGroup([layer])
+//    //     this.stationLayers.addLayer(this.groupLayers[groupId])
+//       //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
+//         this.groups.push(groupId)
+//         this.groupLayers[groupId].addTo(this.map)
+//         // this.layerControl.addOverlay(this.groupLayers[groupId],  groupId +' <div class="marker-' + className + '"></div>' )
+//       } else {
+//         this.groupLayers[groupId].addLayer(layer)
+//       }
       this.stations[this.stations.length - 1].layer = layer
       var bounds = layer.getBounds()
       if (!this.bounds) {
@@ -690,6 +708,7 @@ export default {
     /* global styles */
 </style> 
 <style src="leaflet-draw/dist/leaflet.draw.css"></style>
+<style src="leaflet.markercluster/dist/MarkerCluster.Default.css"></style>
 <!--  <style src='../assets/css/leaflet.divicon.arrow.css'></style>-->
 
 <style>
