@@ -11,7 +11,7 @@ export default function makeStore( config ) {
     codelists: {},
     search: true,
     reseting: false,
-    boundsChanged: false,
+   // boundsChanged: false,
     drawing: false
   }
   var finalConfig = Object.assign(defaultConfig, config)
@@ -38,9 +38,9 @@ export default function makeStore( config ) {
       setSearching(state, value) {
         state.search = value
       },
-      changeBounds(state, value) {
-        state.boundsChanged = value
-      }
+//      changeBounds(state, value) {
+//        state.boundsChanged = value
+//      }
     },
     getters: {
       api (state, getters) {

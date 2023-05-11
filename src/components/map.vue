@@ -88,7 +88,6 @@ L.TilesControl = require('../modules/leaflet.tiles.js')
 import {MarkerClusterGroup} from 'leaflet.markercluster'
 L.Control.Legend = require('../modules/leaflet.legend.js')
 delete Icon.Default.prototype._getIconUrl;
-console.log(L.MarkerCluster)
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
   iconUrl: require('leaflet/dist/images/marker-icon.png').default,
@@ -144,10 +143,13 @@ export default {
   },
   watch: {
     $route (newroute, oldroute) {
-      if (newroute.name === oldroute.name && !this.$store.state.drawing && !this.$store.state.reseting &&
-          ((newroute.query.selected !== oldroute.query.selected)
-              || this.$store.state.boundsChanged)) {
-        if (this.selected && parseInt(newroute.query.selected) !== this.selected.id) {
+        if (!this.routeChanged(oldroute, newroute)) {
+          console.log('route change')
+          console.log(oldroute.query.bounds !== newroute.query.bounds)
+//        if (newroute.name === oldroute.name && !this.$store.state.drawing && !this.$store.state.reseting &&
+//           ((parseInt(newroute.query.selected) !== parseInt(oldroute.query.selected))
+//               || this.$store.state.boundsChanged)) {
+        if (parseInt(newroute.query.selected) !== parseInt(oldroute.query.selected)) {
           // open popup
           if (!newroute.query.selected) {
             this.closePopup()
@@ -157,13 +159,24 @@ export default {
 		           this.openPopup(station)
 		        }
           }
+         
         }
-        this.$store.commit('changeBounds', false)
+        if (oldroute.query.bounds !== newroute.query.bounds ) {
+          var tab = newroute.query.bounds.split(',')
+          if (tab.length === 4) {
+            this.bounds = L.latLngBounds(
+              L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
+              L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
+            )
+            this.map.fitBounds(this.bounds)
+           }
+        }
+        // this.$store.commit('changeBounds', false)
         return
       }
       this.treatmentQuery(newroute.query)
       this.$store.commit('setReset', false)
-      this.$store.commit('changeBounds', false)
+     // this.$store.commit('changeBounds', false)
     }
   },
   data () {
@@ -193,6 +206,7 @@ export default {
       drawControl: null,
       drawLayers: null,
       init: false,
+      wait: false
     }
   },
   created () {
@@ -227,7 +241,37 @@ export default {
       }
       return query
     },
-   
+    routeChanged(oldroute, newroute) {
+      if (oldroute.name !== newroute.name) {
+        return true
+      }
+      if (this.$store.state.reseting) {
+        return true
+      }
+      var oldquery = Object.assign({}, oldroute.query)
+      var newquery = Object.assign({}, newroute.query)
+      var exclud = ['bounds', 'selected', 'nodraw', 'expand']
+      for (var key in exclud) {
+        delete oldquery[exclud[key]]
+        delete newquery[exclud[key]]
+      }
+      var aKeys = Object.keys(oldquery).sort();
+      var bKeys = Object.keys(newquery).sort();
+      console.log(aKeys)
+      console.log(bKeys)
+      if (JSON.stringify(aKeys) != JSON.stringify(bKeys)) {
+        
+        console.log('is different')
+        return true
+      }
+      // compare route key by key
+      for (var key in aKeys) {
+        if (!newquery[aKeys[key]] || newquery[aKeys[key]] !== oldquery[aKeys[key]]) {
+          return true
+        }
+      }
+      return false
+    },
     getUrl () {
       var queryString = new URLSearchParams(this.getQuery()).toString();
 
@@ -383,6 +427,24 @@ export default {
      
         })
     },
+    animationEnd () {
+      if (this.init || this.wait) {
+        this.init = false
+        return
+      }
+      
+      var bbox = this.map.getBounds().toBBoxString()
+      var query = Object.assign({}, this.$route.query)
+      query.bounds = bbox
+      // this.$store.commit('changeBounds', true)
+      var self = this
+      // self.$store.commit('setReset', true)
+       setTimeout(function (e) {
+        self.wait = false
+      }, 2000)
+      this.$router.push({name: 'home', query: query}).catch(()=>{})
+     
+    },
     initialize () {
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
       this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
@@ -408,14 +470,15 @@ export default {
 // //           }
 //         }
 //       })
+       this.map.on('popupclose', function (e) {
+         self.selected = null
+         var query = Object.assign({}, self.$route.query) 
+         delete query['selected']
+         self.$router.push({name: 'home', query: query}).catch(()=>{})
+       })
 	     this.map.on('zoomend moveend', function (e) {
-	       if (e.type === 'zoomend') {
-	         if (self.map.getZoom() < 6) {
-	           self.map._container.classList.add('fullmap')
-	         } else {
-	           self.map._container.classList.remove('fullmap')
-	         }
-	       }
+	        self.animationEnd()
+	        return
 	        if (this.init) {
 	          this.init = false
 	          return
@@ -424,9 +487,12 @@ export default {
 	        var bbox = self.map.getBounds().toBBoxString()
 	        var query = Object.assign({}, self.$route.query)
 	        query.bounds = bbox
-	        self.$store.commit('changeBounds', true)
+	       // self.$store.commit('changeBounds', true)
 	        // self.$store.commit('setReset', true)
 	        self.$router.push({name: 'home', query: query}).catch(()=>{})
+	     })
+	     this.map.on('autopanstart', function (e) {
+	       self.wait = true
 	     })
       var node = document.querySelector('#json')
       this.popup.setContent(node)
@@ -438,10 +504,10 @@ export default {
     },
     closePopup() {
       this.map.closePopup()
-      this.selected = null
-      var query = Object.assign({}, this.$route.query) 
-      delete query['selected']
-      this.$router.push({name: 'home', query: query}).catch(()=>{})
+//       this.selected = null
+//       var query = Object.assign({}, this.$route.query) 
+//       delete query['selected']
+//       this.$router.push({name: 'home', query: query}).catch(()=>{})
     },
 
     goToStation (e) {
@@ -482,6 +548,7 @@ export default {
       var self = this
       if (index === 0) {
            for (var region in this.markers) {
+             this.markers[region].off()
              this.markers[region].clearLayers()
              this.markers[region].remove(this.map)
              this.markers[region] = null
@@ -526,8 +593,8 @@ export default {
       this.$store.commit('setSearching', false)
       // next step
       // add layer to control
-      this.groups.sort()
-      var first = 'STATION STATUS'
+     // this.groups.sort()
+    //  var first = 'STATION STATUS'
 //       this.groups.forEach(function (group) {
 //         self.groupLayers[group].first = first ? {title:first,separator:true}:false
 //         first = false
@@ -545,9 +612,9 @@ export default {
            this.openPopup(station)
         }
       }
-      if (init && this.$route.query.expand) {
-        this.toggleForm()
-      }
+//       if (init && this.$route.query.expand) {
+//         this.toggleForm()
+//       }
       if (init && this.$route.query.nodraw) {
         this.drawLayers.remove()
       }
@@ -670,6 +737,10 @@ export default {
       })
       if (!this.markers[region]) {
         this.markers[region] = L.markerClusterGroup({polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1}, animateAddingMarkers:true})
+        this.markers[region].on('animationend', function () {
+          console.log('end dans region')
+          self.animationEnd()
+        })
         if (region !== 'W_EU') {
           this.markers[region].addTo(this.map)
         }
@@ -725,8 +796,16 @@ export default {
 	      this.mode = 'image'
 	      var coord = station.geometry.coordinates
 	      this.show = true
+	      var self = this
+	     
 	      this.popup.setLatLng([coord[1], coord[0]])
+	      this.wait = true
 	      this.popup.openOn(this.map)
+	       
+        //wait before movend and other
+        setTimeout(function () {
+          self.wait = false
+        }, 1000)
     },
     getData (e) {
       var query = Object.assign({}, this.$route.query)

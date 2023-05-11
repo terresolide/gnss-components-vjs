@@ -149,7 +149,10 @@ export default {
     for (var i=0; i < this.length.max + 1; i=i+10) {
       this.length.marks.push(i)
     }
-    this.initSearchParams(this.$route.query)
+   
+  },
+  mounted () {
+    this.initSearchParams(this.$route.query, true)
   },
   data () {
     return  {
@@ -212,9 +215,11 @@ export default {
       this.$store.commit('setReset', true)
       this.changeQuery(this.searchparams)
     },
-    initSearchParams (query) {
+    initSearchParams (query, init) {
       this.length.values = [0, this.length.max]
       this.fillrate.values = [0, 100]
+      console.log(query.expand)
+      
       for (var key in query) {
         if (key === 'network') {
           this.searchparams.network = query['network'].split(',')
@@ -240,7 +245,10 @@ export default {
           }
         }
       }
-
+      if (init && query.expand) {
+        this.toggleForm()
+        delete query.expand
+      }
     },
     changeQuery (params) {
       var newquery = Object.assign({}, this.$route.query)

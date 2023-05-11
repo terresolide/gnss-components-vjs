@@ -19,16 +19,14 @@ export default {
   },
   created () {
     this.searchCodeLists()
-    var self = this
-    window.addEventListener('resize', function (e) {
-      console.log(e)
-      console.log(self.$route)
-    })
+   
+    
   },
   mounted () {
     let bokeh = document.createElement('script')
     bokeh.setAttribute('src', 'https://cdn.pydata.org/bokeh/release/bokeh-2.4.3.min.js')
     document.head.appendChild(bokeh)
+   
   },
   methods: {
     searchCodeLists () {
