@@ -1,8 +1,9 @@
 <template>
 <div class="page-station" style="width:100%;position:relative;overflow:hidden;">
-  <gnss-menu :top="55"></gnss-menu>
+  
  
   <file-form mode="station" ></file-form>
+  <gnss-menu :top="55"></gnss-menu>
     
  <div class="station-content" >
 	 <div class="station-header">
@@ -33,10 +34,10 @@
        
 	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
-	       <div v-if="station.properties.height"><label>Height:</label>{{station.properties.height.toLocaleString()}} m</div>
+	       <div v-if="location.properties.elevation"><label>Height:</label>{{location.properties.elevation.toLocaleString()}} m</div>
 
       <h3 style="margin-left:-10px;">Informations</h3>
-       <div v-if="station.properties.m3g"><label>M3g:</label>  <a :href="station.properties.m3g" target="_blank">sitelog</a></div>
+       <div v-if="station.properties.m3g"><label>M3g:</label>  <a :href="m3gUrl+ 'sitelog/view?id=' + stationName.toUpperCase()" target="_blank">sitelog</a></div>
        <div><label>Domes:</label> {{station.properties.domes}}</div>
  
  
@@ -72,16 +73,40 @@
    <div style="clear:left;"> 
    </div>
    
-   <div v-if="files.length > 0"style="padding-top:10px;position:relative;">
+   <div v-if="Object.keys(files).length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
      <span class="close button" @click="unselect"><font-awesome-icon icon="fa-solid fa-close" /></span>
      <h3> {{selected.station}} {{selected.solution }} {{selected.productType}}</h3>
-     <div v-html="plot.div" >STATION INCONNUE</div>
+     <div v-if="plot.div" v-html="plot.div">STATION INCONNUE</div>
+     <div v-else style="text-align:center;margin-top:45%;font-size:50px;">
+        <font-awesome-icon icon="fa-sharp fa-spinner" spin></font-awesome-icon>
+     </div>
    </div>
  
    <h3>Data</h3>
-     <div style="margin-left:10px;">
-		   <div  v-for="file in files" class="file-container" >
+     <div style="margin-left:10px;"><label>Product type</label> 
+     <select v-model="productType" class="gnss-control" style="max-width:160px;">
+       <option v-for="group, key in files" :value="key">{{key}}</option>
+     </select></div>
+     <div class="slider" :style="{width: nbFiles * slideWidth + 'px'}">
+         <div style="text-align:center;" v-if="nbFiles < files[productType].length">
+           <span v-for="file, index in files[productType]" style="padding: 0 3px;">
+              <span v-if="index >= curFile && index < curFile + nbFiles">
+               <font-awesome-icon :icon="['fas', 'circle']" />
+              </span>
+              <span v-else>
+                <font-awesome-icon :icon="['far', 'circle']" />
+              </span>
+           </span>
+         </div>
+       <div v-if="nbFiles < files[productType].length" class="btn-navigation" :class="{disabled: curFile === 0}" @click="curFile = curFile - 1" >
+           <font-awesome-icon :icon="['fas', 'circle-chevron-left']" />
+       </div>
+        <div v-if="nbFiles < files[productType].length" class="btn-navigation"  :class="{disabled: curFile + nbFiles >= files[productType].length}" 
+        style="right:0;" @click="curFile = curFile + 1">
+           <font-awesome-icon :icon="['fas', 'circle-chevron-right']" />
+       </div>
+		   <div  v-for="file, index in files[productType]" class="file-container" :style="{transform: 'translateX(' + ((index - curFile) * slideWidth ) + 'px)'}" >
 		     <div style="">
 		       <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
 		         -->
@@ -92,19 +117,20 @@
 		         <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
 		        </div>
 		       <div><label>Name</label>{{file.name}}</div>
-		       <div style="font-size:0.8rem;">
+		       <div style="font-size:0.8rem;height:160px;">
 		        
 		        <div><label>ProductType</label>{{file.productType}}</div>
 		        <div><label>Phenomenon Time</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
 		        <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
 		        <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate'">
-		        <label>{{key}}</label> {{value}}
+		          <label>{{key}}</label> {{value}}
 		        </div>
 		     </div>
-		     <div><img :src="file.properties.img" style="max-width:500px;" @click="getSerie(file)" /></div>
+		     <div style="text-align:center;"><img :src="file.properties.img"  title="Click to show interactive graph" @click="getSerie(file)" /></div>
 		     </div>
 		   </div>
-	   </div>
+		   </div>
+
    </div>
    
    
@@ -136,6 +162,7 @@ export default {
   data () {
     return {
       sari: 'https://alvarosg.shinyapps.io/sari/',
+      m3gUrl: 'https://gnss-metadata.eu/v1/' ,
       plot: {div: null, script: null},
       script: null,
       stationId: null,
@@ -146,10 +173,14 @@ export default {
       stationLayer: null,
       neighboursLayer: null,
       radiusChanged:true,
-  //    resizeListener: null,
       radius: 100,
       searchRadius: 100,
       files: [],
+      productType: 'POSITION',
+      translateX: 0,
+      curFile: 0,
+      nbFiles: 3,
+      slideWidth: 455,
       selected: null,
       onMap: false,
       map: null,
@@ -158,7 +189,8 @@ export default {
       show: {
         filter: false,
         nearest: false
-      }
+      },
+      resizeListener: null
     }
   },
   computed: {
@@ -173,6 +205,7 @@ export default {
       if (route.params.id) {
         this.stationId = route.params.id
       } 
+      this.curFile = 0
       this.getStation()
       this.$store.commit('setReset', false)
     }
@@ -188,8 +221,10 @@ export default {
     } else {
       this.stationId = null
     }
-//     this.resizeListener = this.resize.bind(this)
-//     window.addEventListener('resize', this.resizeListener)
+    // test get sitelog
+   
+    this.resizeListener = this.countNbFiles.bind(this)
+    window.addEventListener('resize', this.resizeListener)
     this.getStation()
   },
   destroyed () {
@@ -201,7 +236,13 @@ export default {
       this.map.remove()
       this.map = null
     }
-//    window.removeEventListener('resize', this.resizeListener)
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener)
+      this.resizeListener = null
+    }
+  },
+  mounted () {
+    this.countNbFiles()
   },
   methods: {
 //     resize (e) {
@@ -211,6 +252,17 @@ export default {
 
 //       return false
 //     },
+    countNbFiles () {
+      var width = 1380
+      this.curFile = 0
+      if (this.$el && this.$el.querySelector && this.$el.querySelector('.station-body')) {
+        width = this.$el.querySelector('.station-body').offsetWidth
+      }
+      this.nbFiles = parseInt(width / this.slideWidth)
+      if (this.nbFiles === 0) {
+        this.nbFiles = 1
+      }
+    },
     initStation () {
       this.station = null
       this.stations = null
@@ -289,6 +341,8 @@ export default {
     },
     getSerie (file) {
       this.selected = file
+      this.plot.div = null
+      this.plot.script = null
       if (this.script) {
         this.script.remove()
         this.script = null
@@ -298,12 +352,20 @@ export default {
         this.plot.div = resp.body.div
         this.plot.script = resp.body.script
         this.script = document.createElement('script')
+        
         this.script.append(this.plot.script)
         this.$el.appendChild(this.script)
       })
     },
     unselect () {
       this.selected = null
+      
+    },
+    getInfo () {
+      if (this.station.properties.m3g) {
+        this.$http.get(this.api + 'stations/' + this.stationName + '/sitelog')
+        .then(resp => {console.log(resp.body)})
+      }
     },
     getStation () {
         this.initNeighboursLayer()
@@ -320,6 +382,7 @@ export default {
 	            this.stationId = this.station.id
 	            this.location = this.station.location
 	            this.getFiles()
+	            // this.getInfo()
 	            this.$nextTick(() => this.initMap())
             } else {
               this.setNoStation()
@@ -333,10 +396,18 @@ export default {
         })
     },
     getFiles() {
-      this.files = []
+      this.files = {}
       this.$http.get(this.api + 'stations/' + this.stationId + '/files', {params: this.$route.query})
       .then(resp => {
-        this.files = resp.body.files
+        var files = resp.body.files
+        var self = this
+        files.forEach(function (file) {
+          if (!self.files[file.productType]) {
+            self.files[file.productType] = []
+          }
+          self.files[file.productType].push(file)
+        })
+        console.log(this.files)
       })
     },
     goToStation (station) {
@@ -466,24 +537,37 @@ div[id="stationMap"] {
      border:1px solid lightgrey;
      border-radius:10px;
      padding:10px;
+     left:calc(50% - 400px);
      min-width:800px;
      min-height:800px;
      width:fit-content;
      height:fit-content;
-     z-index: 1;
+     z-index: 5;
+     top:-100px;
      box-shadow: 0 0 3px rgba(0,0,0,.5);
   }
+  div.slider {
+  position:relative;
+  min-height: 660px;
+  margin-left:0px;
+  margin-top:5px;
+  max-width:100%;
+  overflow-x:hidden;
+  overflow-y: visible;
+  }
   div.file-container {
-    position:relative;
+    position:absolute;
     margin:5px;
     padding:10px;
     border: 1px solid grey;
     border-radius:10px;
-    max-width:550px;
-    min-width:500px;
+    width:445px;
+    max-width:450px;
+    min-height:630px;
     vertical-align:top;
-    display:inline-block;
+    display:block;
     cursor:pointer;
+    transition: all 0.5s;
   }
   div.file-container div.product-link {
     position: absolute;
@@ -491,9 +575,32 @@ div[id="stationMap"] {
     top:5px;
     
   }
+  div.btn-navigation {
+    position:absolute; 
+    top:45%;
+    z-index:4;
+    font-size:30px;
+    opacity:0.8;
+    cursor:pointer;
+  }
+  div.btn-navigation.disabled {
+    opacity:0.5;
+    pointer-events:none;
+  }
+  div.btn-navigation:hover {
+    opacity:1;
+  }
+  div.file-container img {
+    max-width:96%;
+  }
+  div.file-container img:hover {
+    max-width:98%;
+    border: 1px solid lightgrey;
+    border-radius:10px;
+  }
   label{
     display: inline-block;
-    min-width:130px;
+    min-width:138px;
     text-transform: capitalize;
   }
   div.station-header {

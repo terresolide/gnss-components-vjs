@@ -9,6 +9,7 @@ export default function makeStore( config ) {
     query: {name: 'home', query: {}},
     queryList: {},
     codelists: {},
+    search: true,
     reseting: false,
     boundsChanged: false,
     drawing: false
@@ -34,6 +35,9 @@ export default function makeStore( config ) {
       setDraw(state, value) {
         state.drawing = value
       },
+      setSearching(state, value) {
+        state.search = value
+      },
       changeBounds(state, value) {
         state.boundsChanged = value
       }
@@ -47,6 +51,9 @@ export default function makeStore( config ) {
           return state.codelists.networks
         }
         return null
+      },
+      search (state, getters) {
+        return state.search
       },
       productors (state, getters) {
          if (state.codelists.productors) {

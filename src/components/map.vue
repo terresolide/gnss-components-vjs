@@ -1,7 +1,10 @@
 <template>
   <div style="position:relative;overflow:hidden;" >
-   
-    
+   <div v-if="searching" style="position:absolute; z-index:1;font-size:50px;top:calc(50% - 50px);left:calc(50% - 50px);text-shadow: 2px 2px 2px #040201;">
+
+    <font-awesome-icon icon="fa-sharp fa-spinner" spin></font-awesome-icon>
+
+   </div> 
      <file-form mode="map" ></file-form>
     
     <gnss-menu mode="map"></gnss-menu>
@@ -81,8 +84,9 @@ import moment from 'moment'
 var L = require('leaflet')
 import { Icon } from 'leaflet';
 L.TilesControl = require('../modules/leaflet.tiles.js')
-L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
+// L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
 import {MarkerClusterGroup} from 'leaflet.markercluster'
+L.Control.Legend = require('../modules/leaflet.legend.js')
 delete Icon.Default.prototype._getIconUrl;
 console.log(L.MarkerCluster)
 Icon.Default.mergeOptions({
@@ -133,6 +137,9 @@ export default {
     },
     defaultRequest() {
       return this.$store.getters['request']
+    },
+    searching () {
+      return this.$store.getters['search']
     }
   },
   watch: {
@@ -173,7 +180,7 @@ export default {
       selected: null,
 //      dataJsonUrl: null,
       show: false,
-      maxRecords: 100,
+      maxRecords: 200,
       markers: {},
       popup: null,
       groups: [],
@@ -271,10 +278,6 @@ export default {
         }
       }
       this.$router.push({name: 'home', query: newquery}).catch(()=>{})
-    },
-    toggleForm () {
-      var elt = document.querySelector('.form')
-      elt.classList.toggle('expand')
     },
     treatmentQuery (query, first) {
       this.drawLayers.clearLayers()
@@ -385,6 +388,8 @@ export default {
       this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
+      var legend = new L.Control.Legend()
+      legend.addTo(this.map)
 //       var control = new L.Control.Form()
 //       control.addTo(this.map)
       this.popup = L.popup({autoPan:true, minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
@@ -464,6 +469,9 @@ export default {
       params = Object.assign(params, this.$route.query)
       params['page'] = i + 1
       params['maxRecords'] = this.maxRecords
+      if (i === 0) {
+        this.$store.commit('setSearching', true)
+      }
       this.$http.get(url, {params: params})
       .then(
           resp => {this.display(resp.body, i, first)},
@@ -473,10 +481,10 @@ export default {
     display (data, index, init) {
       var self = this
       if (index === 0) {
-           for (var country in this.markers) {
-             this.markers[country].clearLayers()
-             this.markers[country].remove(this.map)
-             this.markers[country] = null
+           for (var region in this.markers) {
+             this.markers[region].clearLayers()
+             this.markers[region].remove(this.map)
+             this.markers[region] = null
            }
            this.markers = {}
 //         for (var key in this.groupLayers) {
@@ -501,8 +509,9 @@ export default {
           value.properties.name= value.name,
           value.properties.description= value.description
           value.properties.images = value.images
+          value.properties.yearOld = value.yearOld ? value.yearOld : 2
           feature.properties = value.properties
-          
+
 	        self.addStation(feature)
       })
     
@@ -511,6 +520,10 @@ export default {
          this.load(index + 1, init)
          return
       }
+      if (this.markers['W_EU']) {
+        this.markers['W_EU'].addTo(this.map)
+      }
+      this.$store.commit('setSearching', false)
       // next step
       // add layer to control
       this.groups.sort()
@@ -565,15 +578,14 @@ export default {
       }
       
     },
-    getClassname (status) {
-      switch (status) {
-        case 'PERMANENT':
-          return 'red'
-        case 'MOBILE':
-          return 'orange'
-        default:
-          return 'blue'
+    getClassname (year) {
+      if (year < 1) {
+        return 'red'
       }
+      if (year < 5) {
+        return 'orange'
+      }
+      return 'blue'
     },
     getStatus (feature) {
       switch (feature.properties.status){
@@ -584,15 +596,64 @@ export default {
           return 'Unknown'
       }
     },
+    getRegion(feature) {
+      switch (feature.properties.name) {
+        case 'COCO00AUS':
+        case 'MAC100AUS':
+        case 'MAS100ESP':
+        case 'ISPA00CHL':
+        case 'YELL00CAN':
+          return feature.properties.name
+        case 'KOKB00USA':
+        case 'MAUI00USA':
+        case 'MKEA00USA':
+          return 'HAWAI'
+        case 'OHI100ATA':
+        case 'OHI200ATA':
+        case 'OHI300ATA':
+          return 'OHIATA'
+        case 'SPTG00ATF':
+          return 'SPTG00ATF'
+        case 'BREW00USA':
+          return 'CAN'
+        
+      }
+      var country = feature.properties.name.substring(6,9)
+      switch (country) {
+// 	      case 'USA':
+// 	      case 'CAN':
+// 	        return feature.properties.name;
+	      case 'FRA':
+	      case 'CHE':
+	      case 'BEL':
+	        return 'W_EU'
+	      case 'NOR':
+	      case 'SWE':
+	        return 'N_EU'
+	      case 'PRT':
+	      case 'ESP':
+	        return 'S_EU'
+	      case 'PER':
+	      case 'BRA':
+	      case 'ARG':
+	      case 'CHL':
+	        return 'S_AM'
+	      case 'ATA':
+	        return feature.properties.name
+        default:
+          return country
+      }
+    },
     addStation(feature) {
       this.stations.push(feature)
-      var country = feature.properties.name.substring(6,9)
-      if (country === 'CHE') {
-        country = 'FRA'
-      }
+      
+//       if (country === 'CHE') {
+//         country = 'FRA'
+//       }
+      var region = this.getRegion(feature)
       var groupId = this.getStatus(feature)
       var html = '<span></span>'
-      var className = this.getClassname(feature.properties.status)
+      var className = this.getClassname(feature.properties.yearOld)
       var icon = L.divIcon({
         className: 'icon-marker marker-' + className, 
         iconSize: [15,15],
@@ -607,11 +668,13 @@ export default {
            return marker
         }
       })
-      if (!this.markers[country]) {
-        this.markers[country] = L.markerClusterGroup({weight:1, color: '#000055', opacity:0.1, animateAddingMarkers:true})
-        this.markers[country].addTo(this.map)
+      if (!this.markers[region]) {
+        this.markers[region] = L.markerClusterGroup({polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1}, animateAddingMarkers:true})
+        if (region !== 'W_EU') {
+          this.markers[region].addTo(this.map)
+        }
       }
-      this.markers[country].addLayer(layer)
+      this.markers[region].addLayer(layer)
       
 //        if (!this.groupLayers[groupId]) {
 //         this.groupLayers[groupId] = L.layerGroup([layer])
@@ -741,6 +804,35 @@ transform: translate3d(255px, -215px, 0px);
 z-index: -215;
 outline: none;
 }
+div[id="map"] a.icon-palette:before {
+  content:"\E802";
+  font-size:16px;
+  font-family: "fontello";
+}
+div[id="map"] div.lfh-control-legend {
+  background: white;
+}
+div[id="map"] div.lfh-control-legend:hover {
+   height:auto;
+   background: white;
+   width:auto;
+}
+div[id="map"] div.lfh-control-legend:hover  a {
+  display:none;
+}
+
+div[id="map"] div.lfh-control-legend  > div{
+  display:none;
+  width:auto;
+  padding:5px;
+  background:white;
+}
+div.leaflet-draw-section > .leaflet-draw-toolbar.leaflet-bar {
+  margin-top:2px;
+}
+div[id="map"] div.lfh-control-legend:hover > div {
+  display:block;
+}
 div[id="map"] a.leaflet-draw-draw-circle:before {
   content:"\2B24";
 }
@@ -852,6 +944,7 @@ div.navigator {
     left: -50%; **/
  
 }
+.lfh-control-legend span,
 div.icon-marker span {
   color: white;
   width: 15px;
@@ -879,15 +972,15 @@ div.fullmap div.icon-marker span.fra {
   border: 1px solid rgba(0,0,0,0.2);
   padding-top:0;
 }
-.leaflet-control-layers div.marker-red,
+.lfh-control-legend span.marker-red,
 div.marker-red span{
   background-color: darkred;
 }
-.leaflet-control-layers div.marker-blue,
+.lfh-control-legend span.marker-blue,
 div.marker-blue span {
   background-color: rgba(0, 0, 205, 0.9);
 }
-.leaflet-control-layers div.marker-orange,
+.lfh-control-legend span.marker-orange,
 div.marker-orange span {
 
   background-color: darkorange;
