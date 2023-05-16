@@ -10,7 +10,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 /* import specific icons */
 import {faAngleLeft, faAnglesLeft, faAngleRight, faAnglesRight, faArrowsAlt, 
-faBars, faBookmark, faCircle, faCircleChevronLeft, faCircleChevronRight,
+faBars, faBookmark,  faCircle,  faCircleChevronLeft, faCircleChevronRight,
  faCircleQuestion, faClipboard, faClose, faDownload, faList, 
 faLocationDot, faMap, faSearch, faSpinner} from '@fortawesome/free-solid-svg-icons'
 

@@ -34,11 +34,12 @@
        
 	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
-	       <div v-if="location.properties.elevation"><label>Height:</label>{{location.properties.elevation.toLocaleString()}} m</div>
+	       <div v-if="location.properties.elevation"><label>Elevation:</label>{{location.properties.elevation.toLocaleString()}} m</div>
 
       <h3 style="margin-left:-10px;">Informations</h3>
        <div v-if="station.properties.m3g"><label>M3g:</label>  <a :href="m3gUrl+ 'sitelog/view?id=' + stationName.toUpperCase()" target="_blank">sitelog</a></div>
-       <div><label>Domes:</label> {{station.properties.domes}}</div>
+       <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
+       <div v-if="station.properties.networks"><label>Networks:</label> {{station.properties.networks.join(', ')}}</div>
  
  
  
@@ -47,7 +48,7 @@
         </h3>
         <div  style="margin-left:10px;" :style="{display: show.nearest ? 'block': 'none'}">
           <div style="margin-bottom:10px;">
-	            <input type="number" step="10" v-model="radius" @change="radiusChanged=true"
+	            <input type="number" step="10" min="1" v-model="radius" @change="radiusChanged=true"
 	           class="gnss-control" /> km &nbsp;
 	           <button type="button" @click="getNeighbours()"
 	           style="margin-right:20px;">Search</button>
@@ -57,7 +58,7 @@
           </div>
 	        <div v-if="neighbours.length > 0">
 		        <div  v-for="st in neighbours" class="gnss-neighbour">
-		          <span class="station-link" @click="goToStation(st)">{{st.name}}</span>
+		          <span class="station-link" @click="goToStation(st)" :title="'Go to station ' + st.name">{{st.name}}</span>
 		          ({{Math.round(st.distance)}} km)
 		        </div>
 	        </div>
@@ -321,6 +322,9 @@ export default {
             var pos = st.location.geometry.coordinates
             var distance  = Util.getDistanceFromLatLonInKm(pos[1], pos[0], center[1], center[0])
             neighbours[index].distance = distance
+          })
+          neighbours.sort(function (a, b) {
+            return a.distance > b.distance
           })
           this.neighbours = neighbours
 

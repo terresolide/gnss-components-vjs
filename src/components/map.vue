@@ -32,11 +32,11 @@
     </div> -->
    
     <div id="map" class="fullmap"></div>
-    <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:400px;max-height:400px;">
+    <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
            <h4 v-if="selected" @click="goToStation($event)" >STATION {{selected.properties.name}}</h4>
-           <ul v-if="selected"  class="menu-content">
+          <!--   <ul v-if="selected"  class="menu-content">
               <li @click="mode = 'info'" >
              <span :class="{'selected': mode === 'station'}" >Informations</span>
             </li>
@@ -45,8 +45,9 @@
             </li>
       
              </ul>
+           -->
       <div v-if="selected">
-      <div v-show="mode == 'info'" style="min-width:250px;">
+    <!--   <div v-show="mode == 'info'" style="min-width:250px;">
 	      <h5 style="margin-bottom:0;">Coordinates</h5>
 	      
 	       
@@ -54,17 +55,18 @@
 	       
 	         <div>Latitude: {{selected.geometry.coordinates[1].toLocaleString()}}°</div>
 	         <div>Longitude: {{selected.geometry.coordinates[0].toLocaleString()}}°</div>
-	         <div v-if="selected.properties.height">Height: {{selected.properties.height.toLocaleString()}} m</div>
+	         <div v-if="selected.properties.elevation">Elevation: {{selected.properties.elevation.toLocaleString()}} m</div>
 	        </div>
 	      <h5>Informations</h5>
 	       <div style="margin-left:10px;margin-top:18px;">
-	        <div v-if="selected.properties.status">Status: {{selected.properties.status}}</div>
+	       
 	        <div v-if="selected.properties.m3g">M3g:  <a :href="selected.properties.m3g" target="_blank">sitelog</a></div>
 	        <div>Domes: {{selected.properties.domes}}</div>
 	        <div v-if="selected.properties.networks">Networks: {{selected.properties.networks.join(', ')}}</div>
 	       </div>
 	      </div>
-	      <div v-if="selected" v-show="mode == 'image'" style="min-width:250px;">
+	     -->
+	      <div  style="min-width:250px;">
 	        <gnss-carousel :images="selected.properties.images" :height="300"></gnss-carousel>
 	      </div>
      </div>
