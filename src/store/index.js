@@ -11,6 +11,7 @@ export default function makeStore( config ) {
     codelists: {},
     search: true,
     reseting: false,
+    stations: null,
    // boundsChanged: false,
     drawing: false
   }
@@ -38,6 +39,12 @@ export default function makeStore( config ) {
       setSearching(state, value) {
         state.search = value
       },
+      resetStations (state) {
+        state.stations = null
+      },
+      setStations(state, stations) {
+        state.stations = stations
+      }
 //      changeBounds(state, value) {
 //        state.boundsChanged = value
 //      }
@@ -76,6 +83,9 @@ export default function makeStore( config ) {
           return state.codelists.solutions
         }
         return null
+      },
+      stations (state, getters) {
+        return state.stations
       },
       productTypes (state, getters) {
          if (state.codelists.productTypes) {

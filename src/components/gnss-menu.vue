@@ -81,12 +81,18 @@ export default {
         query = this.$parent.getQuery()
       }
       this.$store.commit('setQuery',{name: this.$route.name, query: query})
+      if (this.$route.name === 'home') {
+         this.$store.commit('setStations', this.$parent.stations)
+      }
       return
       this.$router.push({name: name})
     },
     goToList () {
       var query = Object.assign({}, this.$route.query)
       this.$store.commit('setQueryList', this.$parent.getQuery())
+      if (this.$route.name === 'home') {
+         this.$store.commit('setStations', this.$parent.stations)
+      }
       var query = Object.assign({}, this.$route.query)
       delete query.selected
       delete query.bounds
@@ -95,6 +101,7 @@ export default {
     },
     goToMap () {
       var query = Object.assign({}, this.$route.query)
+      this.$store.commit('resetStations')
       delete query.page
       delete query.maxRecords
       this.$router.push({name: 'home', query: query})

@@ -338,7 +338,12 @@ export default {
           // remove query bbox?
         }
       }
-      this.load(0, first)
+      if (this.$store.state.stations) {
+        console.log('j ai déjà les stations')
+        this.displayStore(0)
+      } else {
+        this.load(0, first)
+      }
     },
    
     initDrawControl () {
@@ -516,6 +521,7 @@ export default {
       var query = Object.assign({}, this.$route.query)
       var bbox = this.map.getBounds().toBBoxString()
       this.$store.commit('setQuery',{name: 'home', query: this.getQuery()})
+      this.$store.commit('setStations', this.stations)
       var query = Object.assign({}, this.$route.query)
       delete query.network
       delete query.selected
@@ -544,6 +550,7 @@ export default {
           resp => {alert('Erreur de chargement: ' + resp.status)}
        )
     },
+   
     display (data, index, init) {
       var self = this
       if (index === 0) {
@@ -587,6 +594,10 @@ export default {
          this.load(index + 1, init)
          return
       }
+      this.displayEnd(init)
+      
+    },
+    displayEnd (init) {
       if (this.markers['W_EU']) {
         this.markers['W_EU'].addTo(this.map)
       }
@@ -640,10 +651,26 @@ export default {
         this.init = true
         this.$store.commit('setDraw', false)
       }
+      this.$store.commit('resetStations')
       if (this.bounds && this.bounds.isValid()) {
           this.map.fitBounds(this.bounds)
       }
-      
+    },
+    displayStore (index) {
+      if (index === 0) {
+        this.$store.commit('setSearching', true)
+      }
+
+      for (var i = index; i < this.$store.state.stations.length && i < index + this.maxRecords; i++) {
+       
+
+        this.addStation(this.$store.state.stations[i])
+      }
+      if (index + this.maxRecords < this.$store.state.stations.length) {
+        this.displayStore(index + this.maxRecords)
+        return
+      }
+      this.displayEnd(true)
     },
     getClassname (year) {
       if (year < 1) {
