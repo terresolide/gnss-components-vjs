@@ -89,48 +89,36 @@
      <select v-model="productType" class="gnss-control" style="max-width:160px;">
        <option v-for="group, key in files" :value="key">{{key}}</option>
      </select></div>
-     <div class="slider" :style="{width: nbFiles * slideWidth + 'px'}">
-         <div style="text-align:center;" v-if="nbFiles < files[productType].length">
-           <span v-for="file, index in files[productType]" style="padding: 0 3px;">
-              <span v-if="index >= curFile && index < curFile + nbFiles">
-               <font-awesome-icon :icon="['fas', 'circle']" />
-              </span>
-              <span v-else>
-                <font-awesome-icon :icon="['far', 'circle']" />
-              </span>
-           </span>
+     <div style="width:100%">
+       <gnss-carousel :slide-width="460" :width="1380">
+          <slot v-for="file, index in files[productType]" >
+            <div slot="slide" class="slider" >
+            <div class="file-container">
+           <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
+             -->
+            <div class="product-link">
+             <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
+                :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
+                target="_blank">SARI</a> 
+             <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
+            </div>
+           <div><label>Name</label>{{file.name}}</div>
+           <div style="font-size:0.8rem;height:160px;">
+            
+            <div><label>ProductType</label>{{file.productType}}</div>
+            <div><label>Phenomenon Time</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
+            <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
+            <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate'">
+              <label>{{key}}</label> {{value}}
+            </div>
          </div>
-       <div v-if="nbFiles < files[productType].length" class="btn-navigation" :class="{disabled: curFile === 0}" @click="curFile = curFile - 1" >
-           <font-awesome-icon :icon="['fas', 'circle-chevron-left']" />
-       </div>
-        <div v-if="nbFiles < files[productType].length" class="btn-navigation"  :class="{disabled: curFile + nbFiles >= files[productType].length}" 
-        style="right:0;" @click="curFile = curFile + 1">
-           <font-awesome-icon :icon="['fas', 'circle-chevron-right']" />
-       </div>
-		   <div  v-for="file, index in files[productType]" class="file-container" :style="{transform: 'translateX(' + ((index - curFile) * slideWidth ) + 'px)'}" >
-		     <div style="">
-		       <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
-		         -->
-		        <div class="product-link">
-		         <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
-		            :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
-		            target="_blank">SARI</a> 
-		         <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
-		        </div>
-		       <div><label>Name</label>{{file.name}}</div>
-		       <div style="font-size:0.8rem;height:160px;">
-		        
-		        <div><label>ProductType</label>{{file.productType}}</div>
-		        <div><label>Phenomenon Time</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
-		        <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
-		        <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate'">
-		          <label>{{key}}</label> {{value}}
-		        </div>
-		     </div>
-		     <div style="text-align:center;"><img :src="file.properties.img"  title="Click to show interactive graph" @click="getSerie(file)" /></div>
-		     </div>
-		   </div>
-		   </div>
+         <div style="text-align:center;"><img :src="file.properties.img"  title="Click to show interactive graph" @click="getSerie(file)" /></div>
+         </div>
+          </div>
+          </slot> 
+       </gnss-carousel>
+     </div>
+     
 
    </div>
    
@@ -156,10 +144,11 @@ Icon.Default.mergeOptions({
 });
 import FileForm from './file-form.vue'
 import GnssMenu from './gnss-menu.vue'
+import GnssCarousel from './gnss-carousel.vue'
 // import Bokeh from '@bokeh/bokehjs/build/js/bokeh.esm.min.js';
 export default {
   name: 'Station',
-  components: {FileForm, GnssMenu},
+  components: {FileForm, GnssCarousel, GnssMenu},
   data () {
     return {
       sari: 'https://alvarosg.shinyapps.io/sari/',
@@ -179,9 +168,6 @@ export default {
       files: [],
       productType: 'POSITION',
       translateX: 0,
-      curFile: 0,
-      nbFiles: 3,
-      slideWidth: 455,
       selected: null,
       onMap: false,
       map: null,
@@ -191,7 +177,7 @@ export default {
         filter: false,
         nearest: false
       },
-      resizeListener: null
+    //  resizeListener: null
     }
   },
   computed: {
@@ -206,7 +192,6 @@ export default {
       if (route.params.id) {
         this.stationId = route.params.id
       } 
-      this.curFile = 0
       this.getStation()
       this.$store.commit('setReset', false)
     }
@@ -224,8 +209,8 @@ export default {
     }
     // test get sitelog
    
-    this.resizeListener = this.countNbFiles.bind(this)
-    window.addEventListener('resize', this.resizeListener)
+//     this.resizeListener = this.countNbFiles.bind(this)
+//     window.addEventListener('resize', this.resizeListener)
     this.getStation()
   },
   destroyed () {
@@ -237,13 +222,13 @@ export default {
       this.map.remove()
       this.map = null
     }
-    if (this.resizeListener) {
-      window.removeEventListener('resize', this.resizeListener)
-      this.resizeListener = null
-    }
+//     if (this.resizeListener) {
+//       window.removeEventListener('resize', this.resizeListener)
+//       this.resizeListener = null
+//     }
   },
   mounted () {
-    this.countNbFiles()
+    // this.countNbFiles()
   },
   methods: {
 //     resize (e) {
@@ -253,17 +238,17 @@ export default {
 
 //       return false
 //     },
-    countNbFiles () {
-      var width = 1380
-      this.curFile = 0
-      if (this.$el && this.$el.querySelector && this.$el.querySelector('.station-body')) {
-        width = this.$el.querySelector('.station-body').offsetWidth
-      }
-      this.nbFiles = parseInt(width / this.slideWidth)
-      if (this.nbFiles === 0) {
-        this.nbFiles = 1
-      }
-    },
+//     countNbFiles () {
+//       var width = 1380
+//       this.curFile = 0
+//       if (this.$el && this.$el.querySelector && this.$el.querySelector('.station-body')) {
+//         width = this.$el.querySelector('.station-body').offsetWidth
+//       }
+//       this.nbFiles = parseInt(width / this.slideWidth)
+//       if (this.nbFiles === 0) {
+//         this.nbFiles = 1
+//       }
+//     },
     initStation () {
       this.station = null
       this.stations = null
@@ -411,7 +396,6 @@ export default {
           }
           self.files[file.productType].push(file)
         })
-        console.log(this.files)
       })
     },
     goToStation (station) {
@@ -550,17 +534,11 @@ div[id="stationMap"] {
      top:-100px;
      box-shadow: 0 0 3px rgba(0,0,0,.5);
   }
-  div.slider {
-  position:relative;
-  min-height: 660px;
-  margin-left:0px;
-  margin-top:5px;
-  max-width:100%;
-  overflow-x:hidden;
-  overflow-y: visible;
+ div.slider {
+    max-width:460px;padding:0 5px;display:inline-block;vertical-align:top;
   }
   div.file-container {
-    position:absolute;
+    position:relative;
     margin:5px;
     padding:10px;
     border: 1px solid grey;

@@ -51,6 +51,10 @@ export default {
       type: String,
       default: 'top'
     },
+    width: {
+      type:Number,
+      default: 350
+    },
     slideWidth: {
       type: Number,
       default: 300
@@ -64,6 +68,7 @@ export default {
     return {
       nbSlides: 1,
       curSlide: 0,
+      resizeListener: null,
       index:0
     }
   },
@@ -73,7 +78,28 @@ export default {
       this.curSlide = 0
     }
   },
+  created () {
+    this.resizeListener = this.countNbSlides.bind(this)
+    window.addEventListener('resize', this.resizeListener)
+  },
+  mounted () {
+    this.countNbSlides()
+  },
+  destroyed () {
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener)
+      this.resizeListener = null
+    }
+  },
   methods: {
+    countNbSlides () {
+      var width = this.$el.parentNode.offsetWidth
+      this.nbSlides = parseInt(width / this.slideWidth)
+      if (this.nbSlides === 0) {
+        this.nbSlides = 1
+      }
+      this.curSlide = 0
+    }
   }
 }
 </script>
