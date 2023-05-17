@@ -70,7 +70,7 @@
 	        <gnss-carousel  :height="300" :slide-width="310" dot-position="bottom" :id="selected.id">
 	          <slot v-for="img in selected.properties.images" >
 	          <div slot="slide" style="min-width:310px;text-align:center;display:inline-block;posiion:relative;">
-	           <img :src="img" height="300" style="cursor:auto;" />
+	           <img :src="img" height="300" style="max-width:300px;" />
 	           </div>
 	          </slot>
 	        </gnss-carousel>
