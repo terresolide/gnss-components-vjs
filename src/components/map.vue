@@ -67,7 +67,13 @@
 	      </div>
 	     -->
 	      <div  style="min-width:250px;">
-	        <gnss-carousel :images="selected.properties.images" :height="300"></gnss-carousel>
+	        <gnss-carousel  :height="300" :slide-width="310" >
+	          <slot v-for="img in selected.properties.images" >
+	          <div slot="slide" style="padding:0 5px;display:inline-block;">
+	           <img :src="img" height="300" />
+	           </div>
+	          </slot>
+	        </gnss-carousel>
 	      </div>
      </div>
       </div>
