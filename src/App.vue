@@ -67,6 +67,9 @@ ul[id="shortcuts"] {
   background: rgba(255,255,255,0.2);
   z-index:10;
 }
+.gnss-attribution img {
+  vertical-align:middle;
+}
 /** .gnss-bars-content {
   display:none;
   background:white;
