@@ -1,7 +1,7 @@
 <template>
  <span>
  <div style="overflow:hidden;position:relative;" :style="{width:(nbSlides * slideWidth) + 'px'}">
-    <div style="text-align:center;" v-if="nbSlides < $slots.slide.length">
+    <div style="text-align:center;" v-if="dotPosition === 'top' && nbSlides < $slots.slide.length" >
            <span v-for="file, index in $slots.slide" style="padding: 0 3px;">
               <span v-if="index >= curSlide && index < curSlide + nbSlides">
                <font-awesome-icon :icon="['fas', 'circle']" />
@@ -18,12 +18,21 @@
         style="right:0;" @click="curSlide = curSlide + 1">
            <font-awesome-icon :icon="['fas', 'circle-chevron-right']" />
        </div>
-   <div class="slider-container" :style="{width: $slots.slide.length * slideWidth + 'px',  transform: 'translateX(' + ((index - curSlide) * slideWidth ) + 'px)'}">
-        
-      <!--  <div  v-for="slide, index in $slots.slide" class="slide-container"  :style="{width: slideWidth + 'px', transform: 'translateX(' + ((index - curSlide) * slideWidth ) + 'px)'}" > -->
-         <slot name="slide" ></slot>
-      <!--  </div> -->
-       </div>
+       <div style="position:relative;">
+	      <div class="slider-container" :style="{width: $slots.slide.length * slideWidth + 'px',  transform: 'translateX(' + ((index - curSlide) * slideWidth) + 'px)'}">
+	         <slot name="slide" ></slot>
+	      </div>
+      </div>
+       <div  style="text-align:center;bottom:0;" v-if="dotPosition === 'bottom' && nbSlides < $slots.slide.length" >
+           <span v-for="file, index in $slots.slide" style="padding: 0 3px;">
+              <span v-if="index >= curSlide && index < curSlide + nbSlides">
+               <font-awesome-icon :icon="['fas', 'circle']" />
+              </span>
+              <span v-else>
+                <font-awesome-icon :icon="['far', 'circle']" />
+              </span>
+           </span>
+         </div>
  </div>
  </span>
 </template>
@@ -34,7 +43,14 @@ export default {
   },
   
   props: {
-    
+    id: {
+      type: String|Number,
+      default: null
+    },
+    dotPosition: {
+      type: String,
+      default: 'top'
+    },
     slideWidth: {
       type: Number,
       default: 300
@@ -50,6 +66,14 @@ export default {
       curSlide: 0,
       index:0
     }
+  },
+  watch: {
+    id (newvalue) {
+      this.$forceUpdate()
+      this.curSlide = 0
+    }
+  },
+  methods: {
   }
 }
 </script>
@@ -62,20 +86,14 @@ div.slider {
   overflow-x:visible;
   overflow-y: hidden;
   }
-  div.slide-container {
-    position:absolute;
-    border-radius:10px;
-    width:445px;
-    min-height:630px;
-    vertical-align:top;
-    display:block;
+  div.slider-container {
     transition: all 0.5s;
   }
   div.btn-navigation {
     position:absolute; 
     top:45%;
     z-index:4;
-    font-size:30px;
+    font-size:40px;
     opacity:0.8;
     cursor:pointer;
   }

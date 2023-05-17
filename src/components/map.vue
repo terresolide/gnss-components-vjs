@@ -35,7 +35,7 @@
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
-           <h4 v-if="selected" @click="goToStation($event)" >STATION {{selected.properties.name}}</h4>
+           <h4 v-if="selected" @click="goToStation($event)" title="Go to station page" >STATION {{selected.properties.name}}</h4>
           <!--   <ul v-if="selected"  class="menu-content">
               <li @click="mode = 'info'" >
              <span :class="{'selected': mode === 'station'}" >Informations</span>
@@ -66,20 +66,22 @@
 	       </div>
 	      </div>
 	     -->
-	      <div  style="min-width:250px;">
-	        <gnss-carousel  :height="300" :slide-width="310" >
+	      <div  style="min-width:250px;position:relative;">
+	        <gnss-carousel  :height="300" :slide-width="310" dot-position="bottom" :id="selected.id">
 	          <slot v-for="img in selected.properties.images" >
-	          <div slot="slide" style="padding:0 5px;display:inline-block;">
-	           <img :src="img" height="300" />
+	          <div slot="slide" style="min-width:310px;text-align:center;display:inline-block;posiion:relative;">
+	           <img :src="img" height="300" style="cursor:auto;" />
 	           </div>
 	          </slot>
 	        </gnss-carousel>
+	        <div style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @click="goToStation($event)"></div>
+          
 	      </div>
      </div>
       </div>
-      <div style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
+     <!--   <div style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
         <span class="fa button"  @click="goToStation($event)"><font-awesome-icon icon="fa-solid fa-arrows-alt" /></span>
-      </div>
+      </div> -->
     </div>
    </div>
 </template>
@@ -152,14 +154,10 @@ export default {
   watch: {
     $route (newroute, oldroute) {
         if (!this.routeChanged(oldroute, newroute)) {
-          console.log('route change')
-          console.log(oldroute.query.bounds !== newroute.query.bounds)
-//        if (newroute.name === oldroute.name && !this.$store.state.drawing && !this.$store.state.reseting &&
-//           ((parseInt(newroute.query.selected) !== parseInt(oldroute.query.selected))
-//               || this.$store.state.boundsChanged)) {
         if (parseInt(newroute.query.selected) !== parseInt(oldroute.query.selected)) {
           // open popup
           if (!newroute.query.selected) {
+            this.selected = null
             this.closePopup()
           } else {
 	          var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
@@ -265,8 +263,6 @@ export default {
       }
       var aKeys = Object.keys(oldquery).sort();
       var bKeys = Object.keys(newquery).sort();
-      console.log(aKeys)
-      console.log(bKeys)
       if (JSON.stringify(aKeys) != JSON.stringify(bKeys)) {
         
         console.log('is different')
@@ -467,7 +463,7 @@ export default {
       legend.addTo(this.map)
 //       var control = new L.Control.Form()
 //       control.addTo(this.map)
-      this.popup = L.popup({autoPan:true, minWidth: 300, minHeight:350, maxHeight:410, closeButton: false})
+      this.popup = L.popup({autoPan:true, minWidth: 300, minHeight:320, maxHeight:410, closeButton: false})
       this.initDrawControl()
       var self = this
 //       this.map.whenReady(function (e) {
@@ -483,8 +479,9 @@ export default {
 // //           }
 //         }
 //       })
+      
        this.map.on('popupclose', function (e) {
-         self.selected = null
+        // self.selected = null
          var query = Object.assign({}, self.$route.query) 
          delete query['selected']
          self.$router.push({name: 'home', query: query}).catch(()=>{})
@@ -511,7 +508,7 @@ export default {
       this.popup.setContent(node)
       var self = this
 
-      this.dateLayers = L.layerGroup()
+      // this.dateLayers = L.layerGroup()
       this.treatmentQuery(this.$route.query, true)
      
     },
@@ -846,10 +843,6 @@ export default {
       var query = Object.assign({}, this.$route.query)
       if (this.selected && this.selected.id === e.target.feature.id) {
         this.closePopup()
-        // delete query['selected']
-        // this.$router.push({name: 'home', query: query}).catch(()=>{})
-        
-       
         return
       }
       this.mode = 'image'
@@ -857,7 +850,6 @@ export default {
       this.show = true
       this.popup.setLatLng(e.target.getLatLng())
       this.popup.openOn(this.map)
-      
       query.selected = e.target.feature.id
       this.$router.push({name: 'home', query: query}).catch(()=>{})
       return false
@@ -908,6 +900,9 @@ export default {
   line-height:44px;
   font-size: 1.2rem;
   cursor: pointer;
+}
+div.leaflet-popup-content {
+  margin-bottom:0;
 }
 div.leaflet-marker-icon {
   margin-left: -7px;
@@ -1036,6 +1031,10 @@ margin-left:35px;
 }
 #map h4 {
   margin:0;
+  color:black;
+}
+#map h4:hover {
+  font-weight:600;
 }
 div.navigator {
  position: fixed;
