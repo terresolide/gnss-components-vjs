@@ -557,21 +557,7 @@ div[id="stationMap"] {
     top:5px;
     
   }
-  div.btn-navigation {
-    position:absolute; 
-    top:45%;
-    z-index:4;
-    font-size:30px;
-    opacity:0.8;
-    cursor:pointer;
-  }
-  div.btn-navigation.disabled {
-    opacity:0.5;
-    pointer-events:none;
-  }
-  div.btn-navigation:hover {
-    opacity:1;
-  }
+
   div.file-container img {
     max-width:96%;
   }
