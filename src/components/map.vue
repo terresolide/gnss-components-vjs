@@ -901,9 +901,7 @@ export default {
   font-size: 1.2rem;
   cursor: pointer;
 }
-div.leaflet-popup-content {
-  margin-bottom:0;
-}
+
 div.leaflet-marker-icon {
   margin-left: -7px;
 margin-top: -7px;

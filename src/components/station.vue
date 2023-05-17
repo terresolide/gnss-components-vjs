@@ -92,7 +92,7 @@
      <div style="width:100%">
        <gnss-carousel :slide-width="460" :width="1380">
           <slot v-for="file, index in files[productType]" >
-            <div slot="slide" class="slider" >
+            <div slot="slide" class="slider-files" >
             <div class="file-container">
            <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
              -->
@@ -534,7 +534,7 @@ div[id="stationMap"] {
      top:-100px;
      box-shadow: 0 0 3px rgba(0,0,0,.5);
   }
- div.slider {
+ div.slider-files {
     max-width:460px;padding:0 5px;display:inline-block;vertical-align:top;
   }
   div.file-container {
