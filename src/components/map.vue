@@ -768,7 +768,7 @@ export default {
         }
       })
       if (!this.markers[region]) {
-        this.markers[region] = L.markerClusterGroup({polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1}, animateAddingMarkers:true})
+        this.markers[region] = L.markerClusterGroup({polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1}, maxClusterRadius:35, animateAddingMarkers:true})
         this.markers[region].on('animationend', function () {
           console.log('end dans region')
           self.animationEnd()
