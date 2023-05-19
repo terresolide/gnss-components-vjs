@@ -35,7 +35,7 @@
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
-           <h4 v-if="selected" @click="goToStation($event)" title="Go to station page" >STATION {{selected.properties.name}}</h4>
+           <h4 v-if="selected" @click="goToStation($event)" title="Go to station page" >STATION {{selected[1]}}</h4>
           <!--   <ul v-if="selected"  class="menu-content">
               <li @click="mode = 'info'" >
              <span :class="{'selected': mode === 'station'}" >Informations</span>
@@ -67,10 +67,10 @@
 	      </div>
 	     -->
 	      <div  style="min-width:250px;position:relative;">
-	        <gnss-carousel  :height="300" :slide-width="310" dot-position="bottom" :id="selected.id">
-	          <slot v-for="img in selected.properties.images" >
-	          <div slot="slide" style="min-width:310px;text-align:center;display:inline-block;posiion:relative;">
-	           <img :src="img" height="300" style="max-width:300px;" />
+	        <gnss-carousel  :height="300" :slide-width="310" dot-position="bottom" :id="selected[0]">
+	          <slot v-for="img in selected[4]" >
+	          <div slot="slide" style="min-width:310px;text-align:center;display:inline-block;position:relative;">
+	           <img :src="$store.state.preview + img" height="300" style="max-width:300px;" />
 	           </div>
 	          </slot>
 	        </gnss-carousel>
@@ -79,9 +79,9 @@
 	      </div>
      </div>
       </div>
-     <!--   <div style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
+      <div style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
         <span class="fa button"  @click="goToStation($event)"><font-awesome-icon icon="fa-solid fa-arrows-alt" /></span>
-      </div> -->
+      </div> 
     </div>
    </div>
 </template>
@@ -149,6 +149,9 @@ export default {
     },
     searching () {
       return this.$store.getters['search']
+    },
+    maxRecords () {
+      return this.$store.state.limit
     }
   },
   watch: {
@@ -159,8 +162,8 @@ export default {
           if (!newroute.query.selected) {
             this.selected = null
             this.closePopup()
-          } else {
-	          var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
+          } else if (this.stations[parseInt(this.$route.query.selected)]){
+	          var station = this.stations[parseInt(this.$route.query.selected)]
 		        if (station) {
 		           this.openPopup(station)
 		        }
@@ -199,7 +202,6 @@ export default {
       selected: null,
 //      dataJsonUrl: null,
       show: false,
-      maxRecords: 200,
       markers: {},
       popup: null,
       groups: [],
@@ -534,7 +536,7 @@ export default {
       delete query.bbox
       delete query.center
       delete query.radius
-      this.$router.push({ name: 'station', params: { name: this.selected.properties.name, id: this.selected.id}, query: query})
+      this.$router.push({ name: 'station', params: { name: this.selected[1], id: this.selected[0]}, query: query})
     },
 
     load (i, first) {
@@ -546,6 +548,7 @@ export default {
       params = Object.assign(params, this.$route.query)
       params['page'] = i + 1
       params['maxRecords'] = this.maxRecords
+      params['short'] = 1
       if (i === 0) {
         this.$store.commit('setSearching', true)
       }
@@ -580,18 +583,8 @@ export default {
         this.bounds = null
       }
       data.stations.forEach(function (value) {
-          var feature = value.location
-          feature.id = value.id
-          if (!value.properties) {
-            value.properties =  {}
-          }
-          value.properties.name= value.name,
-          value.properties.description= value.description
-          value.properties.images = value.images
-          value.properties.yearOld = value.yearOld ? value.yearOld : 2
-          feature.properties = value.properties
 
-	        self.addStation(feature)
+	        self.addStation(value)
       })
     
      
@@ -623,7 +616,7 @@ export default {
 //         this.closePopup()
 //       }
       if (init && this.$route.query.selected) {
-        var station = this.stations.find(st => st.id === parseInt(this.$route.query.selected))
+        var station = this.stations[parseInt(this.$route.query.selected)]
         if (station) {
            this.openPopup(station)
         }
@@ -667,9 +660,10 @@ export default {
       }
 
       for (var i = index; i < this.$store.state.stations.length && i < index + this.maxRecords; i++) {
-       
-
-        this.addStation(this.$store.state.stations[i])
+      
+        if (this.$store.state.stations[i]) {
+           this.addStation(this.$store.state.stations[i])
+        }
       }
       if (index + this.maxRecords < this.$store.state.stations.length) {
         this.displayStore(index + this.maxRecords)
@@ -686,23 +680,15 @@ export default {
       }
       return 'blue'
     },
-    getStatus (feature) {
-      switch (feature.properties.status){
-        case 'PERMANENT':
-        case 'MOBILE':
-          return feature.properties.status
-        default:
-          return 'Unknown'
-      }
-    },
+    
     getRegion(feature) {
-      switch (feature.properties.name) {
+      switch (feature[1]) {
         case 'COCO00AUS':
         case 'MAC100AUS':
         case 'MAS100ESP':
         case 'ISPA00CHL':
         case 'YELL00CAN':
-          return feature.properties.name
+          return feature[1]
         case 'KOKB00USA':
         case 'MAUI00USA':
         case 'MKEA00USA':
@@ -717,7 +703,7 @@ export default {
           return 'CAN'
         
       }
-      var country = feature.properties.name.substring(6,9)
+      var country = feature[1].substring(6,9)
       switch (country) {
 // 	      case 'USA':
 // 	      case 'CAN':
@@ -738,35 +724,37 @@ export default {
 	      case 'CHL':
 	        return 'S_AM'
 	      case 'ATA':
-	        return feature.properties.name
+	        return feature[1]
         default:
           return country
       }
     },
-    addStation(feature) {
-      this.stations.push(feature)
+    addStation (feature) {
+      this.stations[feature[0]] = feature
       
 //       if (country === 'CHE') {
 //         country = 'FRA'
 //       }
       var region = this.getRegion(feature)
-      var groupId = this.getStatus(feature)
+     // var groupId = this.(feature)
       var html = '<span></span>'
-      var className = this.getClassname(feature.properties.yearOld)
+      var className = this.getClassname(feature[2])
       var icon = L.divIcon({
         className: 'icon-marker marker-' + className, 
         iconSize: [15,15],
         html: html})
 
       var self = this
-      var layer = L.geoJSON(feature,{
-        pointToLayer: function(feature, latlng) {
-           var marker = L.marker(latlng, {icon: icon, title: feature.properties.name})
-           marker.on('click', self.getData )
-          // L.marker(latlng, {icon: arrow}).addTo(self.map)
-           return marker
-        }
-      })
+      var marker = L.marker(feature[3], {icon: icon, id: feature[0], title: feature[1]})
+      marker.on('click', self.getData)
+//       var ma = L.geoJSON(feature,{
+//         pointToLayer: function(feature, latlng) {
+//            var marker = L.marker(latlng, {icon: icon, title: feature.properties.name})
+//            marker.on('click', self.getData )
+//           // L.marker(latlng, {icon: arrow}).addTo(self.map)
+//            return marker
+//         }
+//       })
       if (!this.markers[region]) {
         this.markers[region] = L.markerClusterGroup({polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1}, maxClusterRadius:35, animateAddingMarkers:true})
         this.markers[region].on('animationend', function () {
@@ -777,7 +765,7 @@ export default {
           this.markers[region].addTo(this.map)
         }
       }
-      this.markers[region].addLayer(layer)
+      this.markers[region].addLayer(marker)
       
 //        if (!this.groupLayers[groupId]) {
 //         this.groupLayers[groupId] = L.layerGroup([layer])
@@ -789,13 +777,11 @@ export default {
 //       } else {
 //         this.groupLayers[groupId].addLayer(layer)
 //       }
-      this.stations[this.stations.length - 1].layer = layer
-      var bounds = layer.getBounds()
+      // this.stations[this.stations.length - 1].layer = marker
       if (!this.bounds) {
-        this.bounds = bounds
-      } else {
-        this.bounds.extend(bounds)
+        this.bounds = L.latLngBounds()
       }
+      this.bounds.extend(feature[3])
     },
     download (type) {
       var dataUrl = null
@@ -826,11 +812,10 @@ export default {
     openPopup (station) {
 	      this.selected = station
 	      this.mode = 'image'
-	      var coord = station.geometry.coordinates
 	      this.show = true
 	      var self = this
 	     
-	      this.popup.setLatLng([coord[1], coord[0]])
+	      this.popup.setLatLng(station[3])
 	      this.wait = true
 	      this.popup.openOn(this.map)
 	       
@@ -840,17 +825,19 @@ export default {
         }, 1000)
     },
     getData (e) {
+      console.log(e)
       var query = Object.assign({}, this.$route.query)
-      if (this.selected && this.selected.id === e.target.feature.id) {
+      if (this.selected && this.selected.id === e.target.options.id) {
         this.closePopup()
         return
       }
       this.mode = 'image'
-      this.selected = e.target.feature
+      this.selected = e.target.options
+      console.log(this.selected)
       this.show = true
-      this.popup.setLatLng(e.target.getLatLng())
-      this.popup.openOn(this.map)
-      query.selected = e.target.feature.id
+//       this.popup.setLatLng(e.target.getLatLng())
+//       this.popup.openOn(this.map)
+      query.selected = e.target.options.id
       this.$router.push({name: 'home', query: query}).catch(()=>{})
       return false
     },

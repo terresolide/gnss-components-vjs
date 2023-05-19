@@ -9,6 +9,8 @@ export default function makeStore( config ) {
     query: {name: 'home', query: {}},
     queryList: {},
     codelists: {},
+    preview: 'https://spotgins.formater/data/preview/',
+    limit: 500,
     search: true,
     reseting: false,
     stations: null,
@@ -26,11 +28,9 @@ export default function makeStore( config ) {
         state.queryList = query
       },
       setCodeList(state, codelists){
-        console.log(codelists)
         state.codelists = codelists
       },
       setReset(state, value) {
-        console.log('setReset', value)
         state.reseting = value
       },
       setDraw(state, value) {

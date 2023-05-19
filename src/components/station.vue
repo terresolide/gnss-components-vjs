@@ -304,8 +304,8 @@ export default {
           var center = this.location.geometry.coordinates
           neighbours = neighbours.filter(st => st.id !== this.stationId)
           neighbours.forEach(function (st, index) {
-            var pos = st.location.geometry.coordinates
-            var distance  = Util.getDistanceFromLatLonInKm(pos[1], pos[0], center[1], center[0])
+            var pos = st.latlng
+            var distance  = Util.getDistanceFromLatLonInKm(pos[0], pos[1], center[1], center[0])
             neighbours[index].distance = distance
           })
           neighbours.sort(function (a, b) {
@@ -315,11 +315,7 @@ export default {
 
           var self = this
           this.neighbours.forEach(function (st) {
-            var layer = L.geoJSON(st.location, {
-              pointToLayer (feature, latlng) {
-                return L.marker(latlng, {title: st.name})
-              }
-            })
+            var layer = L.marker(st.latlng, {id: st.id, title: st.name})
             self.neighboursLayer.addLayer(layer)
           })
           if (this.onMap) {
@@ -512,6 +508,7 @@ div[id="stationMap"] {
     background:white;
     margin:auto;
     max-width:1400px;
+    min-height:100vh;
     padding-bottom:20px;
     box-shadow: 0 0 3px rgba(0,0,0,.5);
   }
