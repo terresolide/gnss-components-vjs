@@ -580,7 +580,7 @@ export default {
         this.groupLayers = []
         this.stations = []
         this.groups = []
-        this.bounds = null
+       // this.bounds = null
       }
       data.stations.forEach(function (value) {
 
@@ -628,7 +628,7 @@ export default {
         this.drawLayers.remove()
       }
       
-      if (init && this.$route.query.bounds ) {
+      if (this.$route.query.bounds ) {
         var tab = this.$route.query.bounds.split(',')
         if (tab.length === 4) {
           this.bounds = L.latLngBounds(
