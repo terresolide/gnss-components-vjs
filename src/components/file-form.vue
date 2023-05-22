@@ -31,12 +31,12 @@
 		  </div>
 		 
 		   <div class="fillrate" style="margin-top:12px;">
-		    <label >Extend 
+		    <label >Extent 
 		        <span class="gnss-question" @click="showTooltip($event)">
 		         <font-awesome-icon icon="fa-solid fa-circle-question" />
 		        </span>
 		        <div class="gdm-tooltip" @click="hideTooltip($event)">
-		          <h4 >Extend in years</h4>
+		          <h4 >Extent in years</h4>
 		          <div>Number of years of data<br>
 		          </div>
 		        </div></label>
@@ -96,7 +96,7 @@
 		   </div>
 		    <div style="margin-top:10px;">
 		          <label></label>
-		          <button @click="reset()" type="button" >Resest</button>
+		          <button @click="reset()" type="button" >Reset</button>
 		          <button @click="search($event)" type="submit" >Search
 		          <font-awesome-icon icon="fa-solid fa-search" /></button>
 		      </div>
