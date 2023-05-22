@@ -105,11 +105,11 @@
            <div><label>Name</label>{{file.name}}</div>
            <div style="font-size:0.8rem;height:160px;">
             
-            <div><label>ProductType</label>{{file.productType}}</div>
-            <div><label>Phenomenon Time</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
+            <div><label>Product Type</label><span style="letter-spacing: .1em;">{{file.productType}}</span></div>
+            <div><label>Product date range</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
             <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
             <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate'">
-              <label>{{key}}</label> {{value}}
+              <label>{{labelize(key)}}</label> {{value}}
             </div>
          </div>
          <div style="text-align:center;"><img :src="file.properties.img"  title="Click to show interactive graph" @click="getSerie(file)" /></div>
@@ -279,6 +279,10 @@ export default {
       } else {
         this.neighboursLayer = L.featureGroup()
       }
+    },
+    labelize (label) {
+      const result = label.replace(/([A-Z])/g, " $1");
+      return result.charAt(0).toUpperCase() + result.slice(1);
     },
     removeNeighboursFromMap () {
       if (this.neighboursLayer) {
@@ -534,6 +538,10 @@ div[id="stationMap"] {
  div.slider-files {
     max-width:460px;padding:0 5px;display:inline-block;vertical-align:top;
   }
+  div.slider-files label {
+    min-width:160px;
+  }
+  
   div.file-container {
     position:relative;
     margin:5px;
