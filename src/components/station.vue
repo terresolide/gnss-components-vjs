@@ -105,7 +105,7 @@
            <div><label>Name</label>{{file.name}}</div>
            <div style="font-size:0.8rem;height:160px;">
             
-            <div><label>Product Type</label><span style="letter-spacing: .1em;">{{file.productType}}</span></div>
+            <div><label>Product Type</label><span style="letter-spacing: .07em;">{{file.productType}}</span></div>
             <div><label>Product date range</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
             <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
             <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate'">

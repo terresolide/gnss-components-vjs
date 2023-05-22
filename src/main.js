@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {faAngleLeft, faAnglesLeft, faAngleRight, faAnglesRight, faArrowsAlt, 
 faBars, faBookmark,  faCircle,  faCircleChevronLeft, faCircleChevronRight,
  faCircleQuestion, faClipboard, faClose, faDownload, faList, 
-faLocationDot, faMap, faSearch, faSpinner} from '@fortawesome/free-solid-svg-icons'
+faLocationDot, faMap,faSearch, faSpinner} from '@fortawesome/free-solid-svg-icons'
 
 import {
   faCircle as farCircle

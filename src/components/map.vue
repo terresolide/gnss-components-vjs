@@ -97,6 +97,7 @@ L.TilesControl = require('../modules/leaflet.tiles.js')
 // L.DivIcon.Arrow = require('../modules/leaflet.divicon.arrow.js')
 import {MarkerClusterGroup} from 'leaflet.markercluster'
 L.Control.Legend = require('../modules/leaflet.legend.js')
+L.Control.Overview = require('../modules/leaflet.overview.js')
 delete Icon.Default.prototype._getIconUrl;
 Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
@@ -285,39 +286,7 @@ export default {
       var url = base + this.$route.path + '?' + queryString
       return url
     },
-//     copyClipboard (event) {
-//       event.stopPropagation()
-//       var tooltip = this.$el.querySelector('.bookmark-tooltip')
-//       tooltip.style.display = 'block'
-//       var self = this
-//       setTimeout(function () {
-//           tooltip.style.display = 'none'
-//           self.closeMenu()
-//       }, 2000)
-//       navigator.clipboard.writeText(this.getUrl());
-//     },
-//     closeMenu() {
-//       var node = this.$el.querySelector('.gnss-shortcut.selected')
-//       if (node) {
-//         node.classList.remove('selected')
-//         return
-//       }
-//     },
-//     toggle (event) {
-//       event.stopPropagation()
-//       var el  = event.target
-//       while ( !el.classList.contains('gnss-shortcut') && el.parentElement) {
-//         el = el.parentElement
-//       };
-//       console.log(el)
-      
-//       if (el.classList.contains('selected')) {
-//         el.classList.remove('selected')
-//         return
-//       }
-     
-//       el.classList.add('selected')
-//     },
+
     changeQuery (params) {
       var newquery = Object.assign({}, this.$route.query)
       newquery = Object.assign(newquery, params)
@@ -458,9 +427,13 @@ export default {
     },
     initialize () {
       this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
+      var overview = new L.Control.Overview(this.overview)
+      overview.addTo(this.map)
+      
       this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
       this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
+      
       var legend = new L.Control.Legend()
       legend.addTo(this.map)
 //       var control = new L.Control.Form()
@@ -580,7 +553,7 @@ export default {
         this.groupLayers = []
         this.stations = []
         this.groups = []
-       // this.bounds = null
+        this.bounds = null
       }
       data.stations.forEach(function (value) {
 
@@ -627,31 +600,32 @@ export default {
       if (init && this.$route.query.nodraw) {
         this.drawLayers.remove()
       }
-      
+      var bounds = this.bounds
       if (this.$route.query.bounds ) {
         var tab = this.$route.query.bounds.split(',')
         if (tab.length === 4) {
-          this.bounds = L.latLngBounds(
+          bounds = L.latLngBounds(
             L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
             L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
           )
         }
         this.init = true
       } 
-      if (!this.bounds && this.drawLayers.getBounds()) {
+      if (!bounds && this.drawLayers.getBounds()) {
           this.bounds = this.drawLayers.getBounds()
+          bounds = this.bounds
           this.init = false
       }
       if (this.$store.state.drawing) {
         if (this.drawLayers.getBounds() && this.drawLayers.getBounds().isValid()) {
-           this.bounds = this.drawLayers.getBounds()
+           bounds = this.drawLayers.getBounds()
         }
         this.init = true
         this.$store.commit('setDraw', false)
       }
       this.$store.commit('resetStations')
-      if (this.bounds && this.bounds.isValid()) {
-          this.map.fitBounds(this.bounds)
+      if (bounds && bounds.isValid()) {
+          this.map.fitBounds(bounds)
       }
     },
     displayStore (index) {
@@ -824,6 +798,11 @@ export default {
           self.wait = false
         }, 1000)
     },
+    overview () {
+      if (this.bounds && this.bounds.isValid()) {
+        this.map.fitBounds(this.bounds)
+      }
+    },
     getData (e) {
       console.log(e)
       var query = Object.assign({}, this.$route.query)
@@ -902,6 +881,16 @@ div[id="map"] a.icon-palette:before {
   content:"\E802";
   font-size:16px;
   font-family: "fontello";
+}
+div[id="map"] div.leaflet-overview {
+  margin-top:1px;
+  background:white;
+  cursor: pointer;
+}
+div[id="map"] div.leaflet-overview div {
+  max-width: 20px;
+  margin: 5px;
+  
 }
 div[id="map"] div.lfh-control-legend {
   background: white;
