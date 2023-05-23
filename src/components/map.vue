@@ -174,11 +174,11 @@ export default {
         if (oldroute.query.bounds !== newroute.query.bounds ) {
           var tab = newroute.query.bounds.split(',')
           if (tab.length === 4) {
-            this.bounds = L.latLngBounds(
+            var bounds = L.latLngBounds(
               L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
               L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
             )
-            this.map.fitBounds(this.bounds)
+            this.map.fitBounds(bounds)
            }
         }
         // this.$store.commit('changeBounds', false)
