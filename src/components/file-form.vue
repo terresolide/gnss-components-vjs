@@ -28,16 +28,15 @@
       </div>
       <div v-if="mode === 'map'"  >
         <label>Has serveral solutions
-         <span class="gnss-question" @click="showTooltip($event)">
+        <!--  <span class="gnss-question" @click="showTooltip($event)">
              <font-awesome-icon icon="fa-solid fa-circle-question" />
             </span>
          <div class="gdm-tooltip" @click="hideTooltip($event)">
             <div>You must select a product type and not a solution to use this setting.
             </div>
-        </div>
+        </div>  -->
         </label>
-        <input type="checkbox" v-model="searchparams.several" 
-        :disabled="searchparams.solution || (!searchparams.productType && productTypes.length !== 1)"/>
+        <input type="checkbox" v-model="searchparams.several" />
       </div>
 		  <div class="temp-extent">
 		    <label >Temporal extent</label>
@@ -94,10 +93,18 @@
 		  </div>
 	
 		  <div v-if="networks && mode === 'map'" class="gnss-networks"> 
-		     <label>Networks</label>
+		     <label>Networks
+		        <span class="gnss-question" @click="showTooltip($event)">
+             <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
+            </span>
+         <div class="gdm-tooltip" @click="hideTooltip($event)">
+            <div>Option <b>deactivated until Thursday</b> due to regression.
+            </div>
+        </div>
+		     </label>
 		     <div >
 		         <span v-for="value in networks" class="network-span">
-		            <input v-model="searchparams.network" type="checkbox" :value="value" class="gnss-checkbox"> 
+		            <input v-model="searchparams.network" :disabled="true" type="checkbox" :value="value" class="gnss-checkbox"> 
 		            <span >{{value}}</span>
 		         </span>
 		      </div>
