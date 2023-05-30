@@ -197,11 +197,11 @@ export default {
       params = Object.assign(params, query)
       // provisoire
       params['productType'] = 'POSITION'
-//        if (params['start'] && !params['end']) {
-//         params['end'] = params['start']
-//       } else if (params['end'] && ! params['start']) {
-//         params['start'] = params['end']
-//       }
+       if (params['start'] && !params['end']) {
+        params['end'] = params['start']
+      } else if (params['end'] && ! params['start']) {
+        params['start'] = params['end']
+      }
       this.$http.get(url, {params: params})
       .then(
           resp => {this.display(resp.body)},
