@@ -654,7 +654,6 @@ export default {
       }
       return 'red'
     },
-    
     getRegion(feature) {
       switch (feature[1]) {
         case 'COCO00AUS':
@@ -730,14 +729,16 @@ export default {
 //         }
 //       })
       if (!this.markers[region]) {
-        var disableClusteringAtZoom = 6
-        if (region === 'OHIATA' || region === 'RUS') {
-          disableClusteringAtZoom = null
-        }
+        
         this.markers[region] = L.markerClusterGroup({
           polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1},
-          disableClusteringAtZoom: disableClusteringAtZoom, 
-          maxClusterRadius:35,
+          disableClusteringAtZoom: null, 
+          maxClusterRadius:function (zoom) {
+            if (zoom > 5) {
+              return 3
+            }
+            return 35
+          },
           animateAddingMarkers:true})
         this.markers[region].on('animationend', function () {
           console.log('end dans region')
@@ -746,20 +747,12 @@ export default {
         if (region !== 'W_EU') {
           this.markers[region].addTo(this.map)
         }
+       
+ 
       }
+
       this.markers[region].addLayer(marker)
       
-//        if (!this.groupLayers[groupId]) {
-//         this.groupLayers[groupId] = L.layerGroup([layer])
-//    //     this.stationLayers.addLayer(this.groupLayers[groupId])
-//       //  this.groupLayers[groupId].first = first ? {title:first,separator:true}:false
-//         this.groups.push(groupId)
-//         this.groupLayers[groupId].addTo(this.map)
-//         // this.layerControl.addOverlay(this.groupLayers[groupId],  groupId +' <div class="marker-' + className + '"></div>' )
-//       } else {
-//         this.groupLayers[groupId].addLayer(layer)
-//       }
-      // this.stations[this.stations.length - 1].layer = marker
       if (!this.bounds) {
         this.bounds = L.latLngBounds()
       }
