@@ -647,12 +647,12 @@ export default {
     },
     getClassname (year) {
       if (year < 1) {
-        return 'red'
+        return 'blue'
       }
       if (year < 5) {
         return 'orange'
       }
-      return 'blue'
+      return 'red'
     },
     
     getRegion(feature) {
@@ -730,7 +730,15 @@ export default {
 //         }
 //       })
       if (!this.markers[region]) {
-        this.markers[region] = L.markerClusterGroup({polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1}, maxClusterRadius:35, animateAddingMarkers:true})
+        var disableClusteringAtZoom = 6
+        if (region === 'OHIATA' || region === 'RUS') {
+          disableClusteringAtZoom = null
+        }
+        this.markers[region] = L.markerClusterGroup({
+          polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1},
+          disableClusteringAtZoom: disableClusteringAtZoom, 
+          maxClusterRadius:35,
+          animateAddingMarkers:true})
         this.markers[region].on('animationend', function () {
           console.log('end dans region')
           self.animationEnd()
