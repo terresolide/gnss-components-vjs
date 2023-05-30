@@ -509,6 +509,7 @@ export default {
       delete query.bbox
       delete query.center
       delete query.radius
+      delete query.several
       this.$router.push({ name: 'station', params: { name: this.selected[1], id: this.selected[0]}, query: query})
     },
 

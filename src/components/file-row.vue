@@ -54,6 +54,7 @@ export default {
       this.$store.commit('setQuery',{name: 'files', query: query})
       var query = Object.assign({}, this.$route.query)
       delete query.network
+      delete query.several
       this.$router.push({ name: 'station', params: { name: this.file.station, id: this.file.stationId}, query: query})
 
     },
