@@ -97,19 +97,24 @@
            <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
              -->
             <div class="product-link">
-             <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
+               <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
                 target="_blank">SARI</a> 
+               <a v-if="file.solution === 'GAMIT-GLOBK' && file.productType === 'POSITION'"
+                :href="sari + '?server=formater&station=' + file.station + '&product=uga_pos'"
+                target="_blank" style="pointer-events:none;opacity:0.8;cursor:none;">SARI</a> 
              <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
-            </div>
-           <div><label>Name</label>{{file.name}}</div>
-           <div style="font-size:0.8rem;height:160px;">
             
+               </div>
+           <div><label>Name</label>{{file.name}}</div>
+           <div><label>Ref Frame</label><span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
+           <div style="font-size:0.8rem;height:160px;">
+            <div><label>Solution</label><span style="letter-spacing: .07em;">{{file.solution}}</span></div>
             <div><label>Product Type</label><span style="letter-spacing: .07em;">{{file.productType}}</span></div>
             <div><label>Product date range</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
             <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
-            <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate'">
-              <label>{{labelize(key)}}</label> {{value}}
+            <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate' && key !== 'refFrame'" >
+              <span v-if="!(key === 'products' && file.solution === 'GAMIT-GLOBK')"> <label>{{labelize(key)}}</label> {{value}}</span>
             </div>
          </div>
          <div style="text-align:center;"><img :src="file.properties.img"  title="Click to show interactive graph" @click="getSerie(file)" /></div>
