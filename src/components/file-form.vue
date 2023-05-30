@@ -13,11 +13,32 @@
 		        <div>more info about solutions here @todo<br>
 		        </div>
 		     </div>
-		    </label><select class="gnss-control" v-model="searchparams.solution">
+		    </label>
+		    <select class="gnss-control" v-model="searchparams.solution">
 		       <option :value="null">---</option>
 		       <option v-for="pt in solutions" :value="pt">{{pt}}</option>
 		    </select>
 		  </div>
+		      <div v-if="productTypes">
+        <label>Product type</label>
+        <select class="gnss-control" v-model="searchparams.productType">
+           <option :value="null">---</option>
+           <option v-for="pt in productTypes" :value="pt">{{pt}}</option>
+        </select>
+      </div>
+      <div v-if="mode === 'map'"  >
+        <label>Has serveral solutions
+         <span class="gnss-question" @click="showTooltip($event)">
+             <font-awesome-icon icon="fa-solid fa-circle-question" />
+            </span>
+         <div class="gdm-tooltip" @click="hideTooltip($event)">
+            <div>You must select a product type and not a solution to use this setting.
+            </div>
+        </div>
+        </label>
+        <input type="checkbox" v-model="searchparams.several" 
+        :disabled="searchparams.solution || (!searchparams.productType && productTypes.length !== 1)"/>
+      </div>
 		  <div class="temp-extent">
 		    <label >Temporal extent</label>
 			  <div >
@@ -71,13 +92,7 @@
 		       <option v-for="pt in productors" :value="pt">{{pt}}</option>
 		    </select>
 		  </div>
-		  <div v-if="productTypes">
-		    <label>Product type</label>
-		    <select class="gnss-control" v-model="searchparams.productType">
-		       <option :value="null">---</option>
-		       <option v-for="pt in productTypes" :value="pt">{{pt}}</option>
-		    </select>
-		  </div>
+	
 		  <div v-if="networks && mode === 'map'" class="gnss-networks"> 
 		     <label>Networks</label>
 		     <div >
@@ -179,6 +194,7 @@ export default {
       searchparams: {
 	      productType: null,
 	      solution: null,
+	      several: null,
 	      productor: null,
 	      network: [],
 	      constel: null,
@@ -255,7 +271,7 @@ export default {
       newquery = Object.assign(newquery, params)
       // query = query.filter(x => x !== null)
       for (var key in newquery) {
-        if (newquery[key] ===  null || newquery[key].length == 0) {
+        if (!newquery[key] || newquery[key] ===  null || newquery[key].length == 0) {
           delete newquery[key]
         }
         if (key === 'network' && Array.isArray(newquery['network'])){
