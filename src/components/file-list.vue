@@ -195,6 +195,8 @@ export default {
      
       var params = Object.assign({}, this.defaultRequest)
       params = Object.assign(params, query)
+      // provisoire
+      params['productType'] = 'POSITION'
 //        if (params['start'] && !params['end']) {
 //         params['end'] = params['start']
 //       } else if (params['end'] && ! params['start']) {
