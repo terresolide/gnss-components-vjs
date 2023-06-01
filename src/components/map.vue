@@ -526,11 +526,11 @@ export default {
       if (i === 0) {
         this.$store.commit('setSearching', true)
       }
-      if (params['start'] && !params['end']) {
-        params['end'] = params['start']
-      } else if (params['end'] && ! params['start']) {
-        params['start'] = params['end']
-      }
+//       if (params['start'] && !params['end']) {
+//         params['end'] = params['start']
+//       } else if (params['end'] && ! params['start']) {
+//         params['start'] = params['end']
+//       }
       this.$http.get(url, {params: params})
       .then(
           resp => {this.display(resp.body, i, first)},

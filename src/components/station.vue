@@ -79,6 +79,11 @@
      <span class="close button" @click="unselect"><font-awesome-icon icon="fa-solid fa-close" /></span>
      <h3> {{selected.station}} {{selected.solution }} {{selected.productType}}</h3>
      <div v-if="plot.div" v-html="plot.div">STATION INCONNUE</div>
+     <div v-if="plot.div" style="text-align:center;margin-top:10px;font-size:12px;width:100%;">
+       Remarquables dates: <span class="line" style="background:green;"></span> Material change
+       <span class="line" style="background:red;"></span> Earthquake
+       <span class="line" style="background:grey;"></span> Unknown change
+     </div>
      <div v-else style="text-align:center;margin-top:45%;font-size:50px;">
         <font-awesome-icon icon="fa-sharp fa-spinner" spin></font-awesome-icon>
      </div>
@@ -472,6 +477,14 @@ export default {
 }
 </script>
 <style>
+.line {
+  border:0;
+  display:inline-block;
+  vertical-align:middle;
+  height:2px;
+  width:15px;
+  margin-left:10px;
+}
 div.box-station {
   display: inline-block;
 overflow: hidden;
