@@ -107,7 +107,7 @@
                 target="_blank">SARI</a> 
                <a v-if="file.solution === 'GAMIT-GLOBK' && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=uga_pos'"
-                target="_blank" style="pointer-events:none;opacity:0.8;cursor:none;">SARI</a> 
+                target="_blank" >SARI</a> 
              <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
             
                </div>
