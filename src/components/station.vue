@@ -54,7 +54,7 @@
 	           style="margin-right:20px;">Search</button>
 	           <button type="button" v-if="onMap"
 	              value="Remove" @click="removeNeighboursFromMap">Hide <font-awesome-icon icon="fa-solid fa-location-dot" /></button>
-	           <button type="button" v-else title="Show on map" @click="addNeighboursToMap">Show <font-awesome-icon icon="fa-solid fa-location-dot" /></button>
+	           <button type="button" v-else title="Show on map" @click="addNeighboursToMap">Show on map <font-awesome-icon icon="fa-solid fa-location-dot" /></button>
           </div>
 	        <div v-if="neighbours.length > 0">
 		        <div  v-for="st in neighbours" class="gnss-neighbour">

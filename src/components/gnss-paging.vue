@@ -1,6 +1,6 @@
 <template>
  <span class="gnss-paging">
-  <div style="width:100%;height:33px;text-align:center;">
+  <div >
   <span :class="{disabled: (currentPage===1 ? 'disabled': ''), 'mtdt-navigation':true}">
     <span  :style="{background:color}" @click="goToFirst()">
         <font-awesome-icon icon="fa-solid fa-angles-left" />
@@ -147,6 +147,13 @@ export default {
 }
 </script>
 <style>
+.gnss-paging > div {
+   width: calc(100% - 250px);
+   height: 33px;
+   text-align: center;
+   display: inline-block;
+   margin-left: 70px;
+}
 .gnss-paging span.mtdt-navigation span{
   font-size: 1rem;
   cursor: pointer;

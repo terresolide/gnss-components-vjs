@@ -8,11 +8,17 @@
  <div class="station-content" >
 	 <div class="station-header">
 	    <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
-	    <h2 >List of files</h2>
+	    <h2>List of files</h2>
 	 </div>
   <div class="station-body" style="min-height:calc(100vh - 70px);">
+	   
 	   <div><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
-	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging></div>
+	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging>
+	    <button type="button" :disabled="downloading"  title="Download only the files in the page" @click="downloadPage">
+          Download All
+          <font-awesome-icon icon="fa-solid fa-download" />
+      </button>
+	   </div>
 	   <div class="array-list">
 	    <div class="gnss-file header">
 	     <div class="gnss-file-title">Name  
@@ -100,6 +106,7 @@ export default {
         fill: null,
         years: null
       },
+      downloading:false,
       pagination: {
         page: 1,
         maxRecords: 25
@@ -124,6 +131,31 @@ export default {
     
   },
   methods: {
+    downloadPage () {
+      
+      var nodes = this.$el.querySelectorAll('.gnss-file a[download]')
+      this.download(0, nodes)
+      this.downloading = true
+//       nodes.forEach(function (node) {
+//         window.open(node.href)
+//       })
+    },
+    download (i, nodes) {
+      // windown.open(file.properties.file)
+      if (!nodes[i]) {
+        this.downloading = false
+        return
+      }
+      nodes[i].click()
+      var self = this
+      setTimeout(function() {
+        self.download(i + 1, nodes)
+      }, 300)
+    },
+    downloadAll (url) {
+      
+      
+    },
     changeSort(name) {
       var index = this.orderBy.findIndex(el => el.name === name)
       if (index >= 0) {
