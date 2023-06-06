@@ -356,6 +356,20 @@ export default {
         this.$el.appendChild(this.script)
       })
     },
+    getGraph (file) {
+      this.selected = file
+      this.plot.script = null
+      this.$http.get(this.api + 'files/' + file.name + '/graph' )
+      .then(resp => {
+        // this.plot.div = resp.body.div
+        this.plot.div = resp.body.div
+        this.plot.script = resp.body.script
+        this.script = document.createElement('div')
+        
+        this.script.innertHTML = this.plot.div
+        this.$el.querySelector('.file-selected').appendChild(this.script)
+      })
+    },
     unselect () {
       this.selected = null
       

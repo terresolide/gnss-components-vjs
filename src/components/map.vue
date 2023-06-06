@@ -595,14 +595,7 @@ export default {
 //       if (!init) {
 //         this.closePopup()
 //       }
-      if (this.$route.query.selected) {
-        var station = this.stations[parseInt(this.$route.query.selected)]
-        if (station) {
-           this.openPopup(station)
-        } else {
-           this.closePopup()
-        }
-      }
+     
       
 //       if (init && this.$route.query.expand) {
 //         this.toggleForm()
@@ -636,6 +629,14 @@ export default {
       this.$store.commit('resetStations')
       if (bounds && bounds.isValid()) {
           this.map.fitBounds(bounds)
+      }
+      if (this.$route.query.selected) {
+        var station = this.stations[parseInt(this.$route.query.selected)]
+        if (station) {
+           this.openPopup(station)
+        } else {
+           this.closePopup()
+        }
       }
     },
     displayStore (index) {
