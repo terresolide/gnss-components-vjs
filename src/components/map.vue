@@ -523,6 +523,7 @@ export default {
       params['page'] = i + 1
       params['maxRecords'] = this.maxRecords
       params['short'] = 1
+      
       if (i === 0) {
         this.$store.commit('setSearching', true)
       }
@@ -594,12 +595,15 @@ export default {
 //       if (!init) {
 //         this.closePopup()
 //       }
-      if (init && this.$route.query.selected) {
+      if (this.$route.query.selected) {
         var station = this.stations[parseInt(this.$route.query.selected)]
         if (station) {
            this.openPopup(station)
+        } else {
+           this.closePopup()
         }
       }
+      
 //       if (init && this.$route.query.expand) {
 //         this.toggleForm()
 //       }
@@ -764,32 +768,32 @@ export default {
       }
       this.bounds.extend(feature[3])
     },
-    download (type) {
-      var dataUrl = null
-      if (type === 'json') {
-        // var MIME_TYPE = "application/json";
-        dataUrl = this.dataJsonUrl
-      }
-      if (type === 'ascii') {
-        dataUrl = this.dataAsciiUrl
-      }
-      this.$http.get(dataUrl, {responseType: 'blob'}).then(
-          resp => {
-            if (resp.bodyBlob) {
-             // var blob = new Blob(resp.bodyBlob);
-              var url = window.URL.createObjectURL(resp.bodyBlob);
-              const a = document.createElement('a')
-              a.href = url
-              a.download = dataUrl.split('/').pop()
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-            }
-          }
-      )
+//     download (type) {
+//       var dataUrl = null
+//       if (type === 'json') {
+//         // var MIME_TYPE = "application/json";
+//         dataUrl = this.dataJsonUrl
+//       }
+//       if (type === 'ascii') {
+//         dataUrl = this.dataAsciiUrl
+//       }
+//       this.$http.get(dataUrl, {responseType: 'blob'}).then(
+//           resp => {
+//             if (resp.bodyBlob) {
+//              // var blob = new Blob(resp.bodyBlob);
+//               var url = window.URL.createObjectURL(resp.bodyBlob);
+//               const a = document.createElement('a')
+//               a.href = url
+//               a.download = dataUrl.split('/').pop()
+//               document.body.appendChild(a)
+//               a.click()
+//               document.body.removeChild(a)
+//             }
+//           }
+//       )
 //       var blob = new Blob([data], {type: MIME_TYPE});
 //       window.location.href = window.URL.createObjectURL(blob);
-    },
+//    },
     openPopup (station) {
 	      this.selected = station
 	      this.mode = 'image'
