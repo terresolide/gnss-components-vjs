@@ -339,6 +339,8 @@ export default {
       })
     },
     getSerie (file) {
+      this.getGraph(file)
+      return
       this.selected = file
       this.plot.div = null
       this.plot.script = null
@@ -364,10 +366,15 @@ export default {
         // this.plot.div = resp.body.div
         this.plot.div = resp.body.div
         this.plot.script = resp.body.script
-        this.script = document.createElement('div')
+        this.script = document.createElement('iframe')
+        this.script.src = 'about:blank'
+        this.script.srcdoc = '<html> <head> <title></title> </head> <body>' + resp.body.div + ' </body> </html>'
+        var node = this.$el.querySelector('.file-selected')
+        node.appendChild(this.script)
+       
+       
+       
         
-        this.script.innertHTML = this.plot.div
-        this.$el.querySelector('.file-selected').appendChild(this.script)
       })
     },
     unselect () {
@@ -491,6 +498,11 @@ export default {
 }
 </script>
 <style>
+ div.file-selected iframe {
+    border:none;
+    width:100%;
+    height:700px;
+  }
 .line {
   border:0;
   display:inline-block;
@@ -558,8 +570,8 @@ div[id="stationMap"] {
      border:1px solid lightgrey;
      border-radius:10px;
      padding:10px;
-     left:calc(50% - 400px);
-     min-width:800px;
+     left:calc(50% - 500px);
+     min-width:1000px;
      min-height:800px;
      width:fit-content;
      height:fit-content;
@@ -567,6 +579,7 @@ div[id="stationMap"] {
      top:-100px;
      box-shadow: 0 0 3px rgba(0,0,0,.5);
   }
+ 
  div.slider-files {
     max-width:460px;padding:0 5px;display:inline-block;vertical-align:top;
   }
