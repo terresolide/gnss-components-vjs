@@ -4,6 +4,9 @@
 
     <font-awesome-icon icon="fa-sharp fa-spinner" spin></font-awesome-icon>
 
+   </div>
+    <div v-if="noStation" class="msg-alert" style="position:absolute;top:50%;left:50%;z-index:4;background:white;padding:10px;" @click="noStation=false">
+     Aucune station ne correspond
    </div> 
      <file-form mode="map" ></file-form>
     
@@ -30,7 +33,7 @@
          </ul>
        </div>
     </div> -->
-   
+  
     <div id="map" class="fullmap"></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
@@ -215,7 +218,8 @@ export default {
       drawControl: null,
       drawLayers: null,
       init: false,
-      wait: false
+      wait: false,
+      noStation: false
     }
   },
   created () {
@@ -562,6 +566,11 @@ export default {
         this.stations = []
         this.groups = []
         this.bounds = null
+      }
+      if (index === 0 && data.stations.length === 0) {
+        this.noStation = true
+        this.$store.commit('setSearching', false)
+        return
       }
       data.stations.forEach(function (value) {
 
