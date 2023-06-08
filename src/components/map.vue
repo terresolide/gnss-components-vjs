@@ -489,7 +489,7 @@ export default {
      
     },
     closePopup() {
-      this.popup.close()
+      this.map.closePopup()
 //       this.selected = null
 //       var query = Object.assign({}, this.$route.query) 
 //       delete query['selected']

@@ -30,20 +30,39 @@
    
     <div v-if="location">
       <h3 style="margin-bottom:0;">Coordinates</h3>
-      <div style="float:left;min-width:300px;width:40%;margin-left:10px;margin-top:18px;margin-right:50px;">
+      <div style="float:left;margin-left:10px;min-width:600px;margin-top:18px;margin-right:50px;">
        
 	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
 	       <div v-if="location.properties.elevation"><label>Elevation:</label>{{location.properties.elevation.toLocaleString()}} m</div>
 
       <h3 style="margin-left:-10px;">Informations</h3>
-       <div v-if="station.properties.m3g"><label>M3g:</label>  <a :href="m3gUrl+ 'sitelog/view?id=' + stationName.toUpperCase()" target="_blank">sitelog</a></div>
+        <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M3G GNSS station page </a></div>
+      
+       <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/view?id=' + stationName.toUpperCase()" target="_blank">M3G sitelog</a></div>
+       
        <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
        <div v-if="station.properties.networks"><label>Networks:</label> {{station.properties.networks.join(', ')}}</div>
+       <div v-if="!station.properties.m3g"><em>Sorry, we don't have more information about this station</em></div>
+      </div>
+           <div v-show="station || stations" id="stationMap"  >
+   </div>
+    
+  </div>
+   <div style="clear:left;"> </div>
+       <div v-if="station.contacts" style="margin-left:10px;">
+         <label> More information
+            <span class="fa button in-title" @click="show.contact = !show.contact">{{show.contact ? '-' : '+'}}</span>
+         </label>
+         <div :style="{display: show.contact ? 'block': 'none'}" >
+	         <div v-for="contact, key in station.contacts" style="width:calc(33% - 5px);vertical-align:top; margin-left:5px;min-width:300px;display:inline-block;"> 
+	         <m3g-contact :type="key" :contact="contact"></m3g-contact>
+	         </div>
+	       </div>
+       </div>
  
  
- 
-        <h3  v-if="stationId" style="margin-left:-10px;">Nearest stations
+        <h3  v-if="stationId" >Nearest stations
             <span class="fa button in-title" @click="show.nearest = !show.nearest">{{show.nearest ? '-' : '+'}}</span>
         </h3>
         <div  style="margin-left:10px;" :style="{display: show.nearest ? 'block': 'none'}">
@@ -64,15 +83,11 @@
 	        </div>
 	        <div v-else ><em>No other stations within {{searchRadius}}km radius</em></div>
 	        </div>
-       </div>
+       
       
     </div>
-     <div v-show="station || stations" id="stationMap"  >
-   </div>
-    
-  </div>
-   <div style="clear:left;"> 
-   </div>
+
+   
    
    <div v-if="Object.keys(files).length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
@@ -155,10 +170,11 @@ Icon.Default.mergeOptions({
 import FileForm from './file-form.vue'
 import GnssMenu from './gnss-menu.vue'
 import GnssCarousel from './gnss-carousel.vue'
+import M3gContact from './m3g-contact.vue'
 // import Bokeh from '@bokeh/bokehjs/build/js/bokeh.esm.min.js';
 export default {
   name: 'Station',
-  components: {FileForm, GnssCarousel, GnssMenu},
+  components: {FileForm, GnssCarousel, GnssMenu, M3gContact},
   data () {
     return {
       sari: 'https://alvarosg.shinyapps.io/sari/',
@@ -185,6 +201,7 @@ export default {
       neighbours: [],
       show: {
         filter: false,
+        contact: false,
         nearest: false
       },
     //  resizeListener: null
@@ -374,12 +391,6 @@ export default {
       this.selected = null
       
     },
-    getInfo () {
-      if (this.station.properties.m3g) {
-        this.$http.get(this.api + 'stations/' + this.stationName + '/sitelog')
-        .then(resp => {console.log(resp.body)})
-      }
-    },
     getStation () {
         this.initNeighboursLayer()
         // this.$http.get(this.root + "/Things?$filter=substringof('" + this.stationId + "',name)&$expand=Locations($top=1)")
@@ -395,6 +406,7 @@ export default {
 	            this.stationId = this.station.id
 	            this.location = this.station.location
 	            this.getFiles()
+	            this.getMoreInfo()
 	            // this.getInfo()
 	            this.$nextTick(() => this.initMap())
             } else {
@@ -407,6 +419,30 @@ export default {
             this.setNoStation()
           }
         })
+    },
+    getMoreInfo () {
+      if (!this.station.properties.m3g) {
+        return
+      }
+      this.$http.get(this.api + 'stations/' + this.stationName + '/sitelog')
+      .then(resp  => {this.updateM3GInfos(resp.body)})
+    },
+    updateM3GInfos (data) {
+      if (data.MOID) {
+        this.station.MOID = data.MOID
+      }
+      if (data.sitelog) {
+        this.station.contacts = {}
+        if (data.sitelog.siteOwner) {
+          this.station.contacts.siteOwner = data.sitelog.siteOwner
+        }
+        if (data.sitelog.onSiteContact) {
+          this.station.contacts.onSiteContact = data.sitelog.onSiteContact
+        }
+        if (data.sitelog.siteMetadataCustodian) {
+          this.station.contacts.siteMetadataCustodian = data.sitelog.siteMetadataCustodian
+        }
+      }
     },
     getFiles() {
       this.files = {}
