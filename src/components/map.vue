@@ -46,7 +46,7 @@
       
              </ul>
            -->
-      <div v-if="selected">
+      <div v-if="selected ">
     <!--   <div v-show="mode == 'info'" style="min-width:250px;">
 	      <h5 style="margin-bottom:0;">Coordinates</h5>
 	      
@@ -66,7 +66,7 @@
 	       </div>
 	      </div>
 	     -->
-	      <div  style="min-width:250px;position:relative;">
+	      <div  style="min-width:250px;position:relative;" v-if="selected[4] && selected[4].length > 0">
 	        <gnss-carousel  :height="300" :slide-width="310" dot-position="bottom" :id="selected[0]">
 	          <slot v-for="img in selected[4]" >
 	          <div slot="slide" style="min-width:310px;text-align:center;display:inline-block;position:relative;">
@@ -457,6 +457,7 @@ export default {
       
        this.map.on('popupclose', function (e) {
         // self.selected = null
+        console.log('event popupclose')
          var query = Object.assign({}, self.$route.query) 
          delete query['selected']
          self.$router.push({name: 'home', query: query}).catch(()=>{})
@@ -488,7 +489,7 @@ export default {
      
     },
     closePopup() {
-      this.map.closePopup()
+      this.popup.close()
 //       this.selected = null
 //       var query = Object.assign({}, this.$route.query) 
 //       delete query['selected']
@@ -819,7 +820,10 @@ export default {
       console.log(e)
       var query = Object.assign({}, this.$route.query)
       if (this.selected && this.selected.id === e.target.options.id) {
-        this.closePopup()
+        
+        this.selected = null
+        delete query['selected']
+        this.$router.push({name: 'home', query: query}).catch(()=>{})
         return
       }
       this.mode = 'image'
