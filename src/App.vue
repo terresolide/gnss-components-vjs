@@ -67,6 +67,35 @@ ul[id="shortcuts"] {
   background: rgba(255,255,255,0.2);
   z-index:10;
 }
+ div.page-station {
+    width:100%;
+    background: url('./assets/img/background-gnss.png') no-repeat center center fixed;
+     -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  }
+  div.station-content {
+    background:white;
+    margin:auto;
+    max-width:1400px;
+    min-height:100vh;
+    padding-bottom:20px;
+    box-shadow: 0 0 3px rgba(0,0,0,.5);
+  }
+   div.station-header {
+    position:relative;
+    background: lightgrey;
+    margin: 0;
+    padding: 3px 5px;
+  }
+   div.station-body {
+    padding: 3px 10px;
+  }
+  div.station-header h2 {
+    padding:0;
+    margin:5px;
+  }
 .gnss-attribution img {
   vertical-align:middle;
 }

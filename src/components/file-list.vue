@@ -1,5 +1,5 @@
 <template>
-<div class="page-list" style="width:100%;position:relative;overflow:hidden;">
+<div class="page-station page-list" >
  
     <file-form mode="map" ></file-form>
      
@@ -287,21 +287,14 @@ div.box-station a.station-link {
 
 </style>
 <style scoped>
-  div.page-list {
-    width:100%;
-    background: url('./../assets/img/background-gnss.png') no-repeat center center fixed;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-  }
+ 
   div.page-list div.form {
     top: 105px;
   }
   div.gnss-file:nth-child(2n) {
    background: #eee;
   }
-  div.station-content {
+ /** div.station-content {
     background:white;
     margin:auto;
     max-width:1400px;
@@ -321,7 +314,7 @@ div.box-station a.station-link {
   div.station-header h2 {
     padding:0;
     margin:5px;
-  }
+  }**/
   div.array-list {
     border:1px solid grey;
   }

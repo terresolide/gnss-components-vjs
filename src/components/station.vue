@@ -126,13 +126,21 @@
              <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
             
                </div>
-           <div><label>Name</label>{{file.name}}</div>
-           <div><label>Ref Frame</label><span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
+           <div><label>Name</label> {{file.name}}</div>
+           <div><label>Ref Frame</label> <span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
            <div style="font-size:0.8rem;height:160px;">
-            <div><label>Solution</label><span style="letter-spacing: .07em;">{{file.solution}}</span></div>
-            <div><label>Product Type</label><span style="letter-spacing: .07em;">{{file.productType}}</span></div>
-            <div><label>Product date range</label>{{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
-            <div><label>Updated</label>{{date2str(file.creationDate)}}</div>
+            <div><label>Solution</label>
+            <span v-if="file.solution === 'SPOTGINS'">
+                <router-link :to="{ name: 'solution', 'params': {name: file.solution}}" target="_blank">
+                 {{file.solution}}
+                </router-link>
+              </span>
+              <span v-else>{{file.solution}}
+              </span>
+             </div>
+            <div><label>Product Type</label> <span style="letter-spacing: .07em;">{{file.productType}}</span></div>
+            <div><label>Product date range</label> {{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
+            <div><label>Updated</label> {{date2str(file.creationDate)}}</div>
             <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate' && key !== 'refFrame'" >
               <span v-if="!(key === 'products' && file.solution === 'GAMIT-GLOBK')"> <label>{{labelize(key)}}</label> {{value}}</span>
             </div>
@@ -566,25 +574,25 @@ div[id="stationMap"] {
 }
 </style>
 <style scoped>
-  div.page-station {
+/**  div.page-station {
     width:100%;
     background: url('./../assets/img/background-gnss.png') no-repeat center center fixed;
      -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
-  }
+  } **/
   div.page-station div.form {
     top: 105px;
   }
-  div.station-content {
+/**  div.station-content {
     background:white;
     margin:auto;
     max-width:1400px;
     min-height:100vh;
     padding-bottom:20px;
     box-shadow: 0 0 3px rgba(0,0,0,.5);
-  }
+  } **/
   div.gnss-neighbour {
     margin:3px 20px 3px 0;
     display:inline-block;
@@ -645,7 +653,7 @@ div[id="stationMap"] {
     min-width:138px;
     text-transform: capitalize;
   }
-  div.station-header {
+  /**  div.station-header {
     position:relative;
     background: lightgrey;
     margin: 0;
@@ -657,7 +665,7 @@ div[id="stationMap"] {
   div.station-header h2 {
     padding:0;
     margin:5px;
-  }
+  } **/
   span.station-link {
     color: darkblue;
     padding: 2px 3px;
