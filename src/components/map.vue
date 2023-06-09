@@ -430,19 +430,19 @@ export default {
      
     },
     initialize () {
-      this.map = L.map( "map", {scrollWheelZoom: true}).setView([20, -0.09], 3);
+      this.map = L.map( "map", {scrollWheelZoom: true, maxZoom:18}).setView([20, -0.09], 3);
       var overview = new L.Control.Overview(this.overview)
       overview.addTo(this.map)
       
       this.layerControl = new L.TilesControl(null, null, {position: 'topleft'})
-      this.layerControl.tiles.arcgisTopo.layer.addTo(this.map)
+      this.layerControl.tiles.osm.layer.addTo(this.map)
       this.layerControl.addTo(this.map)
       
       var legend = new L.Control.Legend()
       legend.addTo(this.map)
 //       var control = new L.Control.Form()
 //       control.addTo(this.map)
-      this.popup = L.popup({autoPan:true, minWidth: 300, minHeight:320, maxHeight:410, closeButton: false})
+      this.popup = L.popup({autoPan:true, minWidth: 300, autoPanPaddingTopLeft: [0,0], minHeight:320, maxHeight:410, closeButton: false})
       this.initDrawControl()
       var self = this
 //       this.map.whenReady(function (e) {
@@ -464,22 +464,15 @@ export default {
         console.log('event popupclose')
          var query = Object.assign({}, self.$route.query) 
          delete query['selected']
+//          self.closingPopup = true
+//          setTimeout(function () {
+//            self.closingPopup = false
+//          }, 300)
          self.$router.push({name: 'home', query: query}).catch(()=>{})
        })
 	     this.map.on('zoomend moveend', function (e) {
+	       console.log(self.map.getZoom())
 	        self.animationEnd()
-	        return
-	        if (this.init) {
-	          this.init = false
-	          return
-	        }
-	        
-	        var bbox = self.map.getBounds().toBBoxString()
-	        var query = Object.assign({}, self.$route.query)
-	        query.bounds = bbox
-	       // self.$store.commit('changeBounds', true)
-	        // self.$store.commit('setReset', true)
-	        self.$router.push({name: 'home', query: query}).catch(()=>{})
 	     })
 	     this.map.on('autopanstart', function (e) {
 	       self.wait = true
@@ -707,6 +700,7 @@ export default {
 	      case 'FRA':
 	      case 'CHE':
 	      case 'BEL':
+	      case 'NLD':
 	        return 'W_EU'
 	      case 'NOR':
 	      case 'SWE':
@@ -757,8 +751,8 @@ export default {
           polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1},
           disableClusteringAtZoom: null, 
           maxClusterRadius:function (zoom) {
-            if (zoom > 5) {
-              return 3
+            if (zoom > 5 && region !== 'OHIATA' && region !== 'ATF') {
+                return 3
             }
             return 35
           },
@@ -831,8 +825,7 @@ export default {
       console.log(e)
       var query = Object.assign({}, this.$route.query)
       if (this.selected && this.selected.id === e.target.options.id) {
-        
-        this.selected = null
+       
         delete query['selected']
         this.$router.push({name: 'home', query: query}).catch(()=>{})
         return

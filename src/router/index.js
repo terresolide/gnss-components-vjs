@@ -8,6 +8,7 @@ Vue.use(Router)
 //
 // import { createRouter, createWebHashHistory } from 'vue-router'
 const Station = () => import('../components/station.vue')
+const Solution = () => import('../components/solution.vue')
 const FileList = () => import('../components/file-list.vue')
 // import Station from '../components/station.vue'
 import Map from '../components/map.vue'
@@ -27,6 +28,11 @@ const routes = [
     path: '/station/:name/:id',
     name: 'station',
     component: Station
+  },
+  {
+    path: '/solution/:name',
+    name: 'solutions',
+    component: Solution
   },
   {
     path: '/files',

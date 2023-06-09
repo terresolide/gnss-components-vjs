@@ -51,7 +51,7 @@
   </div>
    <div style="clear:left;"> </div>
        <div v-if="station.contacts" style="margin-left:10px;">
-         <label> More information
+         <label> Contacts
             <span class="fa button in-title" @click="show.contact = !show.contact">{{show.contact ? '-' : '+'}}</span>
          </label>
          <div :style="{display: show.contact ? 'block': 'none'}" >
