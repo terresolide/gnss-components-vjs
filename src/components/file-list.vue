@@ -12,14 +12,14 @@
 	 </div>
   <div class="station-body" style="min-height:calc(100vh - 70px);">
 	   
-	   <div><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
+	   <div v-if="files.length > 0 && pagination.page === 1"><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
 	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging>
 	    <button type="button" :disabled="downloading"  title="Download only the files in the page" @click="downloadPage">
           Download All
           <font-awesome-icon icon="fa-solid fa-download" />
       </button>
 	   </div>
-	   <div class="array-list">
+	   <div class="array-list" v-if="files.length > 0 && pagination.page === 1">
 	    <div class="gnss-file header">
 	     <div class="gnss-file-title">Name  
 	       <span class="gnss-sort" @click="changeSort('name')" :class="{unactive: !sort.name}" >{{sort.name === 'DESC' ? '&uarr;' : '&darr;' }}</span>
@@ -57,6 +57,7 @@
 	      <file-row v-for="file, index in files" :key="index" :file="file"></file-row>
 	    </div>
    </div>
+   <div v-else style="text-align:center;padding:30px;"><em>No file match search criteria</em></div>
  </div>
  </div>
 </div>

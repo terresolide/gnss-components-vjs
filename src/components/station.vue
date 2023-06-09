@@ -443,6 +443,7 @@ export default {
           this.station.contacts.siteMetadataCustodian = data.sitelog.siteMetadataCustodian
         }
       }
+      this.$forceUpdate()
     },
     getFiles() {
       this.files = {}

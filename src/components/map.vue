@@ -1,12 +1,12 @@
 <template>
-  <div style="position:relative;overflow:hidden;" >
+  <div style="position:relative;overflow:hidden;"  >
    <div v-if="searching" style="position:absolute; z-index:1;font-size:50px;top:calc(50% - 50px);left:calc(50% - 50px);text-shadow: 2px 2px 2px #040201;">
 
     <font-awesome-icon icon="fa-sharp fa-spinner" spin></font-awesome-icon>
 
    </div>
-    <div v-if="noStation" class="msg-alert" style="position:absolute;top:50%;left:50%;z-index:4;background:white;padding:10px;" @click="noStation=false">
-     Aucune station ne correspond
+    <div v-if="noStation" class="msg-alert"  @click="noStation=false">
+     No station match search criteria
    </div> 
      <file-form mode="map" ></file-form>
     
@@ -34,7 +34,7 @@
        </div>
     </div> -->
   
-    <div id="map" class="fullmap"></div>
+    <div id="map" class="fullmap" @click="noStation=false"></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
@@ -653,7 +653,9 @@ export default {
       if (index === 0) {
         this.$store.commit('setSearching', true)
       }
-
+      if (index === 0 && this.$store.state.stations.length === 0) {
+        this.noStation = true
+      }
       for (var i = index; i < this.$store.state.stations.length && i < index + this.maxRecords; i++) {
       
         if (this.$store.state.stations[i]) {
@@ -880,7 +882,17 @@ export default {
   display:block;
 } **/
 
-
+.msg-alert {
+  position:absolute;
+  left:calc(50% - 150px);
+  top:calc(50% - 50px);
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  border-radius:5px;
+  
+  z-index:1;
+  background:rgba(255,255,255, .8);
+  padding:30px;
+}
 .leaflet-touch .leaflet-control-layers-toggle {
   width: 30px;
   height: 30px;
