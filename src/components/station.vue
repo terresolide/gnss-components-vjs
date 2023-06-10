@@ -131,9 +131,8 @@
            <div style="font-size:0.8rem;height:160px;">
             <div><label>Solution</label>
             <span v-if="file.solution === 'SPOTGINS'">
-                <router-link :to="{ name: 'solution', 'params': {name: file.solution}}" target="_blank">
-                 {{file.solution}}
-                </router-link>
+                
+                <a @click="goToSolution(file.solution)" @contextmenu="menuContext(file.solution, $event)">{{file.solution}}</a>
               </span>
               <span v-else>{{file.solution}}
               </span>
@@ -266,24 +265,16 @@ export default {
     // this.countNbFiles()
   },
   methods: {
-//     resize (e) {
-//       console.log(e)
-//       e.stopImmediatePropagation()
-//       e.preventDefault()
-
-//       return false
-//     },
-//     countNbFiles () {
-//       var width = 1380
-//       this.curFile = 0
-//       if (this.$el && this.$el.querySelector && this.$el.querySelector('.station-body')) {
-//         width = this.$el.querySelector('.station-body').offsetWidth
-//       }
-//       this.nbFiles = parseInt(width / this.slideWidth)
-//       if (this.nbFiles === 0) {
-//         this.nbFiles = 1
-//       }
-//     },
+    menuContext (solution, e) {
+      console.log(solution, e)
+      var location = window.location.href
+      console.log(location)
+      var route = this.$router.resolve({ name: 'solution', params: {name: solution}})
+      console.log(route)
+    },
+    goToSolution (name) {
+      this.$router.push({ name: 'solution', params: {name: name}})
+    },
     initStation () {
       this.station = null
       this.stations = null
@@ -679,16 +670,6 @@ div[id="stationMap"] {
   span.in-title {
     font-size: 1rem;
   }
-  span.button.close {
-    position: absolute;
-    right: 15px;
-    top:5px;
-    opacity:1;
-    border: 1px dotted transparent;
-   
-  }
-  span.button.close:hover {
-    border-color:grey;
-  }
+  
 
 </style>

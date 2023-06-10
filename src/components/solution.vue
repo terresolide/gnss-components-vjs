@@ -5,10 +5,12 @@
     
  <div class="station-content" >
      <div class="station-header">
+      <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
+     
       <h2>Solution {{name}}</h2>
      </div>
       <div class="station-body" style="min-height:calc(100vh - 70px);">
-        <pre v-if="metadata">{{metadata}}</pre>
+        <pre v-if="metadata" style="width:auto;white-space: pre-wrap;">{{metadata}}</pre>
       </div>
  </div>
  </div>
@@ -20,23 +22,40 @@ export default {
   components: {GnssMenu},
   created () {
     this.name = this.$route.params.name
-    this.getMetadata()
+    this.get()
+    window.scrollTo(0, 0)
+  },
+  computed: {
+    api () {
+      return this.$store.getters['api']
+    }
   },
   data () {
     return {
       name: null,
       metadata: null,
+      solution: null,
+      newtab: false
     }
   },
   methods: {
     close (e) {
-      
+      this.$router.go(-1)
     },
     get () {
-      
+      this.$http.get(this.api + 'solutions/' + this.name)
+      .then(resp => {
+        if (resp.body.name) {
+          this.solution = resp.body
+          if (this.solution.metadata) {
+            this.getMetadata()
+          }
+        }
+      })
     },
     getMetadata () {
-      this.$http.get('https://spotgins.formater/documentation/spotgins.acn')
+      if (this.solution.encodingType === 'text/plain')
+      this.$http.get(this.solution.metadata)
       .then(resp => {this.metadata = resp.body})
     }
   }

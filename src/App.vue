@@ -96,6 +96,17 @@ ul[id="shortcuts"] {
     padding:0;
     margin:5px;
   }
+  span.button.close {
+    position: absolute;
+    right: 15px;
+    top:5px;
+    opacity:1;
+    border: 1px dotted transparent;
+   
+  }
+  span.button.close:hover {
+    border-color:grey;
+  }
 .gnss-attribution img {
   vertical-align:middle;
 }
