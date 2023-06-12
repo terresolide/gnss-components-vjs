@@ -7,7 +7,7 @@
     
  <div class="station-content" >
 	 <div class="station-header">
-	    <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
+	    <span v-if="!newTab" class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
 	    <h2 v-else-if="stations">{{stations.length}} stations with the identifier {{stationName}}</h2>
 	    <h2 v-else>UNKNOWN STATION</h2>
@@ -77,7 +77,9 @@
           </div>
 	        <div v-if="neighbours.length > 0">
 		        <div  v-for="st in neighbours" class="gnss-neighbour">
-		          <span class="station-link" @click="goToStation(st)" :title="'Go to station ' + st.name">{{st.name}}</span>
+		          <span class="station-link" style="position:relative;" @click="goToStation(st)" @contextmenu="menuContext('xxx',$event)" :title="'Go to station ' + st.name">{{st.name}}
+		          <div class="menu-context"><ul><li title="Open in new tab">open in new tab</li></ul></div>
+		          </span>
 		          ({{Math.round(st.distance)}} km)
 		        </div>
 	        </div>
@@ -211,6 +213,7 @@ export default {
         contact: false,
         nearest: false
       },
+      newTab: false
     //  resizeListener: null
     }
   },
@@ -235,6 +238,9 @@ export default {
     if (!this.$route.params.name) {
       return
     } 
+    if (!this.$route.query.newTab) {
+      this.newTab = this.$route.query.newTab
+    }
     this.stationName = this.$route.params.name
     if (this.$route.params.id) {
       this.stationId = this.$route.params.id
@@ -265,8 +271,15 @@ export default {
     // this.countNbFiles()
   },
   methods: {
+    
     menuContext (solution, e) {
+      e.preventDefault()
       console.log(solution, e)
+      var nodes = document.querySelectorAll('.context')
+      nodes.forEach(function (node) {
+        node.classList.remove('context')
+      })
+      e.target.classList.add('context')
       var location = window.location.href
       console.log(location)
       var route = this.$router.resolve({ name: 'solution', params: {name: solution}})

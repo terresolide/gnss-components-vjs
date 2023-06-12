@@ -1,5 +1,5 @@
 <template>
- <div class="gnss-terresolide" style="position:relative;" >
+ <div class="gnss-terresolide" style="position:relative;" @click="removeContextMenu">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
  <div  id="page">
@@ -29,6 +29,12 @@ export default {
    
   },
   methods: {
+    removeContextMenu () {
+      var nodes = document.querySelectorAll('.context')
+      nodes.forEach(function (node) {
+        node.classList.remove('context')
+      })
+    },
     searchCodeLists () {
       var url = this.$store.getters['api'] + 'codelists/'
       if (this.$store.state.solution) {
@@ -66,6 +72,36 @@ ul[id="shortcuts"] {
   font-size:0.8rem;
   background: rgba(255,255,255,0.2);
   z-index:10;
+}
+
+div.menu-context {
+  display:none;
+  position: absolute;
+  border-radius: 5px;
+  top:20px;
+  background: #444;
+  color: #f9f9f9;
+  min-width:200px;
+  padding:0px;
+  z-index:1;
+   border:1px solid white;
+   box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+.context > div.menu-context {
+  display:block;
+}
+div.menu-context ul {
+  margin:0;
+  padding:0;
+  list-style-type:none;
+}
+div.menu-context ul li {
+  padding:2px 5px;
+  border-radius:5px;
+  margin:2px
+}
+div.menu-context ul li:hover {
+  background:#f4661b;
 }
  div.page-station {
     width:100%;
