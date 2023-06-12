@@ -80,6 +80,9 @@ div.menu-context {
   display:none;
   position: absolute;
   border-radius: 5px;
+  font-size:1rem;
+  font-weight:400;
+  left:0;
   top:20px;
   background: #444;
   color: #f9f9f9;
@@ -105,6 +108,8 @@ div.menu-context ul li {
 div.menu-context ul li a{
   text-decoration:none;
   color: #f9f9f9;
+   min-width:200px;
+  display:inline-block;
   background: transparent;
 }
 div.menu-context ul li:hover {

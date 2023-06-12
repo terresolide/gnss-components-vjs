@@ -38,7 +38,15 @@
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
-           <h4 v-if="selected" @click="goToStation($event)" title="Go to station page" >STATION {{selected[1]}}</h4>
+           <h4 style="position:relative; " v-if="selected" @click="goToStation($event)" title="Go to station page" @contextmenu="menuContext($event)">STATION {{selected[1]}}
+               <div  class="menu-context" @click="closeMenuContext($event)">
+                <ul>
+                   <li title="Open in new tab">
+                       <a  :href="$store.state.location + 'station/'+ selected[1] + '/' + selected[0] + '?newTab=true'" 
+                       @contextmenu="$event.target.click()" target="_blank">Open in new tab</a>
+                   </li></ul>
+               </div>
+          </h4>
           <!--   <ul v-if="selected"  class="menu-content">
               <li @click="mode = 'info'" >
              <span :class="{'selected': mode === 'station'}" >Informations</span>
@@ -77,13 +85,28 @@
 	           </div>
 	          </slot>
 	        </gnss-carousel>
-	        <div style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @click="goToStation($event)"></div>
-          
+	        <div class="link-area" style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @contextmenu="menuContext($event)" @click="goToStation($event)">
+             <div  class="menu-context" @click="closeMenuContext($event)">
+                <ul>
+                   <li title="Open in new tab">
+                       <a :href="$store.state.location + 'station/'+ selected[1] + '/' + selected[0] + '?newTab=true'" style="pointer-events:auto;"
+                       @contextmenu="$event.target.click()" target="_blank">Open in new tab</a>
+                   </li></ul>
+               </div>
+           </div>
 	      </div>
      </div>
       </div>
-      <div style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
-        <span class="fa button"  @click="goToStation($event)"><font-awesome-icon icon="fa-solid fa-arrows-alt" /></span>
+      <div v-if="selected" style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
+           <span class="fa button"  @click="goToStation($event)" @contextmenu="menuContext($event)"><font-awesome-icon icon="fa-solid fa-arrows-alt" />
+            <div  class="menu-context" @click="closeMenuContext($event)">
+                <ul>
+                   <li title="Open in new tab">
+                       <a :href="$store.state.location + 'station/'+ selected[1] + '/' + selected[0] + '?newTab=true'" style="pointer-events:auto;"
+                       @contextmenu="$event.target.click()" @click="console.log('click')" target="_blank">Open in new tab</a>
+                   </li></ul>
+               </div>
+        </span>
       </div> 
     </div>
    </div>
@@ -237,6 +260,26 @@ export default {
     this.initialize()
   },
   methods: {
+    closeMenuContext(e) {
+      e.stopPropagation()
+      this.$parent.removeContextMenu()
+    },
+    menuContext (e) {
+      e.preventDefault()
+      var target = e.target
+      while (target.tagName === 'svg' || target.tagName === 'path') {
+        target = target.parentNode
+      }
+     // if (target.classList.contains('link-area')) {
+        var menu = target.querySelector('.menu-context')
+        if (menu) {
+        menu.style.top = e.layerY + 'px'
+        menu.style.left = e.layerX + 'px'
+       }
+     // }
+      this.$parent.removeContextMenu()
+      target.classList.add('context')
+    },
     getQuery () {
       var query = Object.assign({}, this.$route.query)
       var bbox = this.map.getBounds().toBBoxString()

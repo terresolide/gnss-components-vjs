@@ -5,7 +5,7 @@
     
  <div class="station-content" >
      <div class="station-header">
-      <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
+      <span v-if="!$route.query.newTab" class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
      
       <h2>Solution {{name}}</h2>
      </div>
@@ -22,6 +22,7 @@ export default {
   components: {GnssMenu},
   created () {
     this.name = this.$route.params.name
+   
     this.get()
     window.scrollTo(0, 0)
   },
@@ -34,8 +35,7 @@ export default {
     return {
       name: null,
       metadata: null,
-      solution: null,
-      newtab: false
+      solution: null
     }
   },
   methods: {

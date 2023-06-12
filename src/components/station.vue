@@ -7,7 +7,7 @@
     
  <div class="station-content" >
 	 <div class="station-header">
-	    <span v-if="!newTab" class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
+	    <span v-if="!$route.query.newTab" class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
 	    <h2 v-else-if="stations">{{stations.length}} stations with the identifier {{stationName}}</h2>
 	    <h2 v-else>UNKNOWN STATION</h2>
@@ -75,8 +75,14 @@
           </div>
 	        <div v-if="neighbours.length > 0">
 		        <div  v-for="st in neighbours" class="gnss-neighbour">
-		          <span class="station-link" style="position:relative;" @click="goToStation(st)" @contextmenu="menuContext('xxx',$event)" :title="'Go to station ' + st.name">{{st.name}}
-		          <div class="menu-context"><ul><li title="Open in new tab"><a :href="locationUrl + 'station/'+ st.name + '/' + st.id + '?newTab=true'" target="_blank">Open in new tab</a></li></ul></div>
+		          <span class="station-link" style="position:relative;" @click="goToStation(st)" @contextmenu="menuContext($event)" :title="'Go to station ' + st.name">{{st.name}}
+		          <div class="menu-context">
+		            <ul>
+		               <li title="Open in new tab">
+		                   <a :href="locationUrl + 'station/'+ st.name + '/' + st.id + '?newTab=true'" 
+		                   @contextmenu="$event.target.click()" target="_blank">Open in new tab</a>
+		               </li></ul>
+		           </div>
 		          </span>
 		          ({{Math.round(st.distance)}} km)
 		        </div>
@@ -127,9 +133,18 @@
            <div><label>Ref Frame</label> <span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
            <div style="font-size:0.8rem;height:160px;">
             <div><label>Solution</label>
-            <span v-if="file.solution === 'SPOTGINS'">
+            <span v-if="file.solution === 'SPOTGINS'" >
                 
-                <a @click="goToSolution(file.solution)" @contextmenu="menuContext(file.solution, $event)">{{file.solution}}</a>
+                <span class="station-link"  @click="goToSolution(file.solution)" style="position:relative;" @contextmenu="menuContext($event)">{{file.solution}}
+                 <div class="menu-context" @click="closeMenuContext($event)">
+                     <ul>
+                       <li title="Open in new tab">
+                         <a :href="locationUrl + 'solution/'+ file.solution + '?newTab=true'" target="_blank"
+                         @contextmenu="$event.target.click()">Open in new tab</a>
+                       </li>
+                     </ul>
+                 </div>
+             </span>
               </span>
               <span v-else>{{file.solution}}
               </span>
@@ -269,19 +284,20 @@ export default {
     // this.countNbFiles()
   },
   methods: {
+    closeMenuContext(e) {
+      e.stopPropagation()
+      this.$parent.removeContextMenu()
+    },
     
-    menuContext (solution, e) {
+    menuContext (e) {
       e.preventDefault()
-      console.log(solution, e)
-      var nodes = document.querySelectorAll('.context')
-      nodes.forEach(function (node) {
-        node.classList.remove('context')
-      })
+      this.$parent.removeContextMenu()
+      var menu = e.target.querySelector('.menu-context')
+      if (menu) {
+        menu.style.top = e.layerY + 'px'
+        menu.style.left = e.layerX + 'px'
+      }
       e.target.classList.add('context')
-      var location = window.location.href
-      console.log(location)
-      var route = this.$router.resolve({ name: 'solution', params: {name: solution}})
-      console.log(route)
     },
     goToSolution (name) {
       this.$router.push({ name: 'solution', params: {name: name}})
