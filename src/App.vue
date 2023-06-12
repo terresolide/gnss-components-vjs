@@ -26,7 +26,9 @@ export default {
     let bokeh = document.createElement('script')
     bokeh.setAttribute('src', 'https://cdn.pydata.org/bokeh/release/bokeh-2.4.3.min.js')
     document.head.appendChild(bokeh)
-   
+    var location = window.location.href
+    var pos = location.indexOf('#')
+    this.$store.state.location = location.substring(0, pos +2)
   },
   methods: {
     removeContextMenu () {
@@ -99,6 +101,11 @@ div.menu-context ul li {
   padding:2px 5px;
   border-radius:5px;
   margin:2px
+}
+div.menu-context ul li a{
+  text-decoration:none;
+  color: #f9f9f9;
+  background: transparent;
 }
 div.menu-context ul li:hover {
   background:#f4661b;

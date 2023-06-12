@@ -60,8 +60,6 @@
 	         </div>
 	       </div>
        </div>
- 
- 
         <h3  v-if="stationId" >Nearest stations
             <span class="fa button in-title" @click="show.nearest = !show.nearest">{{show.nearest ? '-' : '+'}}</span>
         </h3>
@@ -78,18 +76,15 @@
 	        <div v-if="neighbours.length > 0">
 		        <div  v-for="st in neighbours" class="gnss-neighbour">
 		          <span class="station-link" style="position:relative;" @click="goToStation(st)" @contextmenu="menuContext('xxx',$event)" :title="'Go to station ' + st.name">{{st.name}}
-		          <div class="menu-context"><ul><li title="Open in new tab">open in new tab</li></ul></div>
+		          <div class="menu-context"><ul><li title="Open in new tab"><a :href="locationUrl + 'station/'+ st.name + '/' + st.id + '?newTab=true'" target="_blank">Open in new tab</a></li></ul></div>
 		          </span>
 		          ({{Math.round(st.distance)}} km)
 		        </div>
 	        </div>
 	        <div v-else ><em>No other stations within {{searchRadius}}km radius</em></div>
-	        </div>
-       
+	        </div>      
       
     </div>
-
-   
    
    <div v-if="Object.keys(files).length > 0"style="padding-top:10px;position:relative;">
    <div  v-if="selected" class="file-selected">
@@ -220,6 +215,9 @@ export default {
   computed: {
     api () {
       return this.$store.getters['api']
+    },
+    locationUrl () {
+      return this.$store.state.location
     }
   },
   watch: {
@@ -238,7 +236,7 @@ export default {
     if (!this.$route.params.name) {
       return
     } 
-    if (!this.$route.query.newTab) {
+    if (this.$route.query.newTab) {
       this.newTab = this.$route.query.newTab
     }
     this.stationName = this.$route.params.name
