@@ -4,7 +4,15 @@
       <div class="gnss-file-1"></div>
       <div class="gnss-file-2">
          <div><label>Station</label>:   
-           <a class="station-link"  @click="goToStation($event)">{{file.station}}</a>
+           <a class="station-link"  @click="goToStation($event)" style="position:relative;" @contextmenu="menuContext($event)">{{file.station}}
+               <div  class="menu-context" @click="closeMenuContext($event)">
+                <ul>
+                   <li title="Open in new tab">
+                       <a  :href="$store.state.location + 'station/'+ file.station + '/' + file.stationId + '?newTab=true'" 
+                       @contextmenu="$event.target.click()" target="_blank">Open in new tab</a>
+                   </li></ul>
+               </div>
+           </a>
          </div>
          <div v-if="file.networks"><label>Networks</label>: {{file.networks.join(', ')}}</div>
       </div>
@@ -57,6 +65,26 @@ export default {
       delete query.several
       this.$router.push({ name: 'station', params: { name: this.file.station, id: this.file.stationId}, query: query})
 
+    },
+    closeMenuContext(e) {
+      e.stopPropagation()
+      this.$parent.$parent.removeContextMenu()
+    },
+    menuContext (e) {
+      e.preventDefault()
+      var target = e.target
+      while (target.tagName === 'svg' || target.tagName === 'path') {
+        target = target.parentNode
+      }
+     // if (target.classList.contains('link-area')) {
+        var menu = target.querySelector('.menu-context')
+        if (menu) {
+        menu.style.top = e.layerY + 'px'
+        menu.style.left = e.layerX + 'px'
+       }
+     // }
+      this.$parent.$parent.removeContextMenu()
+      target.classList.add('context')
     },
     toDateStr (date) {
       return date.substring(0,10)

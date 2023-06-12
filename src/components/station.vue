@@ -39,7 +39,7 @@
       <h3 style="margin-left:-10px;">Informations</h3>
         <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M3G GNSS station page </a></div>
       
-       <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/view?id=' + stationName.toUpperCase()" target="_blank">M3G sitelog</a></div>
+       <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M3G sitelog</a></div>
        
        <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
        <div v-if="station.properties.networks"><label>Networks:</label> {{station.properties.networks.join(', ')}}</div>
@@ -133,7 +133,7 @@
            <div><label>Ref Frame</label> <span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
            <div style="font-size:0.8rem;height:160px;">
             <div><label>Solution</label>
-            <span v-if="file.solution === 'SPOTGINS'" >
+            <span v-if="file.solution === 'SPOTGINS404'" >
                 
                 <span class="station-link"  @click="goToSolution(file.solution)" style="position:relative;" @contextmenu="menuContext($event)">{{file.solution}}
                  <div class="menu-context" @click="closeMenuContext($event)">
@@ -153,7 +153,8 @@
             <div><label>Product date range</label> {{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
             <div><label>Updated</label> {{date2str(file.creationDate)}}</div>
             <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate' && key !== 'refFrame'" >
-              <span v-if="!(key === 'products' && file.solution === 'GAMIT-GLOBK')"> <label>{{labelize(key)}}</label> {{value}}</span>
+              <span v-if="key === 'doi'"><label>{{labelize(key)}}</label> <a class="station-link" :href="'https://doi.org/' + value" target="_blank">{{value}}</a></span>
+              <span v-else-if="!(key === 'products' && file.solution === 'GAMIT-GLOBK')"> <label>{{labelize(key)}}</label> {{value}}</span>
             </div>
          </div>
          <div style="text-align:center;"><img :src="file.properties.img"  title="Click to show interactive graph" @click="getSerie(file)" /></div>
@@ -247,7 +248,6 @@ export default {
     }
   },
   created () {
-    console.log(window.location)
     if (!this.$route.params.name) {
       return
     } 
@@ -547,7 +547,6 @@ export default {
      
     },
     close (event) {
-      console.log(event)
       this.$router.push({name: this.$store.state.query.name, query: this.$store.state.query.query})
     }
   }

@@ -103,7 +103,7 @@
                 <ul>
                    <li title="Open in new tab">
                        <a :href="$store.state.location + 'station/'+ selected[1] + '/' + selected[0] + '?newTab=true'" style="pointer-events:auto;"
-                       @contextmenu="$event.target.click()" @click="console.log('click')" target="_blank">Open in new tab</a>
+                       @contextmenu="$event.target.click()" target="_blank">Open in new tab</a>
                    </li></ul>
                </div>
         </span>
@@ -865,7 +865,6 @@ export default {
       }
     },
     getData (e) {
-      console.log(e)
       var query = Object.assign({}, this.$route.query)
       if (this.selected && this.selected.id === e.target.options.id) {
        
@@ -875,7 +874,6 @@ export default {
       }
       this.mode = 'image'
       this.selected = e.target.options
-      console.log(this.selected)
       this.show = true
 //       this.popup.setLatLng(e.target.getLatLng())
 //       this.popup.openOn(this.map)
