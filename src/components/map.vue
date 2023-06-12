@@ -35,7 +35,7 @@
     </div> -->
   
     <div id="map" class="fullmap" @click="noStation=false"></div>
-    <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
+    <div  id="json" v-show="show" style="position:relative;background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div style="min-height:100px;cursor:pointer;">
            <h4 style="position:relative; " v-if="selected" @click="goToStation($event)" title="Go to station page" @contextmenu="menuContext($event)">STATION {{selected[1]}}
@@ -270,11 +270,12 @@ export default {
       while (target.tagName === 'svg' || target.tagName === 'path') {
         target = target.parentNode
       }
+
      // if (target.classList.contains('link-area')) {
         var menu = target.querySelector('.menu-context')
         if (menu) {
-        menu.style.top = e.layerY + 'px'
-        menu.style.left = e.layerX + 'px'
+        menu.style.top = e.offsetY + 'px'
+        menu.style.left = e.offsetX + 'px'
        }
      // }
       this.$parent.removeContextMenu()
