@@ -79,8 +79,8 @@ export default {
      // if (target.classList.contains('link-area')) {
         var menu = target.querySelector('.menu-context')
         if (menu) {
-        menu.style.top = e.layerY + 'px'
-        menu.style.left = e.layerX + 'px'
+        menu.style.top = e.offsetY + 'px'
+        menu.style.left = e.offsetX + 'px'
        }
      // }
       this.$parent.$parent.removeContextMenu()

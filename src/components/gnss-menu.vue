@@ -9,6 +9,7 @@
                Record state url
                 <div class="bookmark-tooltip" >The url has been copied to clipboard</div>
            </li>
+          
            <li v-if="$route.name === 'home'" class="gnss-bars-link"  @click="goToList()">
              <font-awesome-icon icon="fa-solid fa-list" />
              View list</li>
@@ -16,6 +17,9 @@
              <font-awesome-icon icon="fa-solid fa-map" />
              View Map</li>
           <li class="gnss-hr" style="margin-bottom:5px;"><hr /></li>
+           <li v-if="$route.query.newTab" class="gnss-bars-link" @click="goTo($event, 'home')" >
+              <font-awesome-icon icon="fa-solid fa-home"  /> Home
+           </li>
           <li class="gnss-bars-link disabled" @click="goTo($event,'solutions')">Solutions</li>
           <li class="gnss-bars-link disabled" @click="goTo($event, 'productTypes')">Product Types</li>
           <li class="gnss-bars-link disabled" @click="goTo($event, 'about')">About</li>
@@ -74,7 +78,10 @@ export default {
       navigator.clipboard.writeText(url);
     },
     goTo(event, name) {
-      event.stopPropagation()
+      if (name === 'home') {
+         this.$router.push({name: name})
+      }
+      // event.stopPropagation()
       return
       var query = Object.assign({}, this.$route.query)
       if (this.$route.name === 'home') {
