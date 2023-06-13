@@ -133,9 +133,7 @@
            <div><label>Ref Frame</label> <span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
            <div style="font-size:0.8rem;height:160px;">
             <div><label>Solution</label>
-            <span v-if="file.solution === 'SPOTGINS404'" >
-                
-                <span class="station-link"  @click="goToSolution(file.solution)" style="position:relative;" @contextmenu="menuContext($event)">{{file.solution}}
+             <span class="station-link"  @click="goToSolution(file.solution)" style="position:relative;margin-left:-5px;" @contextmenu="menuContext($event)">{{file.solution}}
                  <div class="menu-context" @click="closeMenuContext($event)">
                      <ul>
                        <li title="Open in new tab">
@@ -145,9 +143,6 @@
                      </ul>
                  </div>
              </span>
-              </span>
-              <span v-else>{{file.solution}}
-              </span>
              </div>
             <div><label>Product Type</label> <span style="letter-spacing: .07em;">{{file.productType}}</span></div>
             <div><label>Product date range</label> {{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
