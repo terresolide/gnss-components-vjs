@@ -315,8 +315,7 @@ export default {
       var aKeys = Object.keys(oldquery).sort();
       var bKeys = Object.keys(newquery).sort();
       if (JSON.stringify(aKeys) != JSON.stringify(bKeys)) {
-        
-        console.log('is different')
+
         return true
       }
       // compare route key by key
@@ -362,7 +361,6 @@ export default {
         }
       }
       if (this.$store.state.stations) {
-        console.log('j ai déjà les stations')
         this.displayStore(0)
       } else {
         this.load(0, first)
@@ -505,7 +503,7 @@ export default {
       
        this.map.on('popupclose', function (e) {
         // self.selected = null
-        console.log('event popupclose')
+        //  console.log('event popupclose')
          var query = Object.assign({}, self.$route.query) 
          delete query['selected']
 //          self.closingPopup = true
@@ -515,7 +513,7 @@ export default {
          self.$router.push({name: 'home', query: query}).catch(()=>{})
        })
 	     this.map.on('zoomend moveend', function (e) {
-	       console.log(self.map.getZoom())
+	       // console.log(self.map.getZoom())
 	        self.animationEnd()
 	     })
 	     this.map.on('autopanstart', function (e) {
@@ -559,13 +557,21 @@ export default {
       if (!this.api) {
         alert('Service unvailable!')
       }
-      var url = this.api + 'stations/'
-      var params = Object.assign({}, this.defaultRequest)
-      params = Object.assign(params, this.$route.query)
-      params['page'] = i + 1
-      params['maxRecords'] = this.maxRecords
-      params['short'] = 1
-      
+      // all stations case get in cache
+      var props =  Object.keys(this.$route.query)
+      var toSearch = props.filter(key => ['expand', 'bounds', 'selected', 'nodraw'].indexOf(key) < 0)
+      if (toSearch.length === 0) {
+        var url = this.api + 'stations/cache'
+        var params = []
+      } else {
+   
+	      var url = this.api + 'stations/'
+	      var params = Object.assign({}, this.defaultRequest)
+	      params = Object.assign(params, this.$route.query)
+	      params['page'] = i + 1
+	      params['maxRecords'] = this.maxRecords
+	      params['short'] = 1
+      }
       if (i === 0) {
         this.$store.commit('setSearching', true)
       }
@@ -802,7 +808,6 @@ export default {
           },
           animateAddingMarkers:true})
         this.markers[region].on('animationend', function () {
-          console.log('end dans region')
           self.animationEnd()
         })
         if (region !== 'W_EU') {

@@ -235,7 +235,7 @@ export default {
     initSearchParams (query, init) {
       this.length.values = [0, this.length.max]
       this.fillrate.values = [0, 100]
-      console.log(query.expand)
+      // console.log(query.expand)
       
       for (var key in query) {
         if (key === 'network') {
