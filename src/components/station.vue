@@ -48,6 +48,7 @@
        <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
        <div v-if="station.properties.networks"><label>Networks:</label> {{station.properties.networks.join(', ')}}</div>
        <div v-if="!station.properties.m3g"><em>Sorry, we don't have more information about this station</em></div>
+       
       </div>
            <div v-show="station || stations" id="stationMap"  >
    </div>
@@ -64,12 +65,14 @@
 	         </div>
 	       </div>
        </div>
-       <div v-if="station.monument || station.geological" style="margin-left:10px;">
+       <div v-if="station.monument || station.dateInstalled || station.geological" style="margin-left:10px;">
          <label> Monument and geological information
             <span class="fa button in-title" @click="show.siteForm = !show.siteForm">{{show.siteForm ? '-' : '+'}}</span>
          </label>
          <div :style="{display: show.siteForm ? 'block': 'none'}">
-	         <div v-if="station.monument"  style="width:calc(49% - 5px);vertical-align:top; margin-left:5px;font-size:0.9rem;min-width:300px;display:inline-block;">
+	         <div v-if="station.monument || station.dateInstalled"  style="width:calc(49% - 5px);vertical-align:top; margin-left:5px;font-size:0.9rem;min-width:300px;display:inline-block;">
+	            <div v-if="station.dateInstalled"><label>Installed/Removed</label> {{date2str(station.dateInstalled)}} &rarr; {{date2str(station.dateRemoved)}}</div>
+      
 	           <div v-for="key, index in monumentKeys" v-if="station.monument[key]" > 
 	           <label>{{translateMonument[index]}}</label> {{station.monument[key]}}
 	           </div>
@@ -347,7 +350,7 @@ export default {
       if (date ) {
         return moment(date).format('ll')
       }
-      return ''
+      return '---'
     },
     initNeighboursLayer () {
       if (this.neighboursLayer) {
