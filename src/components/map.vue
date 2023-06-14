@@ -560,9 +560,18 @@ export default {
       // all stations case get in cache
       var props =  Object.keys(this.$route.query)
       var toSearch = props.filter(key => ['expand', 'bounds', 'selected', 'nodraw'].indexOf(key) < 0)
+       if (i === 0) {
+        this.$store.commit('setSearching', true)
+      }
       if (toSearch.length === 0) {
         var url = this.api + 'stations/cache'
         var params = []
+        this.$http.get(url, {params: params})
+        .then(
+            resp => {this.displayByPart(resp.body, i, first)},
+            resp => {alert('Erreur de chargement: ' + resp.status)}
+         )
+         return
       } else {
    
 	      var url = this.api + 'stations/'
@@ -571,10 +580,8 @@ export default {
 	      params['page'] = i + 1
 	      params['maxRecords'] = this.maxRecords
 	      params['short'] = 1
-      }
-      if (i === 0) {
-        this.$store.commit('setSearching', true)
-      }
+      
+     
 //       if (params['start'] && !params['end']) {
 //         params['end'] = params['start']
 //       } else if (params['end'] && ! params['start']) {
@@ -585,8 +592,50 @@ export default {
           resp => {this.display(resp.body, i, first)},
           resp => {alert('Erreur de chargement: ' + resp.status)}
        )
+      }
     },
-   
+    displayByPart (data, index, init) {
+      var self = this
+      if (index === 0) {
+           for (var region in this.markers) {
+             this.markers[region].off()
+             this.markers[region].clearLayers()
+             this.markers[region].remove(this.map)
+             this.markers[region] = null
+           }
+           this.markers = {}
+//         for (var key in this.groupLayers) {
+//           if (this.groupLayers[key]) {
+//            this.groupLayers[key].clearLayers()
+//            this.groupLayers[key].remove(this.map)
+//            this.layerControl.removeLayer(this.groupLayers[key])
+//            this.groupLayers[key] = null
+//           }
+//        }
+        this.groupLayers = []
+        this.stations = []
+        this.groups = []
+        this.bounds = null
+      }
+      if (index === 0 && data.stations.length === 0) {
+        this.noStation = true
+        this.$store.commit('setSearching', false)
+        return
+      }
+      for(var i= index; i < index + this.maxRecords && i < data.stations.length ; i++) {
+          self.addStation(data.stations[i])
+      }
+    
+     
+      if (data.stations.length > index + this.maxRecords ) {
+        setTimeout(function () {
+          self.displayByPart(data, index + self.maxRecords , init)
+        }, 0)
+         return
+      }
+      this.displayEnd(init)
+      
+    },
     display (data, index, init) {
       var self = this
       if (index === 0) {
