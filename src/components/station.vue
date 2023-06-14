@@ -35,11 +35,15 @@
 	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
 	       <div v-if="location.properties.elevation"><label>Elevation:</label>{{location.properties.elevation.toLocaleString()}} m</div>
-
+         <div v-if="station.properties.x_pos"><label>X: </label>{{station.properties.x_pos.toLocaleString()}}</div>
+         <div v-if="station.properties.y_pos"><label>Y: </label>{{station.properties.y_pos.toLocaleString()}}</div>
+         <div v-if="station.properties.z_pos"><label>Z: </label>{{station.properties.z_pos.toLocaleString()}}</div>
+    
+    
       <h3 style="margin-left:-10px;">Informations</h3>
-        <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M3G GNSS station page </a></div>
+        <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M<sup>3</sup>G GNSS station page </a></div>
       
-       <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M3G sitelog</a></div>
+       <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M<sup>3</sup>G sitelog</a></div>
        
        <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
        <div v-if="station.properties.networks"><label>Networks:</label> {{station.properties.networks.join(', ')}}</div>
@@ -59,6 +63,23 @@
 	         <m3g-contact :type="key" :contact="contact"></m3g-contact>
 	         </div>
 	       </div>
+       </div>
+       <div v-if="station.monument || station.geological" style="margin-left:10px;">
+         <label> Monument and geological information
+            <span class="fa button in-title" @click="show.siteForm = !show.siteForm">{{show.siteForm ? '-' : '+'}}</span>
+         </label>
+         <div :style="{display: show.siteForm ? 'block': 'none'}">
+	         <div v-if="station.monument"  style="width:calc(49% - 5px);vertical-align:top; margin-left:5px;font-size:0.9rem;min-width:300px;display:inline-block;">
+	           <div v-for="key, index in monumentKeys" v-if="station.monument[key]" > 
+	           <label>{{translateMonument[index]}}</label> {{station.monument[key]}}
+	           </div>
+	         </div>
+	         <div v-if="station.geological"  style="width:calc(49% - 5px);vertical-align:top; margin-left:5px;font-size:0.9rem;min-width:300px;display:inline-block;">
+	           <div v-for="key, index in geologicalKeys" v-if="station.geological[key]" > 
+	           <label>{{translateGeo[index]}}</label> {{station.geological[key]}}
+	           </div>
+	         </div>
+	         </div>
        </div>
         <h3  v-if="stationId" >Nearest stations
             <span class="fa button in-title" @click="show.nearest = !show.nearest">{{show.nearest ? '-' : '+'}}</span>
@@ -217,9 +238,16 @@ export default {
       show: {
         filter: false,
         contact: false,
-        nearest: false
+        nearest: false,
+        siteForm: false
       },
-      newTab: false
+      newTab: false,
+      monumentKeys: ['foundation', 'monumentDesc', 'heightVal', 'foundationDepthVal'],
+      translateMonument:['Monument foundation', 'Monument description', 'Monument height', 'Monument foundation depth'],
+      geologicalKeys: [   'geologicCharacteristic', 
+         'bedrockCondition', 'bedrockType', 'fractureSpacingVal', 'faultZonesNearby', 'distance', 'tectonicPlate'],
+      translateGeo: ['Geological Characteristic', 'Bedrock condition', 'Bedrock type', 'Fracture spacing', 'Fault zone', 'Distance to fault', 'Tectonic']    
+          
     //  resizeListener: null
     }
   },
@@ -279,6 +307,7 @@ export default {
     // this.countNbFiles()
   },
   methods: {
+  
     closeMenuContext(e) {
       e.stopPropagation()
       this.$parent.removeContextMenu()
@@ -462,6 +491,41 @@ export default {
         }
         if (data.sitelog.siteMetadataCustodian) {
           this.station.contacts.siteMetadataCustodian = data.sitelog.siteMetadataCustodian
+        }
+        
+        var countG = 0
+        var geological = {}
+        if (data.sitelog.location && data.sitelog.location.tectonicPlate) {
+          geological.tectonicPlate = data.sitelog.location.tectonicPlate
+          countG++
+        }
+       
+        if (data.sitelog.siteForm) {
+          if (data.sitelog.siteForm.dateInstalled) {
+            this.station.dateInstalled = data.sitelog.siteForm.dateInstalled
+            this.station.dateRemoved = data.sitelog.siteForm.dateRemoved ? data.sitelog.siteForm.dateRemoved : null
+          }
+          
+          this.geologicalKeys.forEach(function (key) {
+            if (data.sitelog.siteForm[key]) {
+              geological[key] = data.sitelog.siteForm[key]
+              countG++
+            }
+          })
+          var countM = 0
+          var monument = {}
+          this.monumentKeys.forEach(function (key) {
+            if (data.sitelog.siteForm[key]) {
+              monument[key] = data.sitelog.siteForm[key]
+              countM++
+            }
+          })
+          if (countG > 0) {
+            this.station.monument = monument
+          }
+        }
+        if (countG > 0) {
+          this.station.geological = geological
         }
       }
       this.$forceUpdate()

@@ -23,7 +23,7 @@
              </div>
             </div>
         </div>
-        <div v-for="key in ['primaryContact', 'secondaryContact']" v-if="contact[key]">
+        <div v-for="key in ['primaryContact', 'secondaryContact']" v-if="contact[key] && contact[key]['publicnon-personalContact']">
           <label>{{labelize(key)}}</label>
           <div class="contact-info">
 	          <div v-if="contact[key].name" >
