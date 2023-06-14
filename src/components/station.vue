@@ -289,8 +289,8 @@ export default {
       this.$parent.removeContextMenu()
       var menu = e.target.querySelector('.menu-context')
       if (menu) {
-        menu.style.top = e.offsetY + 'px'
-        menu.style.left = e.offsetX + 'px'
+        menu.style.top = '20px'
+        menu.style.left = '0px'
       }
       e.target.classList.add('context')
     },
