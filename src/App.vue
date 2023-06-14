@@ -54,6 +54,13 @@ export default {
 </script>
 <style src='./assets/fontello/css/fontello.css' />
 <style>
+.gnss-terresolide label {
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+.gnss-terresolide pre {
+   font-family: Consolas,monospace
+}
 ul[id="shortcuts"] {
  display:none;
 }

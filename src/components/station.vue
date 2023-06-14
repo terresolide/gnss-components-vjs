@@ -638,6 +638,7 @@ div[id="stationMap"] {
     border: 1px solid grey;
     border-radius:10px;
     width:445px;
+    line-height:1;
     max-width:450px;
     min-height:630px;
     vertical-align:top;
