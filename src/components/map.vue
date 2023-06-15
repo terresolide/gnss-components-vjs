@@ -742,7 +742,7 @@ export default {
         this.init = true
         this.$store.commit('setDraw', false)
       }
-      this.$store.commit('resetStations')
+      // this.$store.commit('resetStations')
       if (bounds && bounds.isValid()) {
           this.map.fitBounds(bounds)
       }
@@ -791,7 +791,6 @@ export default {
       switch (feature[1]) {
         case 'COCO00AUS':
         case 'MAC100AUS':
-        case 'MAS100ESP':
         case 'ISPA00CHL':
         case 'YELL00CAN':
           return feature[1]
@@ -814,6 +813,8 @@ export default {
       }
       var country = feature[1].substring(6,9)
       switch (country) {
+      case 'CPV':
+        return 'SEN'
 // 	      case 'USA':
 // 	      case 'CAN':
 // 	        return feature.properties.name;

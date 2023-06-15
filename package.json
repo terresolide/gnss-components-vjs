@@ -1,6 +1,6 @@
 {
   "name": "gnss-components-vjs",
-  "version": "1.3.9",
+  "version": "1.4.0",
   "description": "Component to search and display Gnss products",
   "production": {
     "url": "https://cdn.jsdelivr.net/gh/terresolide"

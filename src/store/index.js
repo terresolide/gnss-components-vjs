@@ -14,7 +14,7 @@ export default function makeStore( config ) {
     batch: 200,
     search: true,
     reseting: false,
-    stations: null,
+   // stations: null,
    // boundsChanged: false,
     drawing: false
   }
@@ -39,13 +39,13 @@ export default function makeStore( config ) {
       },
       setSearching(state, value) {
         state.search = value
-      },
-      resetStations (state) {
-        state.stations = null
-      },
-      setStations(state, stations) {
-        state.stations = stations
       }
+//      resetStations (state) {
+//        state.stations = null
+//      },
+//      setStations(state, stations) {
+//        state.stations = stations
+//      }
 //      changeBounds(state, value) {
 //        state.boundsChanged = value
 //      }
@@ -85,9 +85,9 @@ export default function makeStore( config ) {
         }
         return null
       },
-      stations (state, getters) {
-        return state.stations
-      },
+//      stations (state, getters) {
+//        return state.stations
+//      },
       productTypes (state, getters) {
          if (state.codelists.productTypes) {
           return state.codelists.productTypes

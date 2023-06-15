@@ -13,9 +13,9 @@
            <li v-if="$route.name === 'home'" class="gnss-bars-link"  @click="goToList()">
              <font-awesome-icon icon="fa-solid fa-list" />
              View list</li>
-            <li v-if="$route.name === 'files'" class="gnss-bars-link" style="margin-top:5px;" @click="goToMap()">
+          <!--    <li v-if="$route.name === 'files'" class="gnss-bars-link" style="margin-top:5px;" @click="goToMap()">
              <font-awesome-icon icon="fa-solid fa-map" />
-             View Map</li>
+             View Map</li> -->
           <li class="gnss-hr" style="margin-bottom:5px;"><hr /></li>
            <li v-if="$route.query.newTab" class="gnss-bars-link" @click="goTo($event, 'home')" >
               <font-awesome-icon icon="fa-solid fa-home"  /> Home
@@ -88,18 +88,18 @@ export default {
         query = this.$parent.getQuery()
       }
       this.$store.commit('setQuery',{name: this.$route.name, query: query})
-      if (this.$route.name === 'home') {
-         this.$store.commit('setStations', this.$parent.stations)
-      }
+//       if (this.$route.name === 'home') {
+//          this.$store.commit('setStations', this.$parent.stations)
+//       }
       return
       this.$router.push({name: name})
     },
     goToList () {
       var query = Object.assign({}, this.$route.query)
       this.$store.commit('setQueryList', this.$parent.getQuery())
-      if (this.$route.name === 'home') {
-         this.$store.commit('setStations', this.$parent.stations)
-      }
+//       if (this.$route.name === 'home') {
+//          this.$store.commit('setStations', this.$parent.stations)
+//       }
       var query = Object.assign({}, this.$route.query)
       delete query.selected
       delete query.bounds
@@ -108,7 +108,7 @@ export default {
     },
     goToMap () {
       var query = Object.assign({}, this.$route.query)
-      this.$store.commit('resetStations')
+     // this.$store.commit('resetStations')
       delete query.page
       delete query.maxRecords
       this.$router.push({name: 'home', query: query})
