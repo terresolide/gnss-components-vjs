@@ -555,7 +555,7 @@ export default {
       var query = Object.assign({}, this.$route.query)
       var bbox = this.map.getBounds().toBBoxString()
       this.$store.commit('setQuery',{name: 'home', query: this.getQuery()})
-      this.$store.commit('setStations', this.stations)
+     // this.$store.commit('setStations', this.stations)
       var query = Object.assign({}, this.$route.query)
       delete query.network
       delete query.selected
@@ -827,13 +827,18 @@ export default {
 	      case 'NOR':
 	      case 'SWE':
 	      case 'DNK':
+	      case 'LVA':
+	      case 'FIN':
+	      case 'EST':
 	        return 'N_EU'
 	      case 'NLD':
 	      case 'DEU':
+	      case 'POL':
 	      case 'CZE':
 	      case 'HUN':
 	      case 'GBR':
 	      case 'IRL':
+	      case 'SVK':
 	        return 'N_EU'
 	      case 'SVN':
 	      case 'ITA':
@@ -842,6 +847,8 @@ export default {
 	      case 'ROU':
 	      case 'UKR':
 	      case 'MDA':
+	      case 'MNE':
+	      case 'TUR':
 	         return 'S_EU'
 	      case 'GLP':
 	      case 'CUB':

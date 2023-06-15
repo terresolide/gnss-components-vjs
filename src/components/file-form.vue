@@ -304,8 +304,8 @@ export default {
       el.classList.add('tooltip-show')
     },
     toggleForm () {
-      var elt = document.querySelector('.form')
-      elt.classList.toggle('expand')
+     // var elt = this.$el.querySelector('.form')
+      this.$el.classList.toggle('expand')
     }
   }
 }
