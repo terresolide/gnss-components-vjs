@@ -8,9 +8,9 @@
     <div v-if="noStation" class="msg-alert"  @click="noStation=false">
      No station match search criteria
    </div> 
-     <file-form mode="map" ></file-form>
+     <file-form mode="map" v-show="$route.name=='home'"></file-form>
     
-    <gnss-menu mode="map"></gnss-menu>
+    <gnss-menu mode="map" v-show="$route.name=='home'"></gnss-menu>
    <!--    <div style="position:absolute;top:5px;right:0;z-index:2">
        <div class="gnss-shortcut gnss-bars" @click="toggle($event)"><font-awesome-icon icon="fa-solid fa-bars" /></div>
        <div class="gnss-bars-content" >
@@ -154,7 +154,7 @@ L.modLng = function( lng ){
 import GnssCarousel from './gnss-carousel.vue'
 
 export default {
-  name: 'SpotGins',
+  name: 'MapComponent',
   components: {
     FileForm,
     GnssCarousel,
@@ -183,6 +183,16 @@ export default {
   },
   watch: {
     $route (newroute, oldroute) {
+        if (newroute.name !== 'home') {
+          return
+        }
+        if (oldroute.name !== 'home') {
+          if (!this.initialized) {
+            this.initialize()
+          }
+          return
+        }
+       
         if (!this.routeChanged(oldroute, newroute)) {
         if (parseInt(newroute.query.selected) !== parseInt(oldroute.query.selected)) {
           // open popup
@@ -242,7 +252,8 @@ export default {
       drawLayers: null,
       init: false,
       wait: false,
-      noStation: false
+      noStation: false,
+      initialized: false
     }
   },
   created () {
@@ -257,7 +268,9 @@ export default {
     }
   },
   mounted () {
-    this.initialize()
+    if (this.$route.name === 'home') {
+       this.initialize()
+    }
   },
   methods: {
     closeMenuContext(e) {
@@ -525,6 +538,7 @@ export default {
 
       // this.dateLayers = L.layerGroup()
       this.treatmentQuery(this.$route.query, true)
+      this.initialized = true
      
     },
     closePopup() {
