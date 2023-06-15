@@ -69,17 +69,17 @@
          <label> Monument and geological information
             <span class="fa button in-title" @click="show.siteForm = !show.siteForm">{{show.siteForm ? '-' : '+'}}</span>
          </label>
-         <div :style="{display: show.siteForm ? 'block': 'none'}">
-	         <div v-if="station.monument || station.dateInstalled"  style="width:calc(49% - 5px);vertical-align:top; margin-left:5px;font-size:0.9rem;min-width:300px;display:inline-block;">
+         <div :style="{display: show.siteForm ? 'block': 'none'}" class="more-information">
+	         <div v-if="station.monument || station.dateInstalled"  style="width:calc(49% - 10px);vertical-align:top; margin-left:5px;margin-right:10px;min-width:300px;display:inline-block;">
 	            <div v-if="station.dateInstalled"><label>Installed/Removed</label> {{date2str(station.dateInstalled)}} &rarr; {{date2str(station.dateRemoved)}}</div>
       
 	           <div v-for="key, index in monumentKeys" v-if="station.monument[key]" > 
-	           <label>{{translateMonument[index]}}</label> {{station.monument[key]}}
+	           <label>{{translateMonument[index]}}</label> <div class="more-information-line">{{station.monument[key]}}</div>
 	           </div>
 	         </div>
-	         <div v-if="station.geological"  style="width:calc(49% - 5px);vertical-align:top; margin-left:5px;font-size:0.9rem;min-width:300px;display:inline-block;">
+	         <div v-if="station.geological"  style="width:calc(49% - 10px);vertical-align:top; margin-left:5px;font-size:0.9rem;min-width:300px;display:inline-block;">
 	           <div v-for="key, index in geologicalKeys" v-if="station.geological[key]" > 
-	           <label>{{translateGeo[index]}}</label> {{station.geological[key]}}
+	           <label>{{translateGeo[index]}}</label><div class="more-information-line">{{station.geological[key]}}</div>
 	           </div>
 	         </div>
 	         </div>
@@ -249,7 +249,7 @@ export default {
       translateMonument:['Monument foundation', 'Monument description', 'Monument height', 'Monument foundation depth'],
       geologicalKeys: [   'geologicCharacteristic', 
          'bedrockCondition', 'bedrockType', 'fractureSpacingVal', 'faultZonesNearby', 'distance', 'tectonicPlate'],
-      translateGeo: ['Geological Characteristic', 'Bedrock condition', 'Bedrock type', 'Fracture spacing', 'Fault zone', 'Distance to fault', 'Tectonic']    
+      translateGeo: ['Geological Characteristic', 'Bedrock condition', 'Bedrock type', 'Fracture spacing', 'Fault zone', 'Distance to fault', 'Tectonic plate']    
           
     //  resizeListener: null
     }
@@ -623,6 +623,8 @@ export default {
   width:15px;
   margin-left:10px;
 }
+
+
 div.box-station {
   display: inline-block;
 overflow: hidden;
@@ -697,7 +699,25 @@ div[id="stationMap"] {
   div.slider-files label {
     min-width:160px;
   }
-  
+  label{
+    display: inline-block;
+    min-width:138px;
+    text-transform: capitalize;
+  }
+  .more-information {
+  font-size:0.9rem;
+}
+.more-information label {
+  min-width:250px;
+  width:250px;
+  vertical-align:top;
+  text-transform:none;
+}
+.more-information-line {
+  display:inline-block;
+  width:calc(100% - 255px);
+  min-width:200px;
+}
   div.file-container {
     position:relative;
     margin:5px;
@@ -728,11 +748,7 @@ div[id="stationMap"] {
     border: 1px solid lightgrey;
     border-radius:10px;
   }
-  label{
-    display: inline-block;
-    min-width:138px;
-    text-transform: capitalize;
-  }
+  
   /**  div.station-header {
     position:relative;
     background: lightgrey;
