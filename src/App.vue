@@ -3,6 +3,10 @@
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
  <div  id="page">
+ <div style="width:100%;height:100vh;">
+     xxxx
+     <map></map>
+ </div>
      <div class="gnss-attribution">Component by <a href="https://www.poleterresolide.fr" title="ForM@Ter"><img :src="require('./assets/img/favicon.png').default" width="24" /></a></div>
      <router-view></router-view>
  </div>
@@ -11,11 +15,11 @@
 
 <script>
 // import SpotGins from './components/spot-gins.vue'
-
+import Map from './components/map.vue'
 export default {
   name: 'App',
   components: {
-    // SpotGins
+    Map
   },
   created () {
     this.searchCodeLists()

@@ -11,13 +11,13 @@ const Station = () => import('../components/station.vue')
 const Solution = () => import('../components/solution.vue')
 const FileList = () => import('../components/file-list.vue')
 // import Station from '../components/station.vue'
-import Map from '../components/map.vue'
-
+// import Map from '../components/map.vue'
+import Empty from '../components/empty.vue'
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: Map
+    component: Empty
   },
    {
     path: '/station/:name',
