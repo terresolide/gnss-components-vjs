@@ -622,14 +622,14 @@ export default {
         this.$store.commit('setSearching', false)
         return
       }
-      for(var i= index; i < index + this.maxRecords && i < data.stations.length ; i++) {
-          self.addStation(data.stations[i])
+      for(var i= index; i < index + this.$store.state.batch && i < data.stations.length ; i++) {
+          this.addStation(data.stations[i])
       }
     
      
-      if (data.stations.length > index + this.maxRecords ) {
+      if (data.stations.length > index + this.$store.state.batch ) {
         setTimeout(function () {
-          self.displayByPart(data, index + self.maxRecords , init)
+          self.displayByPart(data, index + self.$store.state.batch , init)
         }, 0)
          return
       }
@@ -748,14 +748,18 @@ export default {
       if (index === 0 && this.$store.state.stations.length === 0) {
         this.noStation = true
       }
-      for (var i = index; i < this.$store.state.stations.length && i < index + this.maxRecords; i++) {
+      for (var i = index; i < this.$store.state.stations.length && i < index + this.$store.state.batch; i++) {
       
         if (this.$store.state.stations[i]) {
            this.addStation(this.$store.state.stations[i])
         }
       }
-      if (index + this.maxRecords < this.$store.state.stations.length) {
-        this.displayStore(index + this.maxRecords)
+      if (index + this.$store.state.batch < this.$store.state.stations.length) {
+        var self = this
+        setTimeout(function () {
+          self.displayStore(index + self.$store.state.batch)
+        },0)
+        
         return
       }
       this.displayEnd(true)
@@ -779,6 +783,7 @@ export default {
           return feature[1]
         case 'KOKB00USA':
         case 'MAUI00USA':
+        case 'HNLC00USA':
         case 'MKEA00USA':
           return 'HAWAI'
         case 'OHI100ATA':
@@ -787,6 +792,8 @@ export default {
           return 'OHIATA'
         case 'SPTG00ATF':
           return 'SPTG00ATF'
+        case 'GSTV00FRA':
+          return 'CARAB'
         case 'BREW00USA':
           return 'CAN'
         
@@ -799,14 +806,33 @@ export default {
 	      case 'FRA':
 	      case 'CHE':
 	      case 'BEL':
-	      case 'NLD':
+	
+	      case 'PRT':
+        case 'ESP':
 	        return 'W_EU'
 	      case 'NOR':
 	      case 'SWE':
+	      case 'DNK':
 	        return 'N_EU'
-	      case 'PRT':
-	      case 'ESP':
-	        return 'S_EU'
+	      case 'NLD':
+	      case 'DEU':
+	      case 'CZE':
+	      case 'HUN':
+	      case 'GBR':
+	      case 'IRL':
+	        return 'N_EU'
+	      case 'SVN':
+	      case 'ITA':
+	      case 'GRC':
+	      case 'BGR':
+	      case 'ROU':
+	      case 'UKR':
+	      case 'MDA':
+	         return 'S_EU'
+	      case 'GLP':
+	      case 'CUB':
+	      case 'MTQ':
+	         return 'CARAB'
 	      case 'PER':
 	      case 'BRA':
 	      case 'ARG':
@@ -853,7 +879,7 @@ export default {
             if (zoom > 5 && region !== 'OHIATA' && region !== 'ATF') {
                 return 3
             }
-            return 35
+            return 40
           },
           animateAddingMarkers:true})
         this.markers[region].on('animationend', function () {

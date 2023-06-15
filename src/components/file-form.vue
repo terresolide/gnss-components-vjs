@@ -96,12 +96,10 @@
 		  <div v-if="networks && mode === 'map'" class="gnss-networks"> 
 		     <label>Networks
 		     </label>
-		     <div >
-		         <span v-for="value in networks" class="network-span">
-		            <input v-model="searchparams.network"  type="checkbox" :value="value" class="gnss-checkbox"> 
-		            <span >{{value}}</span>
-		         </span>
-		      </div>
+		    <select class="gnss-control" multiple v-model="searchparams.network">
+           <option :value="null">---</option>
+           <option v-for="pt in networks" :value="pt">{{pt}}</option>
+        </select>
 		  </div>   
 		   <div v-if="constels"> 
 		      <label>Constel</label>

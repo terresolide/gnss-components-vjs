@@ -11,6 +11,7 @@ export default function makeStore( config ) {
     codelists: {},
     preview: 'https://spotgins.formater/data/preview/',
     limit: 500,
+    batch: 200,
     search: true,
     reseting: false,
     stations: null,
