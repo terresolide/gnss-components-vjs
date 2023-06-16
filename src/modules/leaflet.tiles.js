@@ -6,7 +6,7 @@ L.Control.Tiles = L.Control.Layers.extend({
   tiles: {
     osm: {
       name: 'OpenStreetMap',
-      url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     },
   /*  osmFr: {

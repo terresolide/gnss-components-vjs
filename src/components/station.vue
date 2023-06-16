@@ -41,11 +41,11 @@
     
     
       <h3 style="margin-left:-10px;">Informations</h3>
+         <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
         <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M<sup>3</sup>G GNSS station page </a></div>
       
        <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M<sup>3</sup>G sitelog</a></div>
-       
-       <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
+       <div v-if="isEPOS"><label>EPOS</label> <a :href="'https://gnssdata-epos.oca.eu/#/metadata/marker='+ stationName.substring(0,4)" target="_blank">EPOS station page</a></div>
        <div v-if="station.properties.networks"><label>Networks:</label> {{station.properties.networks.join(', ')}}</div>
        <div v-if="!station.properties.m3g"><em>Sorry, we don't have more information about this station</em></div>
        
@@ -260,6 +260,15 @@ export default {
     },
     locationUrl () {
       return this.$store.state.location
+    },
+    isEPOS() {
+      if (!this.station) {
+        return false
+      }
+      if (this.station.properties.networks && this.station.properties.networks.indexOf('EPOS') >= 0) {
+        return true
+      }
+      return false
     }
   },
   watch: {
@@ -484,7 +493,11 @@ export default {
       if (data.MOID) {
         this.station.MOID = data.MOID
       }
+      
       if (data.sitelog) {
+        if (!this.location.properties.elevation && data.sitelog.location && data.sitelog.location.approximatePositionGRS80) {
+          this.location.properties.elevation = data.sitelog.location.approximatePositionGRS80.elevation
+        }
         this.station.contacts = {}
         if (data.sitelog.siteOwner) {
           this.station.contacts.siteOwner = data.sitelog.siteOwner

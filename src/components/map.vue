@@ -535,7 +535,21 @@ export default {
       var node = document.querySelector('#json')
       this.popup.setContent(node)
       var self = this
-
+      var bounds = null
+      if (this.$route.query.bounds ) {
+        console.log('hasBounds')
+        var tab = this.$route.query.bounds.split(',')
+        if (tab.length === 4) {
+          bounds = L.latLngBounds(
+            L.latLng(parseFloat(tab[1]), parseFloat(tab[0])),
+            L.latLng(parseFloat(tab[3]), parseFloat(tab[2]))
+          )
+        }
+        this.init = true
+      } 
+      if (bounds && bounds.isValid()) {
+        this.map.fitBounds(bounds)
+      }
       // this.dateLayers = L.layerGroup()
       this.treatmentQuery(this.$route.query, true)
       this.initialized = true
@@ -721,6 +735,7 @@ export default {
       }
       var bounds = this.bounds
       if (this.$route.query.bounds ) {
+        console.log('hasBounds')
         var tab = this.$route.query.bounds.split(',')
         if (tab.length === 4) {
           bounds = L.latLngBounds(
@@ -744,6 +759,7 @@ export default {
       }
       // this.$store.commit('resetStations')
       if (bounds && bounds.isValid()) {
+          console.log('fit bounds')
           this.map.fitBounds(bounds)
       }
       if (this.$route.query.selected) {
