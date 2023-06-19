@@ -86,7 +86,7 @@
 		 </div>
 		 <div>
 		  <div v-if="productors && !$store.state.productor">
-		    <label>Operator</label>
+		    <label>Producer</label>
 		    <select class="gnss-control" v-model="searchparams.productor">
 		       <option :value="null">---</option>
 		       <option v-for="pt in productors" :value="pt">{{pt}}</option>

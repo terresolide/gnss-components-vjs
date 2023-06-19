@@ -549,6 +549,8 @@ export default {
       } 
       if (bounds && bounds.isValid()) {
         this.map.fitBounds(bounds)
+      } else {
+        this.map.fitBounds([[50, -6.5],[41, 10.5]])
       }
       // this.dateLayers = L.layerGroup()
       this.treatmentQuery(this.$route.query, true)
@@ -591,12 +593,12 @@ export default {
        if (i === 0) {
         this.$store.commit('setSearching', true)
       }
-      if (toSearch.length === 0) {
+      if (toSearch.length === 0 || (toSearch.length === 1 && toSearch.indexOf('solution') >= 0)) {
         var url = this.api + 'stations/cache'
         var params = []
-        this.$http.get(url, {params: params})
+        this.$http.get(url, {params: this.$route.query})
         .then(
-            resp => {this.displayByPart(resp.body, i, first)},
+            resp => {this.displayByPart(resp.body, i, null, first)},
             resp => {alert('Erreur de chargement: ' + resp.status)}
          )
          return
@@ -622,8 +624,9 @@ export default {
        )
       }
     },
-    displayByPart (data, index, init) {
+    displayByPart (data, index, keys, init) {
       var self = this
+      
       if (index === 0) {
            for (var region in this.markers) {
              this.markers[region].off()
@@ -631,6 +634,8 @@ export default {
              this.markers[region].remove(this.map)
              this.markers[region] = null
            }
+           keys = Object.keys(data)
+           console.log(keys)
            this.markers = {}
 //         for (var key in this.groupLayers) {
 //           if (this.groupLayers[key]) {
@@ -645,20 +650,28 @@ export default {
         this.groups = []
         this.bounds = null
       }
-      if (index === 0 && data.stations.length === 0) {
+      if (index === 0 && keys.length === 0) {
+     // if (index === 0 && data.stations.length === 0) {
         this.noStation = true
         this.$store.commit('setSearching', false)
         return
       }
-      for(var i= index; i < index + this.$store.state.batch && i < data.stations.length ; i++) {
-          this.addStation(data.stations[i])
-      }
-    
+     console.log(keys[index])
      
-      if (data.stations.length > index + this.$store.state.batch ) {
+     this.addRegion(keys[index],data[keys[index]] )
+
+//       for(var i= index; i < index + this.$store.state.batch && i < data.stations.length ; i++) {
+//           this.addStation(data.stations[i])
+//       }
+    
+       if (keys.length -1 > index ) {
         setTimeout(function () {
-          self.displayByPart(data, index + self.$store.state.batch , init)
+          self.displayByPart(data, index + 1 , keys, init)
         }, 0)
+//       if (data.stations.length > index + this.$store.state.batch ) {
+//         setTimeout(function () {
+//           self.displayByPart(data, index + self.$store.state.batch , init)
+//         }, 0)
          return
       }
       this.displayEnd(init)
@@ -829,11 +842,11 @@ export default {
       }
       var country = feature[1].substring(6,9)
       switch (country) {
-      case 'CPV':
-        return 'SEN'
-// 	      case 'USA':
-// 	      case 'CAN':
-// 	        return feature.properties.name;
+        case 'CPV':
+           return 'SEN'
+	      case 'USA':
+	      case 'CAN':
+	        return 'N_AM';
 	      case 'FRA':
 	      case 'CHE':
 	      case 'BEL':
@@ -881,6 +894,40 @@ export default {
         default:
           return country
       }
+    },
+    addRegion (region, features) {
+      var self = this
+      this.markers[region] = L.markerClusterGroup({
+        polygonOptions:{weight:1, color: '#00008b', opacity:1, fillOpacity:0.1},
+        disableClusteringAtZoom: null, 
+        maxClusterRadius:function (zoom) {
+          if (zoom > 5 && region !== 'OHIATA' && region !== 'ATF') {
+              return 3
+          }
+          return 40
+        },
+        animateAddingMarkers:true})
+       this.markers[region].on('animationend', function () {
+        self.animationEnd()
+      })
+      features.forEach(function (feature) {
+        self.stations[feature[0]] = feature
+        var html = '<span></span>'
+        var className = self.getClassname(feature[2])
+        var icon = L.divIcon({
+          className: 'icon-marker marker-' + className, 
+          iconSize: [15,15],
+          html: html})
+
+          var marker = L.marker(feature[3], {icon: icon, id: feature[0], title: feature[1]})
+          marker.on('click', self.getData)
+          self.markers[region].addLayer(marker)
+      })
+      this.markers[region].addTo(this.map)
+       if (!this.bounds) {
+        this.bounds = L.latLngBounds()
+      }
+      this.bounds.extend(this.markers[region].getBounds())
     },
     addStation (feature) {
       this.stations[feature[0]] = feature

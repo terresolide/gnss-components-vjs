@@ -2,7 +2,7 @@
  <div class="gnss-terresolide" style="position:relative;" @click="removeContextMenu">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
-
+    
      <map-component></map-component>
 
 		 <div  v-if="$route.name !== 'home'" id="page" style="position:absolute;z-index:1;">
@@ -14,17 +14,19 @@
 </template>
 
 <script>
+// import GnssUser from './components/gnss-user.vue'
 // import SpotGins from './components/spot-gins.vue'
 import MapComponent from './components/map.vue'
 export default {
   name: 'App',
   components: {
-    MapComponent
+    MapComponent //,
+   // GnssUser
   },
   created () {
     this.searchCodeLists()
     console.log(this.$route.name)
-   
+    console.log(this.$store.state.sso)
     
   },
   mounted () {

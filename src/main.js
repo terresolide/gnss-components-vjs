@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {faAngleLeft, faAnglesLeft, faAngleRight, faAnglesRight, faArrowsAlt, 
 faBars, faBookmark,  faCircle,  faCircleChevronLeft, faCircleChevronRight,
  faCircleQuestion, faClipboard, faClose, faDownload, faFile, faHome, faList, 
-faLocationDot, faTriangleExclamation, faMap,faSearch, faSpinner} from '@fortawesome/free-solid-svg-icons'
+faLocationDot, faTriangleExclamation, faMap,faSearch, faRightToBracket, faSpinner} from '@fortawesome/free-solid-svg-icons'
 
 import {
   faCircle as farCircle
@@ -25,16 +25,22 @@ Vue.component('font-awesome-icon', FontAwesomeIcon)
 library.add(faAngleLeft, faAnglesLeft, faAngleRight, faAnglesRight, faArrowsAlt,
  faBars, faBookmark, faCircle, faCircleChevronLeft, faCircleChevronRight, 
  faCircleQuestion, faClipboard, faClose, faDownload, faFile, faHome, faList,
- faLocationDot, faMap, faSearch, faTriangleExclamation, faSpinner, farCircle)
+ faLocationDot, faMap, faSearch, faTriangleExclamation, faRightToBracket, faSpinner, farCircle)
 import App from './App.vue'
 import router from './router'
 import makeStore from './store'
-
+var sso = require('./config.js')
+console.log(sso)
+console.log(process.env.NODE_ENV)
 let config = {}
 if (typeof gnssConfig != 'undefined') {
   config = JSON.parse(gnssConfig.innerHTML)
 } 
-
+if (process.env.NODE_ENV === 'development') {
+  config.sso = sso.dev
+} else {
+  config.sso = sso.prod
+}
 const store = makeStore(config)
 
 //import vueCustomElement from 'vue-custom-element';

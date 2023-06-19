@@ -35,9 +35,9 @@
 	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
 	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
 	       <div v-if="location.properties.elevation"><label>Elevation:</label>{{location.properties.elevation.toLocaleString()}} m</div>
-         <div v-if="station.properties.x_pos"><label>X: </label>{{station.properties.x_pos.toLocaleString()}}</div>
-         <div v-if="station.properties.y_pos"><label>Y: </label>{{station.properties.y_pos.toLocaleString()}}</div>
-         <div v-if="station.properties.z_pos"><label>Z: </label>{{station.properties.z_pos.toLocaleString()}}</div>
+         <div v-if="location.properties.x"><label>X: </label>{{location.properties.x.toLocaleString()}} m</div>
+         <div v-if="location.properties.y"><label>Y: </label>{{location.properties.y.toLocaleString()}} m</div>
+         <div v-if="location.properties.z"><label>Z: </label>{{location.properties.z.toLocaleString()}} m</div>
     
     
       <h3 style="margin-left:-10px;">Informations</h3>
@@ -155,7 +155,7 @@
                </div>
            <div><label>Name</label> {{file.name}}</div>
            <div><label>Ref Frame</label> <span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
-           <div style="font-size:0.8rem;height:160px;">
+           <div style="font-size:0.8rem;height:175px;">
             <div><label>Solution</label>
              <span class="station-link"  @click="goToSolution(file.solution)" style="position:relative;margin-left:-5px;" @contextmenu="menuContext($event)">{{file.solution}}
                  <div class="menu-context" @click="closeMenuContext($event)">
@@ -171,10 +171,13 @@
             <div><label>Product Type</label> <span style="letter-spacing: .07em;">{{file.productType}}</span></div>
             <div><label>Product date range</label> {{date2str(file.tempStart)}} &rarr; {{date2str(file.tempEnd)}}</div>
             <div><label>Updated</label> {{date2str(file.creationDate)}}</div>
-            <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key !== 'fillRate' && key !== 'refFrame'" >
+            <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key!=='fillRate' && key !== 'refFrame'" >
               <span v-if="key === 'doi'"><label>{{labelize(key)}}</label> <a class="station-link" :href="'https://doi.org/' + value" target="_blank">{{value}}</a></span>
+              <span v-else-if="key === 'operator'"><label>Producer</label> {{value}}</span>
               <span v-else-if="!(key === 'products' && file.solution === 'GAMIT-GLOBK')"> <label>{{labelize(key)}}</label> {{value}}</span>
             </div>
+            <div v-if="file.properties.fillRate"><label>Fill Rate</label> {{Math.round(file.properties.fillRate * 100)}} %</div>
+            
          </div>
          <div style="text-align:center;"><img :src="file.properties.img"  title="Click to show interactive graph" @click="getSerie(file)" /></div>
          </div>
@@ -388,7 +391,7 @@ export default {
         return
       }
       var center = this.location.geometry.coordinates
-      this.$http.get(this.api + "stations/?center=" + center.join(',') + "&radius=" + this.radius)
+      this.$http.get(this.api + "stations/?center=" + center.join(',') + "&radius=" + this.radius + '&maxRecords=4000')
       .then(resp => {
         if (resp.body.stations && resp.body.stations.length > 0) {
           this.initNeighboursLayer()
@@ -553,6 +556,8 @@ export default {
         var files = resp.body.files
         var self = this
         files.forEach(function (file) {
+          var years = moment(file.tempEnd).diff(file.tempStart, 'years', true)
+          file.properties.years = years.toFixed(1)
           if (!self.files[file.productType]) {
             self.files[file.productType] = []
           }
@@ -658,7 +663,9 @@ div.box-station a.station-link {
   color: #000;
   cursor:pointer;
 }
-
+.file-container label {
+  margin-bottom:3px;
+}
 div[id="stationMap"] {
   position: relative;
   width:300px;
