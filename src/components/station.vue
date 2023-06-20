@@ -40,13 +40,17 @@
          <div v-if="location.properties.z"><label>Z coordinate</label> {{location.properties.z.toLocaleString()}} m</div>
     
     
-      <h3 style="margin-left:-10px;">Informations</h3>
+      <h3 style="margin-left:-10px;">Information</h3>
          <div v-if="station.properties.domes"><label>IERS DOMES Number:</label> {{station.properties.domes}}</div>
         <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M<sup>3</sup>G GNSS station page </a></div>
       
        <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M<sup>3</sup>G sitelog</a></div>
        <div v-if="isEPOS"><label>EPOS</label> <a :href="'https://gnssdata-epos.oca.eu/#/metadata/marker='+ stationName.substring(0,4)" target="_blank">EPOS station page</a></div>
-       <div v-if="station.properties.networks"><label>Networks:</label> {{station.properties.networks.join(', ')}}</div>
+       <div v-if="station.properties.networks"><label>Networks:</label> <span v-for="net in station.properties.networks">
+        <span v-if="networks[net]" class="gnss-network-item"><a :href="networks[net]" target="_blank">{{net}}</a></span>
+        <span v-else class="gnss-network-item">{{net}}</span>
+       </span>
+       </div>
        <div v-if="!station.properties.m3g"><em>Sorry, we don't have more information about this station</em></div>
        
       </div>
@@ -263,6 +267,9 @@ export default {
     },
     locationUrl () {
       return this.$store.state.location
+    },
+    networks () {
+      return this.$store.getters['networks']
     },
     isEPOS() {
       if (!this.station) {
@@ -675,6 +682,10 @@ div[id="stationMap"] {
 }
 </style>
 <style scoped>
+span.gnss-network-item::after {
+  content: ", "
+}
+
 /**  div.page-station {
     width:100%;
     background: url('./../assets/img/background-gnss.png') no-repeat center center fixed;

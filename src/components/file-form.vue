@@ -3,6 +3,10 @@
      <div>
 		<div class="file-form" :class="{'station-form': mode === 'station'}">
 		<div >
+		  <div>
+		    <label>Station name</label>
+		    <input type="text" class="gnss-control" v-model="searchparams.q" placeholder="ex: agd or AGD"/>
+		  </div>
 		  <div v-if="solutions && !$store.state.solution">
 		    <label >Solution  
 		       <span class="gnss-question" @click="showTooltip($event)">
@@ -134,7 +138,7 @@ export default {
   },
   computed: {
     networks () {
-      return this.$store.getters['networks']
+      return Object.keys(this.$store.getters['networks'])
     },
     productors () {
       return this.$store.getters['productors']
@@ -191,6 +195,7 @@ export default {
         marks: []
       },
       searchparams: {
+        q: null,
 	      productType: null,
 	      solution: null,
 	      several: null,
