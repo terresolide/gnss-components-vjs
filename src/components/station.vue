@@ -29,19 +29,19 @@
   
    
     <div v-if="location">
-      <h3 style="margin-bottom:0;">Coordinates</h3>
+      <h3 style="margin-bottom:0;">Approximate position</h3>
       <div style="float:left;margin-left:10px;min-width:600px;margin-top:18px;margin-right:50px;">
        
-	       <div><label>Latitude:</label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
-	       <div><label>Longitude:</label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
-	       <div v-if="location.properties.elevation"><label>Elevation:</label>{{location.properties.elevation.toLocaleString()}} m</div>
-         <div v-if="location.properties.x"><label>X: </label>{{location.properties.x.toLocaleString()}} m</div>
-         <div v-if="location.properties.y"><label>Y: </label>{{location.properties.y.toLocaleString()}} m</div>
-         <div v-if="location.properties.z"><label>Z: </label>{{location.properties.z.toLocaleString()}} m</div>
+	       <div><label>Latitude: </label> {{location.geometry.coordinates[1].toLocaleString()}}°</div>
+	       <div><label>Longitude: </label> {{location.geometry.coordinates[0].toLocaleString()}}°</div>
+	       <div v-if="location.properties.elevation"><label>Elevation: </label> {{location.properties.elevation.toLocaleString()}} m</div>
+         <div v-if="location.properties.x"><label>X coordinate: </label> {{location.properties.x.toLocaleString()}} m</div>
+         <div v-if="location.properties.y"><label>Y coordinate: </label> {{location.properties.y.toLocaleString()}} m</div>
+         <div v-if="location.properties.z"><label>Z coordinate</label> {{location.properties.z.toLocaleString()}} m</div>
     
     
       <h3 style="margin-left:-10px;">Informations</h3>
-         <div v-if="station.properties.domes"><label>Domes:</label> {{station.properties.domes}}</div>
+         <div v-if="station.properties.domes"><label>IERS DOMES Number:</label> {{station.properties.domes}}</div>
         <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M<sup>3</sup>G GNSS station page </a></div>
       
        <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M<sup>3</sup>G sitelog</a></div>
