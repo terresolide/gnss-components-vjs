@@ -184,6 +184,9 @@ export default {
   watch: {
     $route (newroute, oldroute) {
         if (newroute.name !== 'home') {
+          if (this.map)
+        
+          this.map.off('resize')
           return
         }
         if (oldroute.name !== 'home') {
@@ -920,10 +923,13 @@ export default {
           html: html})
 
           var marker = L.marker(feature[3], {icon: icon, id: feature[0], title: feature[1]})
-          marker.on('click', self.getData)
+          // marker.on('click', self.getData)
           self.markers[region].addLayer(marker)
       })
       this.markers[region].addTo(this.map)
+      this.markers[region].on('click', function (e) {
+          self.getData(e.layer)
+       })
        if (!this.bounds) {
         this.bounds = L.latLngBounds()
       }
@@ -946,7 +952,7 @@ export default {
 
       var self = this
       var marker = L.marker(feature[3], {icon: icon, id: feature[0], title: feature[1]})
-      marker.on('click', self.getData)
+     // marker.on('click', self.getData)
 //       var ma = L.geoJSON(feature,{
 //         pointToLayer: function(feature, latlng) {
 //            var marker = L.marker(latlng, {icon: icon, title: feature.properties.name})
@@ -970,6 +976,9 @@ export default {
         this.markers[region].on('animationend', function () {
           self.animationEnd()
         })
+         this.markers[region].on('click', function (e) {
+            self.getData(e.layer)
+           })
         if (region !== 'W_EU') {
           this.markers[region].addTo(this.map)
         }
@@ -1032,18 +1041,18 @@ export default {
     },
     getData (e) {
       var query = Object.assign({}, this.$route.query)
-      if (this.selected && this.selected.id === e.target.options.id) {
+      if (this.selected && this.selected.id === e.options.id) {
        
         delete query['selected']
         this.$router.push({name: 'home', query: query}).catch(()=>{})
         return
       }
       this.mode = 'image'
-      this.selected = e.target.options
+      this.selected = e.options
       this.show = true
 //       this.popup.setLatLng(e.target.getLatLng())
 //       this.popup.openOn(this.map)
-      query.selected = e.target.options.id
+      query.selected = e.options.id
       this.$router.push({name: 'home', query: query}).catch(()=>{})
       return false
     },

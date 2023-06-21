@@ -247,6 +247,7 @@ div.menu-context ul li:hover {
 .fa.button:hover {
    border-color:black;
 }
+.gnss-terresolide [type="text"],
 .gnss-control {
    display: inline-block;
    color: #495057;
@@ -263,6 +264,11 @@ div.menu-context ul li:hover {
    max-width: calc(100% - 140px);
    width:calc(100% - 140px);
    cursor:pointer;
+}
+.sedoo-component input[type="text" ].gnss-control {
+   border: 1px solid #ced4da;
+   height: calc(1.3em + 0.1rem + 2px);
+   width:calc(100% - 158px);
 }
 .gnss-terresolide [type="button"],
 .gnss-terresolide [type="submit"] {

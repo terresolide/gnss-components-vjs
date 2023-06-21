@@ -69,6 +69,7 @@ fieldset {
   border:1px solid lightgrey;
   background: #f9f9f9;
   padding:2px 3px;
+  height:100%;
 }
 legend {
   color: black;

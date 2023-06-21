@@ -47,7 +47,7 @@
          
 	        </div>
 	     </div>
-	     <div class="gnss-file-5">Producer
+	     <div class="gnss-file-5">Analysis centre
 	       <span class="gnss-sort" @click="changeSort('productor')" :class="{unactive: !sort.productor}" >{{sort.productor === 'DESC' ? '&uarr;' : '&darr;' }}</span>
        
 	     </div>

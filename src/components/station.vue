@@ -25,9 +25,6 @@
 		      </router-link>
 	      </div>
 	  </div>
- 
-  
-   
     <div v-if="location">
       <h3 style="margin-bottom:0;">Approximate position</h3>
       <div style="float:left;margin-left:10px;min-width:600px;margin-top:18px;margin-right:50px;">
@@ -63,8 +60,8 @@
          <label> Contacts
             <span class="fa button in-title" @click="show.contact = !show.contact">{{show.contact ? '-' : '+'}}</span>
          </label>
-         <div :style="{display: show.contact ? 'block': 'none'}" >
-	         <div v-for="contact, key in station.contacts" style="width:calc(33% - 5px);vertical-align:top; margin-left:5px;min-width:300px;display:inline-block;"> 
+         <div :style="{display: show.contact ? 'flex': 'none'}"  style="flex-flow: row wrap;">
+	         <div v-for="contact, key in station.contacts" style="width:calc(33% - 5px);margin-left:5px;min-width:300px;"> 
 	         <m3g-contact :type="key" :contact="contact"></m3g-contact>
 	         </div>
 	       </div>
@@ -88,6 +85,14 @@
 	         </div>
 	         </div>
        </div>
+       <div v-if="station.antennas|| station.receivers" style="margin-left:10px;">
+         <label> Instruments
+            <span class="fa button in-title" @click="show.material = !show.material">{{show.material ? '-' : '+'}}</span>
+         </label>
+          <div :style="{display: show.material ? 'block': 'none'}" class="more-information" style="margin-left:10px;">
+            <gnss-material :antennas="station.antennas" :receivers="station.receivers"></gnss-material>
+          </div>
+        </div>
         <h3  v-if="stationId" >Nearest stations
             <span class="fa button in-title" @click="show.nearest = !show.nearest">{{show.nearest ? '-' : '+'}}</span>
         </h3>
@@ -177,7 +182,7 @@
             <div><label>Updated</label> {{date2str(file.creationDate)}}</div>
             <div v-for="value, key in file.properties" v-if="key !== 'img' && key!== 'file' && key!=='fillRate' && key !== 'refFrame'" >
               <span v-if="key === 'doi'"><label>{{labelize(key)}}</label> <a class="station-link" :href="'https://doi.org/' + value" target="_blank">{{value}}</a></span>
-              <span v-else-if="key === 'operator'"><label>Producer</label> {{value}}</span>
+              <span v-else-if="key === 'operator'"><label>Analysis center</label> {{value}}</span>
               <span v-else-if="!(key === 'products' && file.solution === 'GAMIT-GLOBK')"> <label>{{labelize(key)}}</label> {{value}}</span>
             </div>
             <div v-if="file.properties.fillRate"><label>Fill Rate</label> {{Math.round(file.properties.fillRate * 100)}} %</div>
@@ -217,10 +222,11 @@ import FileForm from './file-form.vue'
 import GnssMenu from './gnss-menu.vue'
 import GnssCarousel from './gnss-carousel.vue'
 import M3gContact from './m3g-contact.vue'
+import GnssMaterial from './gnss-material.vue'
 // import Bokeh from '@bokeh/bokehjs/build/js/bokeh.esm.min.js';
 export default {
   name: 'Station',
-  components: {FileForm, GnssCarousel, GnssMenu, M3gContact},
+  components: {FileForm, GnssCarousel, GnssMaterial, GnssMenu, M3gContact},
   data () {
     return {
       sari: 'https://alvarosg.shinyapps.io/sari/',
@@ -246,6 +252,7 @@ export default {
       location: null,
       neighbours: [],
       show: {
+        material: false,
         filter: false,
         contact: false,
         nearest: false,
@@ -507,6 +514,12 @@ export default {
       if (data.sitelog) {
         if (!this.location.properties.elevation && data.sitelog.location && data.sitelog.location.approximatePositionGRS80) {
           this.location.properties.elevation = data.sitelog.location.approximatePositionGRS80.elevation
+        }
+        if (data.sitelog.receivers) {
+          this.station.receivers = data.sitelog.receivers
+        } 
+        if (data.sitelog.antennas) {
+          this.station.antennas = data.sitelog.antennas
         }
         this.station.contacts = {}
         if (data.sitelog.siteOwner) {

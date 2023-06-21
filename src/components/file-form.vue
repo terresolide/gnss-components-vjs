@@ -90,7 +90,7 @@
 		 </div>
 		 <div>
 		  <div v-if="productors && !$store.state.productor">
-		    <label>Producer</label>
+		    <label>Analysis centre</label>
 		    <select class="gnss-control" v-model="searchparams.productor">
 		       <option :value="null">---</option>
 		       <option v-for="pt in productors" :value="pt">{{pt}}</option>
@@ -138,7 +138,11 @@ export default {
   },
   computed: {
     networks () {
-      return Object.keys(this.$store.getters['networks'])
+      if (this.$store.getters['networks']) {
+        return Object.keys(this.$store.getters['networks'])
+      } else {
+        return []
+      }
     },
     productors () {
       return this.$store.getters['productors']
