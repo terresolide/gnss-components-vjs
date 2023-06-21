@@ -3,7 +3,7 @@
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
     
-     <map-component></map-component>
+     <map-component ref="map"></map-component>
 
 		 <div  v-if="$route.name !== 'home'" id="page" style="position:absolute;z-index:1;">
 		
@@ -39,6 +39,8 @@ export default {
   },
   methods: {
     removeContextMenu () {
+      console.log(this.$refs)
+      this.$refs.map.selectedContextMenu = null
       var nodes = document.querySelectorAll('.context')
       nodes.forEach(function (node) {
         node.classList.remove('context')

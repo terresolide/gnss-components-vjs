@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 /* import specific icons */
 import {faAngleLeft, faAnglesLeft, faAngleRight, faAnglesRight, faArrowsAlt, 
 faBars, faBookmark,  faCircle,  faCircleChevronLeft, faCircleChevronRight,
- faCircleQuestion, faClipboard, faClose, faDownload, faFile, faHome, faList, 
+ faCircleQuestion, faClipboard, faClose, faDownload, faFile, faHome, faGear,faList, 
 faLocationDot, faTriangleExclamation, faMap,faSearch, faRightToBracket, faSpinner} from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -24,7 +24,7 @@ Vue.component('font-awesome-icon', FontAwesomeIcon)
 /* add icons to the library */
 library.add(faAngleLeft, faAnglesLeft, faAngleRight, faAnglesRight, faArrowsAlt,
  faBars, faBookmark, faCircle, faCircleChevronLeft, faCircleChevronRight, 
- faCircleQuestion, faClipboard, faClose, faDownload, faFile, faHome, faList,
+ faCircleQuestion, faClipboard, faClose, faDownload, faFile, faHome, faGear,faList,
  faLocationDot, faMap, faSearch, faTriangleExclamation, faRightToBracket, faSpinner, farCircle)
 import App from './App.vue'
 import router from './router'

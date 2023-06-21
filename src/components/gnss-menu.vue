@@ -23,7 +23,10 @@
           <li class="gnss-bars-link disabled" @click="goTo($event,'solutions')">Solutions</li>
           <li class="gnss-bars-link disabled" @click="goTo($event, 'productTypes')">Product Types</li>
           <li class="gnss-bars-link disabled" @click="goTo($event, 'about')">About</li>
-          
+          <li class="gnss-hr" style="margin-bottom:5px;"><hr /></li>
+           <li class="gnss-bars-link" ><a :href="$store.state.api" target="_blank">
+           <font-awesome-icon icon="fa-solid fa-gear" /> GNSS Api</a></li>
+         
          </ul>
    </div>
  </div>
@@ -178,6 +181,13 @@ export default {
 }
 .gnss-bars-content ul li.gnss-bars-link:not(.disabled):hover {
   background: #777;
+}
+.gnss-bars-content a {
+  color:inherit;
+}
+.gnss-bars-content a:hover {
+  color:inherit;
+  text-decoration:none;
 }
 .gnss-hr hr {
   margin:0;

@@ -8,6 +8,14 @@
     <div v-if="noStation" class="msg-alert"  @click="noStation=false">
      No station match search criteria
    </div> 
+    <div  v-if="selectedContextMenu" class="menu-context"  style="z-index:10;display:block;" 
+    :style="{top: selectedContextMenu.y + 'px', left: selectedContextMenu.x + 'px'}">
+       <ul @click="closeMenuContext($event)" >
+          <li :title="'Open ' + selectedContextMenu.name + ' in new tab'">
+              <a  :href="$store.state.location + 'station/'+ selectedContextMenu.name + '/' + selectedContextMenu.id + '?newTab=true'" 
+              @contextmenu="$event.target.click()" target="_blank">Open {{selectedContextMenu.name}} in new tab</a>
+          </li></ul>
+      </div>
      <file-form mode="map" v-show="$route.name=='home'"></file-form>
     
     <gnss-menu mode="map" v-show="$route.name=='home'"></gnss-menu>
@@ -256,7 +264,8 @@ export default {
       init: false,
       wait: false,
       noStation: false,
-      initialized: false
+      initialized: false,
+      selectedContextMenu: null
     }
   },
   created () {
@@ -276,8 +285,9 @@ export default {
     }
   },
   methods: {
-    closeMenuContext(e) {
+    closeMenuContext(e) { 
       e.stopPropagation()
+      this.selectedContextMenu = null
       this.$parent.removeContextMenu()
     },
     menuContext (e) {
@@ -528,6 +538,10 @@ export default {
 //          }, 300)
          self.$router.push({name: 'home', query: query}).catch(()=>{})
        })
+       this.map.on('zoomstart movestart', function (e) {
+         // console.log(self.map.getZoom())
+          self.selectedContextMenu = null
+       })
 	     this.map.on('zoomend moveend', function (e) {
 	       // console.log(self.map.getZoom())
 	        self.animationEnd()
@@ -638,7 +652,6 @@ export default {
              this.markers[region] = null
            }
            keys = Object.keys(data)
-           console.log(keys)
            this.markers = {}
 //         for (var key in this.groupLayers) {
 //           if (this.groupLayers[key]) {
@@ -658,9 +671,7 @@ export default {
         this.noStation = true
         this.$store.commit('setSearching', false)
         return
-      }
-     console.log(keys[index])
-     
+     }
      this.addRegion(keys[index],data[keys[index]] )
 
 //       for(var i= index; i < index + this.$store.state.batch && i < data.stations.length ; i++) {
@@ -898,6 +909,16 @@ export default {
           return country
       }
     },
+    openStationContextMenu (e) {
+      if (e.layer.options.title.length === 9) {
+        this.selectedContextMenu = {
+            name: e.layer.options.title,
+            id: e.layer.options.id,
+            x: e.containerPoint.x,
+            y: e.containerPoint.y
+        }
+      }
+    },
     addRegion (region, features) {
       var self = this
       this.markers[region] = L.markerClusterGroup({
@@ -929,6 +950,9 @@ export default {
       this.markers[region].addTo(this.map)
       this.markers[region].on('click', function (e) {
           self.getData(e.layer)
+       })
+       this.markers[region].on('contextmenu', function (e) {
+          self.openStationContextMenu(e)
        })
        if (!this.bounds) {
         this.bounds = L.latLngBounds()
@@ -979,6 +1003,9 @@ export default {
          this.markers[region].on('click', function (e) {
             self.getData(e.layer)
            })
+        this.markers[region].on('contextmenu', function (e) {
+          self.openStationContextMenu(e)
+       })
         if (region !== 'W_EU') {
           this.markers[region].addTo(this.map)
         }

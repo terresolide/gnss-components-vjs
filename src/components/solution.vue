@@ -47,7 +47,11 @@ export default {
   },
   methods: {
     close (e) {
-      this.$router.go(-1)
+      if (!this.$parent.initialized) {
+        this.$router.push({name: 'home'})
+      } else {
+        this.$router.go(-1)
+      }
     },
     isLocalFile () {
       var domain = this.$store.state.api

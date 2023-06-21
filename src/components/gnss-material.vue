@@ -1,23 +1,26 @@
 <template>
 <span class="gnss-material">
  <label v-if="receivers && receivers.length > 0">Receivers</label>
- <div v-for="receiver in receivers" class="gnss-row">
-   <div class="gnss-row-1">
-   <div><label>From:</label> {{toDateStr(receiver.dateInstalled)}}</div>
-   <div><label>To:</label> {{toDateStr(receiver.dateRemoved)}}</div>
-   </div>
-   <div class="gnss-row-2">
-     <div v-for="key in ['receiverType', 'serialNumber', 'firmwareVersion']"><label>{{labelize(key)}}:</label> {{receiver[key]}}</div>
-   </div>
-   <div class="gnss-row-3">
-       <div v-for="key in ['elevationCutoffVal', 'temperatureStabiliz']"><label>{{labelize(key)}}:</label> {{receiver[key]}}</div>
-   
-   </div>
-   <div class="gnss-row-4">
-       <div v-for="key in ['satelliteSystem']"><label>{{labelize(key)}}:</label> {{receiver[key]}}</div>
-   </div>
+ <div v-if="receivers" style="border:1px solid darkgrey;">
+	 <div v-for="receiver in receivers" class="gnss-row">
+	   <div class="gnss-row-1">
+	   <div><label>From:</label> {{toDateStr(receiver.dateInstalled)}}</div>
+	   <div><label>To:</label> {{toDateStr(receiver.dateRemoved)}}</div>
+	   </div>
+	   <div class="gnss-row-2">
+	     <div v-for="key in ['receiverType', 'serialNumber', 'firmwareVersion']"><label>{{labelize(key)}}:</label> {{receiver[key]}}</div>
+	   </div>
+	   <div class="gnss-row-3">
+	       <div v-for="key in ['elevationCutoffVal', 'temperatureStabiliz']"><label>{{labelize(key)}}:</label> {{receiver[key]}}</div>
+	   
+	   </div>
+	   <div class="gnss-row-4">
+	       <div v-for="key in ['satelliteSystem']"><label>{{labelize(key)}}:</label> {{receiver[key]}}</div>
+	   </div>
+	 </div>
  </div>
  <label v-if="antennas && antennas.length > 0" style="margin-top:15px;">Antennas</label>
+ <div v-if="antennas" style="border:1px solid darkgrey;">
  <div v-for="antenna in antennas" class="gnss-row">
    <div class="gnss-row-1">
    <div><label>From:</label> {{toDateStr(antenna.dateInstalled)}}</div>
@@ -33,6 +36,7 @@
    <div class="gnss-row-4">
        <div v-for="key in ['antennaCableLengthVal', 'antennaCableType']"><label>{{labelize(key)}}:</label> {{antenna[key]}}</div>
    
+   </div>
    </div>
  </div>
 </span>
@@ -80,12 +84,12 @@ export default{
 }
 </script>
 <style>
-div.gnss-row:nth-child(2n) {
+div.gnss-row:nth-child(2n + 1) {
    background: #eee;
   }
 .gnss-row {
   display: grid;
-  grid-template-columns:  minmax(120px,1fr) minmax(120px,0.8fr)  minmax(100px,1fr) minmax(160px,1.5fr) ;
+  grid-template-columns:  minmax(100px,0.8fr) minmax(120px,1.3fr)  minmax(100px,1fr) minmax(160px,1.5fr) ;
   grid-gap: 5px;
   grid-template-rows: 45px; 
   /*grid-auto-rows: minmax(100px, auto);*/
