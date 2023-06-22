@@ -419,7 +419,7 @@ export default {
             neighbours[index].distance = distance
           })
           neighbours.sort(function (a, b) {
-            return a.distance > b.distance
+            return a.distance > b.distance ? 1 : -1
           })
           this.neighbours = neighbours
 
