@@ -544,7 +544,9 @@ export default {
        })
 	     this.map.on('zoomend moveend', function (e) {
 	       // console.log(self.map.getZoom())
+	       if (self.$route.name === 'home') {
 	        self.animationEnd()
+	       }
 	     })
 	     this.map.on('autopanstart', function (e) {
 	       self.wait = true
