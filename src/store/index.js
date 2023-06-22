@@ -5,7 +5,7 @@ export default function makeStore( config ) {
   var defaultConfig = {
     api: 'http://127.0.0.1:8083/api/',
     solution: null,
-    productor: null,
+    analysisCenter: null,
     query: {name: 'home', query: {}},
     queryList: {},
     codelists: {},
@@ -63,9 +63,9 @@ export default function makeStore( config ) {
       search (state, getters) {
         return state.search
       },
-      productors (state, getters) {
-         if (state.codelists.productors) {
-          return state.codelists.productors
+      analysisCenters (state, getters) {
+         if (state.codelists.analysisCenters) {
+          return state.codelists.analysisCenters
         }
         return null
       },
@@ -74,8 +74,8 @@ export default function makeStore( config ) {
         if (state.solution) {
           rq.solution = state.solution
         }
-        if (state.productor) {
-          rq.productor = state.productor
+        if (state.analysisCenter) {
+          rq.analysisCenter= state.analysisCenter
         }
         return rq
       },

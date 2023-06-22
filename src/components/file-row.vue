@@ -27,13 +27,13 @@
  
       </div>
       <div class="gnss-file-5">
-         <div><label>Analysis centre</label>: {{file.properties.operator || file.properties.producer || file.properties.analysisCentre}}</div>
+         <div><label>AnalysisCenter</label>: {{file.properties.operator || file.properties.producer || file.properties.analysisCenter}}</div>
          <div v-if="file.properties.refFrame"><label>RefFrame</label>: {{file.properties.refFrame}}</div>
  
       </div>
       <div class="gnss-file-6">
          <div> 
-           <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
+           <a  :href="api + 'products/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
           </div>
  
       </div>

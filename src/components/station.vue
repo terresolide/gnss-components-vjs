@@ -159,7 +159,7 @@
                <a v-if="file.solution === 'GAMIT-GLOBK' && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=uga_pos'"
                 target="_blank" >SARI</a> 
-             <a  :href="api + 'files/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
+             <a  :href="api + 'products/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
             
                </div>
            <div><label>Name</label> {{file.name}}</div>
@@ -442,7 +442,7 @@ export default {
         this.script.remove()
         this.script = null
       }
-      this.$http.get(this.api + 'files/' + file.name + '/component' )
+      this.$http.get(this.api + 'products/' + file.name + '/component' )
       .then(resp => {
         this.plot.div = resp.body.div
         this.plot.script = resp.body.script
@@ -455,7 +455,7 @@ export default {
     getGraph (file) {
       this.selected = file
       this.plot.script = null
-      this.$http.get(this.api + 'files/' + file.name + '/graph' )
+      this.$http.get(this.api + 'products/' + file.name + '/graph' )
       .then(resp => {
         // this.plot.div = resp.body.div
         this.plot.div = resp.body.div
@@ -571,9 +571,9 @@ export default {
     },
     getFiles() {
       this.files = {}
-      this.$http.get(this.api + 'stations/' + this.stationId + '/files', {params: this.$route.query})
+      this.$http.get(this.api + 'stations/' + this.stationId + '/products', {params: this.$route.query})
       .then(resp => {
-        var files = resp.body.files
+        var files = resp.body.products
         var self = this
         files.forEach(function (file) {
           var years = moment(file.tempEnd).diff(file.tempStart, 'years', true)

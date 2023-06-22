@@ -12,7 +12,7 @@
 	 </div>
   <div class="station-body" style="min-height:calc(100vh - 70px);">
 	   
-	   <div v-if="files.length > 0"><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
+	   <div ><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
 	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging>
 	    <button type="button" :disabled="downloading"  title="Download only the files in the page" @click="downloadPage">
           Download All
@@ -31,7 +31,7 @@
 	       <div style="margin-top:5px;">Solution 
 	         <span class="gnss-sort" @click="changeSort('solution')" :class="{unactive: !sort.solution}" >{{sort.solution === 'DESC' ? '&uarr;' : '&darr;' }}</span>
 	       </div>
-	       <div>ProductType
+	       <div>Product type
 	          <span class="gnss-sort" @click="changeSort('productType')" :class="{unactive: !sort.productType}" >{{sort.productType === 'DESC' ? '&uarr;' : '&darr;' }}</span>
        
 	       </div>
@@ -43,12 +43,12 @@
 	        </div>
 	        <div>
 	          Years<span class="gnss-sort" @click="changeSort('years')" :class="{unactive: !sort.years}" >{{sort.years === 'DESC' ? '&uarr;' : '&darr;' }}</span>
-            FillRate<span class="gnss-sort" @click="changeSort('fill')" :class="{unactive: !sort.fill}" >{{sort.fill === 'DESC' ? '&uarr;' : '&darr;' }}</span>
+            Fill rate<span class="gnss-sort" @click="changeSort('fill')" :class="{unactive: !sort.fill}" >{{sort.fill === 'DESC' ? '&uarr;' : '&darr;' }}</span>
          
 	        </div>
 	     </div>
-	     <div class="gnss-file-5">Analysis centre
-	       <span class="gnss-sort" @click="changeSort('productor')" :class="{unactive: !sort.productor}" >{{sort.productor === 'DESC' ? '&uarr;' : '&darr;' }}</span>
+	     <div class="gnss-file-5">Analysis center
+	       <span class="gnss-sort" @click="changeSort('analysisCenter')" :class="{unactive: !sort.analysisCenter}" >{{sort.analysisCenter === 'DESC' ? '&uarr;' : '&darr;' }}</span>
        
 	     </div>
 	    </div>
@@ -101,7 +101,7 @@ export default {
         solution: 'ASC',
         name: null,
         productType: null,
-        productor: null,
+        analysisCenter: null,
         start: null,
         end: null,
         fill: null,
@@ -184,7 +184,7 @@ export default {
 //       navigator.clipboard.writeText(url);
 //     },
     display (data) {
-      this.files = data.files
+      this.files = data.products
       this.pagination.tot = data.query.tot
       this.pagination.page = data.query.page
       this.pagination.maxRecords = data.query.maxRecords
@@ -205,7 +205,7 @@ export default {
       if (!this.api) {
          console.log('Pas de service SensorThings!')
       }
-      var url = this.api + 'files/'
+      var url = this.api + 'products/'
       var params = Object.assign({}, this.defaultRequest)
       if (query.orderBy) {
         var sorts = query.orderBy.split(/\s*,\s*/)
