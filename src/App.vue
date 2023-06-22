@@ -79,6 +79,7 @@ export default {
   line-height:2rem;
   margin-top:10%;
   text-align:center;
+  pointer-events:none;
 }
 
 .gnss-terresolide label {
