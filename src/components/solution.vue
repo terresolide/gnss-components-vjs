@@ -47,7 +47,7 @@ export default {
   },
   methods: {
     close (e) {
-      if (!this.$parent.initialized) {
+      if (window.history.length <= 2) {
         this.$router.push({name: 'home'})
       } else {
         this.$router.go(-1)
