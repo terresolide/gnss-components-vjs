@@ -604,7 +604,7 @@ export default {
 
     load (i, first) {
       if (!this.api) {
-        alert('Service unvailable!')
+        console.log('Service unvailable!')
       }
       // all stations case get in cache
       var props =  Object.keys(this.$route.query)
@@ -618,7 +618,7 @@ export default {
         this.$http.get(url, {params: this.$route.query})
         .then(
             resp => {this.displayByPart(resp.body, i, null, first)},
-            resp => {alert('Erreur de chargement: ' + resp.status)}
+            resp => {console.log('Erreur de chargement: ' + resp.status)}
          )
          return
       } else {
@@ -639,7 +639,7 @@ export default {
       this.$http.get(url, {params: params})
       .then(
           resp => {this.display(resp.body, i, first)},
-          resp => {alert('Erreur de chargement: ' + resp.status)}
+          resp => {console.log('Erreur de chargement')}
        )
       }
     },

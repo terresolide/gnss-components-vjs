@@ -2,13 +2,18 @@
  <div class="gnss-terresolide" style="position:relative;" @click="removeContextMenu">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
-    
-     <map-component ref="map"></map-component>
-
-		 <div  v-if="$route.name !== 'home'" id="page" style="position:absolute;z-index:1;">
-		
-		     <div class="gnss-attribution">Component by <a href="https://www.poleterresolide.fr" title="ForM@Ter"><img :src="require('./assets/img/favicon.png').default" width="24" /></a></div>
-		     <router-view></router-view>
+      <div v-if="maintenance" class="gnss-maintenance">
+        SERVICE <b>UNDER MAINTENANCE.</b><br>
+        Please come back later.
+      </div>
+      <div v-else >
+	     <map-component ref="map"></map-component>
+	
+			 <div  v-if="$route.name !== 'home'" id="page" style="position:absolute;z-index:1;">
+			
+			     <div class="gnss-attribution">Component by <a href="https://www.poleterresolide.fr" title="ForM@Ter"><img :src="require('./assets/img/favicon.png').default" width="24" /></a></div>
+			     <router-view></router-view>
+			 </div>
 		 </div>
  </div>
 </template>
@@ -23,10 +28,13 @@ export default {
     MapComponent //,
    // GnssUser
   },
+  data () {
+    return {
+      maintenance: false
+    }
+  },
   created () {
     this.searchCodeLists()
-    console.log(this.$route.name)
-    console.log(this.$store.state.sso)
     
   },
   mounted () {
@@ -40,7 +48,9 @@ export default {
   methods: {
     removeContextMenu () {
       console.log(this.$refs)
-      this.$refs.map.selectedContextMenu = null
+      if (this.$refs.map) {
+        this.$refs.map.selectedContextMenu = null
+      }
       var nodes = document.querySelectorAll('.context')
       nodes.forEach(function (node) {
         node.classList.remove('context')
@@ -56,13 +66,21 @@ export default {
       this.$http.get(url)
       .then(resp => {
         this.$store.commit('setCodeList', resp.body)
-      })
+      }, resp => {this.maintenance = true})
     }
   }
 }
 </script>
 <style src='./assets/fontello/css/fontello.css' />
 <style>
+.gnss-maintenance {
+  color:darkred;
+  font-size:26px;
+  line-height:2rem;
+  margin-top:10%;
+  text-align:center;
+}
+
 .gnss-terresolide label {
   margin-bottom: 5px;
   font-weight: 700;

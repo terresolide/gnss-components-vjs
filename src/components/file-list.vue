@@ -203,7 +203,7 @@ export default {
     },
     treatmentQuery (query) {
       if (!this.api) {
-        alert('Pas de service SensorThings!')
+         console.log('Pas de service SensorThings!')
       }
       var url = this.api + 'files/'
       var params = Object.assign({}, this.defaultRequest)
@@ -238,7 +238,7 @@ export default {
       this.$http.get(url, {params: params})
       .then(
           resp => {this.display(resp.body)},
-          resp => {alert('Erreur de chargement: ' + resp.status)}
+          resp => {console.log('Erreur de chargement: ' + resp.status)}
        )
     },
 //     toggle () {
