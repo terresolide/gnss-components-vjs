@@ -13,9 +13,9 @@
            <li v-if="$route.name === 'home'" class="gnss-bars-link"  @click="goToList()">
              <font-awesome-icon icon="fa-solid fa-list" />
              View list</li>
-          <!--    <li v-if="$route.name === 'files'" class="gnss-bars-link" style="margin-top:5px;" @click="goToMap()">
+           <li v-if="$route.name === 'files'" class="gnss-bars-link" style="margin-top:5px;" @click="goToMap()">
              <font-awesome-icon icon="fa-solid fa-map" />
-             View Map</li> -->
+             View Map</li> 
           <li class="gnss-hr" style="margin-bottom:5px;"><hr /></li>
            <li v-if="$route.query.newTab" class="gnss-bars-link" @click="goTo($event, 'home')" >
               <font-awesome-icon icon="fa-solid fa-home"  /> Home
@@ -98,22 +98,33 @@ export default {
       this.$router.push({name: name})
     },
     goToList () {
-      var query = Object.assign({}, this.$route.query)
-      this.$store.commit('setQueryList', this.$parent.getQuery())
+     // var query = Object.assign({}, this.$route.query)
+      var totQuery = this.$parent.getQuery()
+      this.$store.commit('setQueryList', totQuery)
 //       if (this.$route.name === 'home') {
 //          this.$store.commit('setStations', this.$parent.stations)
 //       }
       var query = Object.assign({}, this.$route.query)
       delete query.selected
       delete query.bounds
-      delete query.expand
+      if (totQuery.expand) {
+        query.expand = 1
+      }
       this.$router.push({ name: 'files', params: {}, query: query})
     },
     goToMap () {
-      var query = Object.assign({}, this.$route.query)
+      var query = this.$parent.getQuery()
      // this.$store.commit('resetStations')
       delete query.page
       delete query.maxRecords
+      if (this.$store.state.queryList.bounds) {
+        query.bounds = this.$store.state.queryList.bounds
+      } 
+      if (this.$store.state.queryList.selected) {
+        query.selected = this.$store.state.queryList.selected
+      }
+     
+      this.$store.state.viewMap = true
       this.$router.push({name: 'home', query: query})
     },
     toggle (event) {

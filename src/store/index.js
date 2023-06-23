@@ -14,6 +14,7 @@ export default function makeStore( config ) {
     batch: 200,
     search: true,
     reseting: false,
+    viewMap: false,
    // stations: null,
    // boundsChanged: false,
     drawing: false

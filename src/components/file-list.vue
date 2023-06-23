@@ -195,6 +195,17 @@ export default {
 //       delete query.maxRecords
 //       this.$router.push({name: 'home', query: query})
 //     },
+    getQuery () {
+      var query = Object.assign({}, this.$route.query)
+     
+      var expand = this.$el.querySelector('.expand')
+      if (expand) {
+        query['expand'] = 1
+      } else {
+        delete query['expand']
+      }
+      return query
+    },
     paginationChange (event) {
       var query = Object.assign({}, this.$route.query)
       query.page = event.page

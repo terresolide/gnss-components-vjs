@@ -47,7 +47,6 @@ export default {
   },
   methods: {
     removeContextMenu () {
-      console.log(this.$refs)
       if (this.$refs.map) {
         this.$refs.map.selectedContextMenu = null
       }

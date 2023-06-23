@@ -192,16 +192,17 @@ export default {
   watch: {
     $route (newroute, oldroute) {
         if (newroute.name !== 'home') {
-          if (this.map)
-        
-          this.map.off('resize')
           return
         }
         if (oldroute.name !== 'home') {
           if (!this.initialized) {
             this.initialize()
           }
-          return
+          if (!this.$store.state.viewMap) {
+            return
+          } else {
+            this.$store.state.viewMap = false
+          }
         }
        
         if (!this.routeChanged(oldroute, newroute)) {
@@ -338,6 +339,7 @@ export default {
         delete oldquery[exclud[key]]
         delete newquery[exclud[key]]
       }
+
       var aKeys = Object.keys(oldquery).sort();
       var bKeys = Object.keys(newquery).sort();
       if (JSON.stringify(aKeys) != JSON.stringify(bKeys)) {
