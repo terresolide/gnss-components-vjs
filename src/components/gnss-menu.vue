@@ -3,7 +3,7 @@
        <div class="gnss-shortcut gnss-bars" @click="toggle($event)"><font-awesome-icon icon="fa-solid fa-bars" /></div>
        <div class="gnss-bars-content" >
          <ul>
-           <li v-if="$store.state.auth && email" class="gnss-bars-link">  <font-awesome-icon icon="fa-solid fa-user" /> 
+           <li v-if="$store.state.auth && email" class="gnss-bars-link" @click="goTo($event, 'account')">  <font-awesome-icon icon="fa-solid fa-user" /> 
              Your Account
            </li>
            <li v-if="$store.state.auth && !email" class="gnss-bars-link" @click="login">
@@ -100,20 +100,20 @@ export default {
       navigator.clipboard.writeText(url);
     },
     goTo(event, name) {
-      if (name === 'home') {
-         this.$router.push({name: name})
-      }
-      // event.stopPropagation()
-      return
-      var query = Object.assign({}, this.$route.query)
-      if (this.$route.name === 'home') {
-        query = this.$parent.getQuery()
-      }
-      this.$store.commit('setQuery',{name: this.$route.name, query: query})
-//       if (this.$route.name === 'home') {
-//          this.$store.commit('setStations', this.$parent.stations)
+//       if (name === 'home') {
+//          this.$router.push({name: name})
 //       }
-      return
+//       // event.stopPropagation()
+//       return
+//       var query = Object.assign({}, this.$route.query)
+//       if (this.$route.name === 'home') {
+//         query = this.$parent.getQuery()
+//       }
+//       this.$store.commit('setQuery',{name: this.$route.name, query: query})
+// //       if (this.$route.name === 'home') {
+// //          this.$store.commit('setStations', this.$parent.stations)
+// //       }
+//       return
       this.$router.push({name: name})
     },
     goToList () {

@@ -18,6 +18,9 @@ export default {
 				return null
 			}
 			return state.user.email
+		},
+		get (state, getters) {
+		  return state.user
 		}
 	},
 	mutations: {
