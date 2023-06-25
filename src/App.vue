@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import {AuthService} from 'formater-auth-service-js'
 // import GnssUser from './components/gnss-user.vue'
 // import SpotGins from './components/spot-gins.vue'
 import MapComponent from './components/map.vue'
@@ -44,6 +45,12 @@ export default {
     var location = window.location.href
     var pos = location.indexOf('#')
     this.$store.state.location = location.substring(0, pos +2)
+    var service = new AuthService('formater', {
+      keycloakUrl: 'https://sso.aeris-data.fr/auth/realms/test',
+      clientId: 'formater-vjs',
+      method: 'public'
+    })
+
   },
   methods: {
     removeContextMenu () {

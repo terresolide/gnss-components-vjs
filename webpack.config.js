@@ -5,12 +5,13 @@ var PACKAGE = require('./package.json');
 var buildVersion = PACKAGE.version;
 var buildName = PACKAGE.name;
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-var UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+// var UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const TerserPlugin = require("terser-webpack-plugin");
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 // var preUrl = PACKAGE.preproduction.url + "/webcomponents/";
 var prodUrl = PACKAGE.production.url + '/' + buildName + '@' + buildVersion +  '/dist/' ;
-var FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
+// var FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 
 
 var pathsToClean = [
@@ -96,7 +97,8 @@ module.exports = {
   devServer: {
     // https: true,
     historyApiFallback: true,
-    noInfo: true,
+   // noInfo: true,
+    liveReload: true,
     headers: {
       "Access-Control-Allow-Origin": "http://localhost:8080",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
@@ -106,7 +108,7 @@ module.exports = {
   performance: {
     hints: false
   },
-  devtool: '#eval-source-map'
+  devtool: 'eval-source-map'
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -118,10 +120,10 @@ if (process.env.NODE_ENV === 'development') {
   ])
   module.exports.mode = 'development'
 	module.exports.output.filename='build.js'
-	  module.exports.plugins = (module.exports.plugins || []).concat([
-
-	    new FriendlyErrorsWebpackPlugin()
-	  ])
+//	  module.exports.plugins = (module.exports.plugins || []).concat([
+//
+//	    new FriendlyErrorsWebpackPlugin()
+//	  ])
 
 
 }
@@ -133,21 +135,27 @@ if (process.env.NODE_ENV === 'production') {
     new VueLoaderPlugin()
   ])
   module.exports.mode = 'production'
-  module.exports.devtool = '#source-map';
+  module.exports.devtool = 'source-map';
   module.exports.output.publicPath = prodUrl;
+  module.exports.optimization =  {
+        minimize: true,
+        minimizer: [
+            new TerserPlugin(),
+        ]
+    }
   var indexPath = path.resolve(__dirname, '/dist/index.html')
   // http://vue-loader.vuejs.org/en/workflow/production.html
   module.exports.plugins = (module.exports.plugins || []).concat([
    
     new CleanWebpackPlugin({cleanAfterEveryBuildPatterns: ['dist']}),
-    new UglifyJsPlugin({
-        sourceMap: true,
-        uglifyOptions: {
-          compress: {
-            collapse_vars: false
-          }
-        }
-    }),
+//    new UglifyJsPlugin({
+//        sourceMap: true,
+//        uglifyOptions: {
+//          compress: {
+//            collapse_vars: false
+//          }
+//        }
+//    }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       options: {
