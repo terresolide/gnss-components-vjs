@@ -2,6 +2,9 @@
  <div class="gnss-terresolide" style="position:relative;" @click="removeContextMenu">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
+      <div v-if="hello && email" class="gnss-hello" @click="hello=false">
+        Hello {{email}}!
+      </div>
       <div v-if="maintenance" class="gnss-maintenance">
         SERVICE <b>UNDER MAINTENANCE.</b><br>
         Please come back later.
@@ -29,9 +32,16 @@ export default {
     MapComponent //,
    // GnssUser
   },
+  computed: {
+    email () {
+      return this.$store.getters['user/email']
+    }
+  },
   data () {
     return {
-      maintenance: false
+      maintenance: false,
+      hello: false,
+      service: null
     }
   },
   created () {
@@ -45,12 +55,19 @@ export default {
     var location = window.location.href
     var pos = location.indexOf('#')
     this.$store.state.location = location.substring(0, pos +2)
-    var service = new AuthService('formater', {
-      keycloakUrl: 'https://sso.aeris-data.fr/auth/realms/test',
-      clientId: 'formater-vjs',
-      method: 'public'
-    })
-
+    if (this.$store.state.auth) {
+	    AuthService.setRedirectUri('https://spotgins.formater/data/userinfo.php')
+	    this.service = new AuthService('formater',this.$store.state.sso)
+	    this.service.add()
+	    var self = this
+	    this.service.on('authenticated', function (user, serv) {
+	       self.$store.commit('user/set', user)
+	       self.hello = true
+	       setTimeout(function () {
+	         self.hello = false
+	       }, 6000)
+	    })
+    }
   },
   methods: {
     removeContextMenu () {
@@ -87,7 +104,18 @@ export default {
   text-align:center;
   pointer-events:none;
 }
-
+.gnss-hello {
+    position:absolute;
+    font-size:16px;
+    left: calc(50% - 250px);
+     min-width:500px;
+    text-align:center;
+    top: 20%;
+    padding: 20px;
+    background: white;
+    border:1px solid grey;
+    z-index:100;
+}
 .gnss-terresolide label {
   margin-bottom: 5px;
   font-weight: 700;

@@ -3,6 +3,13 @@
        <div class="gnss-shortcut gnss-bars" @click="toggle($event)"><font-awesome-icon icon="fa-solid fa-bars" /></div>
        <div class="gnss-bars-content" >
          <ul>
+           <li v-if="$store.state.auth && email" class="gnss-bars-link">  <font-awesome-icon icon="fa-solid fa-user" /> 
+             Your Account
+           </li>
+           <li v-if="$store.state.auth && !email" class="gnss-bars-link" @click="login">
+            <font-awesome-icon icon="fa-solid fa-right-to-bracket" /> Login</li>
+           <li v-if="$store.state.auth" class="gnss-hr" style="margin-bottom:5px;"><hr /></li>
+         
            <li class="gnss-bars-link" title="Record state in clipboard" @click="copyClipboard($event)">
                 <font-awesome-icon icon="fa-solid fa-bookmark" />
            
@@ -40,6 +47,11 @@ export default {
       default: 5
     }
   },
+  computed: {
+    email () {
+      return this.$store.getters['user/email']
+    }
+  },
   data () {
     return {
       clickListener: null
@@ -62,6 +74,13 @@ export default {
         node.classList.remove('selected')
         return
       }
+    },
+    login () {
+      console.log(this.$parent.$parent.service)
+      this.$parent.$parent.service.login()
+    },
+    logout () {
+      this.$parent.$parent.service.logout()
     },
     copyClipboard (event) {
       event.stopPropagation()

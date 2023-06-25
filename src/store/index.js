@@ -1,10 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-
+import user from './user'
 export default function makeStore( config ) {
   var defaultConfig = {
     api: 'http://127.0.0.1:8083/api/',
     solution: null,
+    sso: null,
     analysisCenter: null,
     query: {name: 'home', query: {}},
     queryList: {},
@@ -101,6 +102,9 @@ export default function makeStore( config ) {
         }
         return null
       }
+    },
+    modules: {
+      user: user
     }
   })
 }
