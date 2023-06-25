@@ -841,6 +841,8 @@ export default {
         case 'ISPA00CHL':
         case 'YELL00CAN':
           return feature[1]
+        case 'GSTV00FRA':
+          return 'CARAB'
         case 'KOKB00USA':
         case 'MAUI00USA':
         case 'HNLC00USA':
