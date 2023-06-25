@@ -146,7 +146,7 @@
        <option v-for="group, key in files" :value="key">{{key}}</option>
      </select></div>
      <div style="width:100%">
-       <gnss-carousel :slide-width="460" :width="1380">
+       <gnss-carousel :slide-width="530" :width="1380">
           <slot v-for="file, index in files[productType]" >
             <div slot="slide" class="slider-files" >
             <div class="file-container">
@@ -155,11 +155,14 @@
             <div class="product-link">
                <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
-                target="_blank">SARI</a> 
+                target="_blank"><font-awesome-icon icon="fa-solid fa-cog" /> SARI</a> 
                <a v-if="file.solution === 'GAMIT-GLOBK' && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=uga_pos'"
-                target="_blank" >SARI</a> 
-             <a  :href="api + 'products/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
+                target="_blank" ><font-awesome-icon icon="fa-solid fa-cog" /> SARI</a> 
+             <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.service.login()">
+             <font-awesome-icon icon="fa-solid fa-download" /></a>
+             <a  v-else :href="api + 'products/' + file.name + '/download'" :download="file.name" >
+               <font-awesome-icon icon="fa-solid fa-download" /></a>
             
                </div>
            <div><label>Name</label> {{file.name}}</div>
@@ -738,7 +741,7 @@ span.gnss-network-item::after {
      box-shadow: 0 0 3px rgba(0,0,0,.5);
   }
  div.slider-files {
-    max-width:460px;padding:0 5px;display:inline-block;vertical-align:top;
+    max-width:525px;padding:0 5px;display:inline-block;vertical-align:top;
   }
   div.slider-files label {
     min-width:160px;
@@ -768,9 +771,9 @@ span.gnss-network-item::after {
     padding:10px;
     border: 1px solid grey;
     border-radius:10px;
-    width:445px;
+    width:520px;
     line-height:1;
-    max-width:450px;
+    max-width:520px;
     min-height:630px;
     vertical-align:top;
     display:block;
@@ -779,11 +782,23 @@ span.gnss-network-item::after {
   }
   div.file-container div.product-link {
     position: absolute;
-    right:10px;
+    right:5px;
     top:5px;
     
   }
-
+  div.product-link a {
+    display: inline-block;
+    padding: 2px 5px;
+    margin-right: 5px;
+    border-radius: 3px;
+    border: 1px dotted blue;
+    background:#f3f3F3; 
+  }
+  div.product-link a:hover {
+    text-decoration: none;
+    background: #e5e5e5;
+    color: #23527c;
+  }
   div.file-container img {
     max-width:96%;
   }

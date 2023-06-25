@@ -133,7 +133,10 @@ export default {
   },
   methods: {
     downloadPage () {
-      
+      if (this.$store.state.auth && !this.$store.getters['user/email']) {
+        this.$parent.service.login()
+        return
+      }
       var nodes = this.$el.querySelectorAll('.gnss-file a[download]')
       this.download(0, nodes)
       this.downloading = true
