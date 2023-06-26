@@ -1,12 +1,45 @@
 <template>
- <div class="page-station" style="width:100%;position:relative;overflow:hidden;">
+ <div class="page-station gnss-user" style="width:100%;position:relative;overflow:hidden;">
     <div class="station-content" >
      <div class="station-header">
       <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
      
       <h2>Your account</h2>
+     </div >
+     <div v-if="user" style="margin:20px;">
+        <div><label>Your email:</label> {{user.email}}</div>
+        <div v-if="user['client-roles']"><label>Your roles: </label> {{user['client-roles']}}</div>
+        <div style="position:relative;"><label>Your cookie:</label> 
+            <textarea>{{user.cookie}}</textarea>
+            <button type="button" @click="CopyClipboard" style="position:relative;">
+            <font-awesome-icon icon="fa-solid fa-clipboard" /> Copy to clipboard
+                 <div class="gnss-tooltip">Your cookie has been copied to clipboard</div>
+                      
+            </button>
+                
+         <!--    <button type="button" @click="downloadCookie">
+               <font-awesome-icon icon="fa-solid fa-download" /> Cookie.txt
+            </button> -->
+        </div>
+        <h3>How download a product with command line</h3>
+        You must use the cookie.
+        <h4>With curl and cookie string</h4>
+        <pre>
+curl -b "{{user.cookie}}" {{fileUrl}}
+curl -b "{{user.cookie}}" {{downloadUrl}}</pre>
+        <h4>With wget</h4>
+        <pre>
+wget --header="Cookie: {{user.cookie}}" {{fileUrl}}
+wget --header="Cookie: {{user.cookie}}" {{downloadUrl}} </pre>
      </div>
-     <div v-if="user">{{user.email}}</div>
+     <div v-else style="margin:20px;">
+     <em>You are not authenticated.</em>
+       <div v-if="$store.state.auth" style="width:250px;text-align:right;">
+        <button type="button" @click="$parent.service.login()">
+          <font-awesome-icon icon="fa-solid fa-right-to-bracket" /> Login
+        </button>
+        </div>
+     </div>
     </div>
  </div>
 </template>
@@ -26,14 +59,51 @@ export default {
       return this.$store.getters['user/get']
     }
   },
+  data () {
+    return {
+      fileUrl: null,
+      downloadUrl: null
+    }
+  },
   created () {
     if (!this.user) {
       
     }
+    var station = '1MEL00FRA'
+    var file = '1MEL00FRA.enu'
+    this.downloadUrl = this.$store.state.api + 'products/' + file + '/download'
+    this.fileUrl = this.$store.state.api.replace('api', 'data') + station + '/' + file
   },
   methods: {
     close(e) {
       this.$router.go(-1)
+    },
+ 
+    CopyClipboard () {
+      var node = this.$el.querySelector('textarea')
+      console.log(node)
+      node.select();
+      // node.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      var tooltip = this.$el.querySelector('div.gnss-tooltip')
+      tooltip.style.display = 'block'
+      setTimeout(function () {
+          tooltip.style.display = 'none'
+      }, 2000)
+    },
+    downloadCookie () {
+      var cookies = this.user.cookie.split('=')
+      var text = cookies.join('\n')
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', 'cookie.txt');
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
     }
     
   }
@@ -46,7 +116,27 @@ export default {
     right:0;
     z-index:100
   }
- 
+  textarea {
+  position:absolute;
+  left:-9999px;
+}
+.gnss-user pre {
+  padding:10px;
+  color: white;
+  background: black;
+}
+ div.gnss-tooltip {
+  position: absolute;
+  background-color: #fafafa;
+  border: 1px solid #a3a3a3;
+  font-size: smaller;
+  padding: 4px;
+  width: 160px;
+  text-align:left;
+  display:none;
+  -webkit-box-shadow: 2px 2px 3px rgba(0,0,0,.4);
+  box-shadow: 2px 2px 3px rgba(0,0,0,.4);
+}
 
 
 </style>
