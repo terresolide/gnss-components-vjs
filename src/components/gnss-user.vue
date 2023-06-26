@@ -25,12 +25,12 @@
         You must use the cookie.
         <h4>With curl and cookie string</h4>
         <pre>
-curl -b "{{user.cookie}}" {{fileUrl}}
-curl -b "{{user.cookie}}" {{downloadUrl}}</pre>
+curl {{$store.state.env === 'development' ? '-k ':''}}-b "{{user.cookie}}" {{fileUrl}} -o {{filename}}
+curl {{$store.state.env === 'development' ? '-k ':''}}-b "{{user.cookie}}" {{downloadUrl}} -o {{filename}}</pre>
         <h4>With wget</h4>
         <pre>
-wget --header="Cookie: {{user.cookie}}" {{fileUrl}}
-wget --header="Cookie: {{user.cookie}}" {{downloadUrl}} </pre>
+wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--header="Cookie: {{user.cookie}}" {{fileUrl}}
+wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--header="Cookie: {{user.cookie}}" {{downloadUrl}} </pre>
      </div>
      <div v-else style="margin:20px;">
      <em>You are not authenticated.</em>
@@ -62,7 +62,8 @@ export default {
   data () {
     return {
       fileUrl: null,
-      downloadUrl: null
+      downloadUrl: null,
+      filename:'1MEL00FRA.enu'
     }
   },
   created () {
@@ -70,9 +71,8 @@ export default {
       
     }
     var station = '1MEL00FRA'
-    var file = '1MEL00FRA.enu'
-    this.downloadUrl = this.$store.state.api + 'products/' + file + '/download'
-    this.fileUrl = this.$store.state.api.replace('api', 'data') + station + '/' + file
+    this.downloadUrl = this.$store.state.api + 'products/' + this.filename + '/download'
+    this.fileUrl = this.$store.state.api.replace('api', 'data') + station + '/' + this.filename
   },
   methods: {
     close(e) {

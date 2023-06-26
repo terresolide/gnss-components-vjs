@@ -42,6 +42,7 @@ if (process.env.NODE_ENV === 'development') {
 } else {
   config.sso = sso.prod
 }
+config.env = process.env.NODE_ENV
 const store = makeStore(config)
 
 //import vueCustomElement from 'vue-custom-element';
