@@ -67,6 +67,9 @@ export default {
 	         self.hello = false
 	       }, 6000)
 	    })
+	    this.service.on('logout', function () {
+	      self.$store.commit('user/set', null)
+	    })
 	    this.service.testLogin()
     }
   },
