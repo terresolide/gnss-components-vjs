@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+   <!--  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+--> 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"  crossorigin="anonymous">
+
+ 
+    <title>test</title>
+    <style>
+      html {
+        font-size:100%;
+      }
+      body {
+       margin:0;
+       font-size:100%;
+       }
+    </style>
+  </head>
+  <body >
+    <h1>Un test</h1>
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+   <!--  <div id="app"></div> --> 
+  <!--  <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
+      -->
+     <script id="gnssConfig" type="application/json" >
+     {
+        "api": "https://spotgins.formater/api/",
+        "preview": "https://spotgins.formater/data/preview/",
+        "auth": true,
+        "limit": 500
+     }
+     </script>
+     <div style="width:99%;margin:auto;">
+     <div id="app" ></div>
+      <script src="dist/build.js"></script> 
+     </div>
+    <!-- built files will be auto injected -->
+    
+ 
+  </body>
+</html>

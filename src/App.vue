@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import {AuthService} from 'formater-auth-service-js'
+import {AuthService} from './modules/AuthService.js'
 // import GnssUser from './components/gnss-user.vue'
 // import SpotGins from './components/spot-gins.vue'
 import MapComponent from './components/map.vue'
@@ -56,7 +56,7 @@ export default {
     var pos = location.indexOf('#')
     this.$store.state.location = location.substring(0, pos +2)
     if (this.$store.state.auth) {
-	    AuthService.setRedirectUri('https://spotgins.formater/data/userinfo.php')
+	    AuthService.setRedirectUri('https://spotgins.formater/callback/userinfo.php')
 	    this.service = new AuthService('formater',this.$store.state.sso)
 	    this.service.add()
 	    var self = this
@@ -67,6 +67,7 @@ export default {
 	         self.hello = false
 	       }, 6000)
 	    })
+	    this.service.testLogin()
     }
   },
   methods: {
