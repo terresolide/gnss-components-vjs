@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import {AuthService} from './modules/AuthService.js'
+import {AuthService} from 'formater-auth-service-js'
 // import GnssUser from './components/gnss-user.vue'
 // import SpotGins from './components/spot-gins.vue'
 import MapComponent from './components/map.vue'
@@ -56,7 +56,7 @@ export default {
     var pos = location.indexOf('#')
     this.$store.state.location = location.substring(0, pos +2)
     if (this.$store.state.auth) {
-	    AuthService.setRedirectUri('https://spotgins.formater/callback/userinfo.php')
+	    AuthService.setRedirectUri(this.$store.state.ssoLogin, this.$store.state.ssoLogout)
 	    this.service = new AuthService('formater',this.$store.state.sso)
 	    this.service.add()
 	    var self = this
@@ -64,13 +64,13 @@ export default {
 	       self.$store.commit('user/set', user)
 	       self.hello = true
 	       setTimeout(function () {
-	         self.hello = false
+	          self.hello = false
 	       }, 6000)
 	    })
 	    this.service.on('logout', function () {
 	      self.$store.commit('user/set', null)
 	    })
-	    this.service.testLogin()
+	    // this.service.testLogin()
     }
   },
   methods: {
@@ -115,9 +115,13 @@ export default {
      min-width:500px;
     text-align:center;
     top: 20%;
-    padding: 20px;
+    font-weight:700;
+    padding: 30px 20px;;
     background: white;
+    border-radius:5px;
     border:1px solid grey;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
     z-index:100;
 }
 .gnss-terresolide label {
