@@ -266,7 +266,7 @@ export default {
     removeStation (id) {
       
        var data = {stationId: id}
-       this.$http.get(this.$store.state.back + '/entities/removeStation/' + id, {credentials: true} )
+       this.$http.post(this.$store.state.back + '/entities/removeStation/' + id, {}, {credentials: true} )
        .then(resp => {console.log(resp)}, resp => {console.log('error')})
     },
     closeMenuContext(e) { 
