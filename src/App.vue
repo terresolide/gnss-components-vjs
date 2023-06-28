@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import {AuthService} from 'formater-auth-service-js'
+import {AuthService} from './modules/AuthService.js'
 // import GnssUser from './components/gnss-user.vue'
 // import SpotGins from './components/spot-gins.vue'
 import MapComponent from './components/map.vue'
@@ -70,8 +70,12 @@ export default {
 	    this.service.on('logout', function () {
 	      self.$store.commit('user/set', null)
 	    })
-	    // this.service.testLogin()
+	    this.service.testLogin()
     }
+  },
+  destroyed () {
+    this.service.remove()
+    this.service = null
   },
   methods: {
     removeContextMenu () {
