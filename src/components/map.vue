@@ -45,7 +45,7 @@
     <div id="map" class="fullmap" @click="noStation=false"></div>
     <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
-      <div style="min-height:100px;cursor:pointer;">
+      <div  style="min-height:100px;cursor:pointer;">
            <h4 style="position:relative;display:inline-block;" v-if="selected" @click="goToStation($event)" title="Go to station page" @contextmenu="menuContext($event)">STATION {{selected[1]}}
                <div  class="menu-context" @click="closeMenuContext($event)">
                 <ul>
@@ -55,36 +55,9 @@
                    </li></ul>
                </div>
           </h4>
-          <!--   <ul v-if="selected"  class="menu-content">
-              <li @click="mode = 'info'" >
-             <span :class="{'selected': mode === 'station'}" >Informations</span>
-            </li>
-            <li @click="mode='image'" >
-               <span :class="{'selected': mode === 'image'}" >Graphique</span>
-            </li>
       
-             </ul>
-           -->
       <div v-if="selected ">
-    <!--   <div v-show="mode == 'info'" style="min-width:250px;">
-	      <h5 style="margin-bottom:0;">Coordinates</h5>
-	      
-	       
-	         <div style="margin-left:10px;margin-top:18px;">
-	       
-	         <div>Latitude: {{selected.geometry.coordinates[1].toLocaleString()}}°</div>
-	         <div>Longitude: {{selected.geometry.coordinates[0].toLocaleString()}}°</div>
-	         <div v-if="selected.properties.elevation">Elevation: {{selected.properties.elevation.toLocaleString()}} m</div>
-	        </div>
-	      <h5>Informations</h5>
-	       <div style="margin-left:10px;margin-top:18px;">
-	       
-	        <div v-if="selected.properties.m3g">M3g:  <a :href="selected.properties.m3g" target="_blank">sitelog</a></div>
-	        <div>Domes: {{selected.properties.domes}}</div>
-	        <div v-if="selected.properties.networks">Networks: {{selected.properties.networks.join(', ')}}</div>
-	       </div>
-	      </div>
-	     -->
+
 	      <div  style="min-width:250px;position:relative;" v-if="selected[4] && selected[4].length > 0">
 	        <gnss-carousel  :height="300" :slide-width="310" dot-position="bottom" :id="selected[0]">
 	          <slot v-for="img in selected[4]" >
@@ -93,7 +66,10 @@
 	           </div>
 	          </slot>
 	        </gnss-carousel>
-	        <div class="link-area" style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @contextmenu="menuContext($event)" @click="goToStation($event)">
+	        <div  v-if="$store.state.back">
+	        <button @click="removeStation(selected[0])"><i class="fa fa-close" ></i>Remove station</button>
+	        </div>
+	        <div v-else class="link-area" style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @contextmenu="menuContext($event)" @click="goToStation($event)">
              <div  class="menu-context" @click="closeMenuContext($event)">
                 <ul>
                    <li title="Open in new tab">
@@ -105,7 +81,7 @@
 	      </div>
      </div>
       </div>
-      <div v-if="selected" style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
+      <div v-if="!$store.state.back && selected" style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
            <span class="fa button"  @click="goToStation($event)" @contextmenu="menuContext($event)"><font-awesome-icon icon="fa-solid fa-arrows-alt" />
             <div  class="menu-context" @click="closeMenuContext($event)">
                 <ul>
@@ -286,6 +262,13 @@ export default {
     }
   },
   methods: {
+    
+    removeStation (id) {
+      
+       var data = {stationId: id}
+       this.$http.get(this.$store.state.back + '/entities/removeStation/' + id, {credentials: true} )
+       .then(resp => {console.log(resp)}, resp => {console.log('error')})
+    },
     closeMenuContext(e) { 
       e.stopPropagation()
       this.selectedContextMenu = null
