@@ -67,7 +67,7 @@
 	          </slot>
 	        </gnss-carousel>
 	        <div  v-if="$store.state.back">
-	        <button @click="removeStation(selected[0])"><i class="fa fa-close" ></i>Remove station</button>
+	        <button @click="removeStation(selected)"><i class="fa fa-close" ></i>Remove station</button>
 	        </div>
 	        <div v-else class="link-area" style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @contextmenu="menuContext($event)" @click="goToStation($event)">
              <div  class="menu-context" @click="closeMenuContext($event)">
@@ -263,10 +263,30 @@ export default {
   },
   methods: {
     
-    removeStation (id) {
-      
-       var data = {stationId: id}
-       this.$http.post(this.$store.state.back + '/entities/removeStation/' + id, {}, {credentials: true} )
+    removeStation (selected) {
+       if (!window.confirm("Voulez-vous réellement supprimer la station " + selected[1] + "\navec tous ses produits!")) {
+         return
+       }
+//        var data = {stationId: selected[0]}
+//        fetch(this.$store.state.back + '/entities/removeStation/' + selected[0], { method: 'DELETE', credentials: 'include', redirect: 'follow'})
+//        .then(async response => {
+//          const isJson = response.headers.get('content-type').includes('application/json');
+//          const data = isJson && await response.json();
+
+//          // check for error response
+//          if (!response.ok) {
+//              // get error message from body or default to response status
+//              const error = (data && data.message) || response.status;
+//              return Promise.reject(error);
+//          }
+
+//          this.status = 'Delete successful';
+//        })
+//        .catch(error => {
+//          this.errorMessage = error;
+//          console.error('There was an error!', error);
+//        });
+       this.$http.delete(this.$store.state.back + '/entities/removeStation/' + selected[0], {credentials: true} )
        .then(resp => {console.log(resp)}, resp => {console.log('error')})
     },
     closeMenuContext(e) { 
@@ -825,6 +845,8 @@ export default {
         case 'YELL00CAN':
           return feature[1]
         case 'GSTV00FRA':
+        case 'MAGT00FRA':
+        case 'CRO100VIR':
           return 'CARAB'
         case 'KOKB00USA':
         case 'MAUI00USA':
@@ -845,6 +867,9 @@ export default {
       }
       var country = feature[1].substring(6,9)
       switch (country) {
+      
+        case 'TWN':
+           return 'CHN'
         case 'CPV':
            return 'SEN'
 	      case 'USA':
@@ -873,6 +898,11 @@ export default {
 	      case 'IRL':
 	      case 'SVK':
 	        return 'N_EU'
+	      case 'COK':
+	      case 'WSM': 
+	      case 'ASM': 
+	      case 'PYF':
+	         return 'POLYN'
 	      case 'SVN':
 	      case 'ITA':
 	      case 'GRC':
