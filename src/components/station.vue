@@ -4,15 +4,15 @@
  
   <file-form mode="station" ></file-form>
   <gnss-menu :top="55"></gnss-menu>
-    
- <div class="station-content" >
+  <div v-if="scrollY > 400" class="gnss-top" @click="scrollTop"><font-awesome-icon icon="fa-solid fa-circle-chevron-up" /></div>
+ <div class="station-content"  >
 	 <div class="station-header">
 	    <span v-if="!$route.query.newTab" class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
 	    <h2 v-if="stationId">Station {{stationName}}</h2>
 	    <h2 v-else-if="stations">{{stations.length}} stations with the identifier {{stationName}}</h2>
 	    <h2 v-else>UNKNOWN STATION</h2>
 	 </div>
-  <div class="station-body">
+  <div class="station-body" @scroll="scroll($event)" >
   <div v-if="location || stations">
 	  <div v-if="!station && stations" style="float:left;">
 	      <div v-for="st in stations" class="box-station">
@@ -261,6 +261,7 @@ export default {
         nearest: false,
         siteForm: false
       },
+      scrollY: 0,
       newTab: false,
       monumentKeys: ['foundation', 'monumentDesc', 'heightVal', 'foundationDepthVal'],
       translateMonument:['Monument foundation', 'Monument description', 'Monument height', 'Monument foundation depth'],
@@ -398,6 +399,27 @@ export default {
         this.neighboursLayer.remove()
         this.onMap = false
       } 
+    },
+    scroll (event) {
+      this.scrollY = event.target.scrollTop
+    },
+    scrollTo(y, d) {
+      y = y - d
+      if (y > 0) {
+        this.$el.querySelector('.station-body').scrollTop = parseInt(y)
+        var _this = this
+         setTimeout(function () {
+            _this.scrollTo(y, d)
+        }, 10)
+      } else {
+        this.$el.querySelector('.station-body').scrollTop = 0
+      }
+    },
+    scrollTop () {
+      if (this.$el && this.$el.querySelector('.station-body')) {
+        var d = this.scrollY  * 0.05
+        this.scrollTo(this.scrollY,d)
+      }
     },
 //     toggleForm () {
 //       var elt = document.querySelector('.form')

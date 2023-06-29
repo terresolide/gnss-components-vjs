@@ -2,14 +2,15 @@
  <div class="page-station" style="width:100%;position:relative;overflow:hidden;">
 
   <gnss-menu :top="55"></gnss-menu>
-    
- <div class="station-content" >
+   <div v-if="scrollY > 400" class="gnss-top" @click="scrollTop"><font-awesome-icon icon="fa-solid fa-circle-chevron-up" /></div>
+  
+ <div class="station-content"  >
      <div class="station-header">
       <span v-if="!$route.query.newTab" class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
      
       <h2>Solution {{name}}</h2>
      </div>
-      <div class="station-body" style="min-height:calc(100vh - 70px);">
+      <div class="station-body" @scroll="scroll($event)" >
         <span v-if="solution && !metadata" >
           <div><label>Description</label> <div style="display:inline-block;width:calc(100% - 200px);">{{solution.description}}</div></div>
           <div><a :href="solution.metadata"><font-awesome-icon icon="fa-solid fa-file" /> {{solution.metadata}}</a></div>
@@ -42,7 +43,8 @@ export default {
     return {
       name: null,
       metadata: null,
-      solution: null
+      solution: null,
+      scrollY: 0
     }
   },
   methods: {
@@ -80,6 +82,27 @@ export default {
       if (this.solution.encodingType === 'text/plain')
       this.$http.get(this.solution.metadata)
       .then(resp => {this.metadata = resp.body})
+    },
+    scroll (event) {
+      this.scrollY = event.target.scrollTop
+    },
+    scrollTo(y, d) {
+      y = y - d
+      if (y > 0) {
+        this.$el.querySelector('.station-body').scrollTop = parseInt(y)
+        var _this = this
+         setTimeout(function () {
+            _this.scrollTo(y, d)
+        }, 10)
+      } else {
+        this.$el.querySelector('.station-body').scrollTop = 0
+      }
+    },
+    scrollTop () {
+      if (this.$el && this.$el.querySelector('.station-body')) {
+        var d = this.scrollY  * 0.05
+        this.scrollTo(this.scrollY,d)
+      }
     }
   }
 }
