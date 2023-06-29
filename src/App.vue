@@ -1,5 +1,5 @@
 <template>
- <div class="gnss-terresolide" style="position:relative;" @click="removeContextMenu">
+ <div id="gnss" class="gnss-terresolide" style="position:relative;" @click="removeContextMenu">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
  -->
       <div v-if="hello && email" class="gnss-hello" @click="hello=false">
@@ -57,7 +57,7 @@ export default {
     this.$store.state.location = location.substring(0, pos +2)
     if (this.$store.state.auth) {
 	    AuthService.setRedirectUri(this.$store.state.ssoLogin, this.$store.state.ssoLogout)
-	    this.service = new AuthService('formater',this.$store.state.sso)
+	    this.service = new AuthService('gnssterresolide',this.$store.state.sso)
 	    this.service.add()
 	    var self = this
 	    this.service.on('authenticated', function (user, serv) {
@@ -70,8 +70,13 @@ export default {
 	    this.service.on('logout', function () {
 	      self.$store.commit('user/set', null)
 	    })
-	    // this.service.testLogin()
+	    this.service.testLogin()
     }
+    
+  },
+  destroyed () {
+    this.service.remove()
+    this.service = null
   },
   methods: {
     removeContextMenu () {
@@ -123,6 +128,23 @@ export default {
     cursor: pointer;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     z-index:100;
+}
+.gnss-top {
+    position:fixed;
+    bottom:30px;
+    right: 10px;
+    font-size:50px;
+    opacity:0.8;
+    cursor:pointer;
+    z-index:100;
+}
+@media screen and (min-width: 1440px) {
+   .gnss-top {
+       right: calc(50% - 690px);
+    }
+ }
+.gnss-top:hover {
+  opacity:1;
 }
 .gnss-terresolide label {
   margin-bottom: 5px;
@@ -216,6 +238,8 @@ div.menu-context ul li:hover {
   }
    div.station-body {
     padding: 3px 10px;
+    max-height:calc(100vh - 80px);
+    overflow:scroll;
   }
   div.station-header h2 {
     padding:0;

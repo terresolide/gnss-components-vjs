@@ -1,7 +1,7 @@
 <template>
 <span class="gnss-material">
  <label v-if="receivers && receivers.length > 0">Receivers</label>
- <div v-if="receivers" style="border:1px solid darkgrey;">
+ <div v-if="receivers" class="gnss-material-container" style="border:1px solid darkgrey;">
 	 <div v-for="receiver in receivers" class="gnss-row">
 	   <div class="gnss-row-1">
 	   <div><label>From:</label> {{toDateStr(receiver.dateInstalled)}}</div>
@@ -20,7 +20,7 @@
 	 </div>
  </div>
  <label v-if="antennas && antennas.length > 0" style="margin-top:15px;">Antennas</label>
- <div v-if="antennas" style="border:1px solid darkgrey;">
+ <div v-if="antennas" style="border:1px solid darkgrey;" class="gnss-material-container">
  <div v-for="antenna in antennas" class="gnss-row">
    <div class="gnss-row-1">
    <div><label>From:</label> {{toDateStr(antenna.dateInstalled)}}</div>
@@ -96,6 +96,11 @@ div.gnss-row:nth-child(2n + 1) {
   font-size:0.8em;
   
   border-bottom:1px solid lightgrey;
+}
+.gnss-material-container {
+  border:1px solid grey;
+  max-height:275px;
+  overflow:scroll;
 }
 .gnss-row label {
   margin-bottom:2px;
