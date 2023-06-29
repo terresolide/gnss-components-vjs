@@ -522,7 +522,7 @@ export default {
           } else {
             this.setNoStation()
           }
-        })
+        }, resp => {this.setNoStation()})
     },
     getMoreInfo () {
       if (!this.station.properties.m3g) {
