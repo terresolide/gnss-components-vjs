@@ -30,10 +30,11 @@
            <li v-if="$route.query.newTab" class="gnss-bars-link" @click="goTo($event, 'home')" >
               <font-awesome-icon icon="fa-solid fa-home"  /> Home
            </li>
-          <li class="gnss-bars-link disabled" @click="goTo($event,'solutions')">Solutions</li>
+       <!--    <li class="gnss-bars-link disabled" @click="goTo($event,'solutions')">Solutions</li>
           <li class="gnss-bars-link disabled" @click="goTo($event, 'productTypes')">Product Types</li>
           <li class="gnss-bars-link disabled" @click="goTo($event, 'about')">About</li>
           <li class="gnss-hr" style="margin-bottom:5px;"><hr /></li>
+         -->
            <li class="gnss-bars-link" ><a :href="$store.state.api" target="_blank">
            <font-awesome-icon icon="fa-solid fa-gear" /> GNSS Api</a></li>
          

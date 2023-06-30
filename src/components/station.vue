@@ -43,10 +43,14 @@
       
        <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M<sup>3</sup>G sitelog</a></div>
        <div v-if="isEPOS"><label>EPOS</label> <a :href="'https://gnssdata-epos.oca.eu/#/metadata/marker='+ stationName.substring(0,4)" target="_blank">EPOS station page</a></div>
-       <div v-if="station.properties.networks"><label>Networks:</label> <span v-for="net in station.properties.networks">
-        <span v-if="networks[net]" class="gnss-network-item"><a :href="networks[net]" target="_blank">{{net}}</a></span>
-        <span v-else class="gnss-network-item">{{net}}</span>
-       </span>
+       <div v-if="station.properties.networks"><label>Networks:</label> 
+	       <span v-for="net in station.properties.networks">
+	        <span v-if="networks[net]" class="gnss-network-item">
+	          <span v-if="isDoi(networks[net])">{{net}} (<a :href="'https://www.doi.org/' + isDoi(networks[net])">{{networks[net]}}</a>)</span>
+	          <span v-else ><a :href="networks[net]" target="_blank">{{net}}</a></span>
+	        </span>
+	        <span v-else class="gnss-network-item">{{net}}</span>
+	        </span>
        </div>
        <div v-if="!station.properties.m3g"><em>Sorry, we don't have more information about this station</em></div>
        
@@ -340,7 +344,13 @@ export default {
     // this.countNbFiles()
   },
   methods: {
-  
+    isDoi (link) {
+      link = link.toLowerCase()
+      if (link.indexOf('doi') >= 0) {
+        return link.split(':')[1]
+      }
+      return false
+    },
     closeMenuContext(e) {
       e.stopPropagation()
       this.$parent.removeContextMenu()
