@@ -99,8 +99,8 @@ div.gnss-row:nth-child(2n + 1) {
 }
 .gnss-material-container {
   border:1px solid grey;
-  max-height:275px;
-  overflow:scroll;
+  max-height:278px;
+  overflow:auto;
 }
 .gnss-row label {
   margin-bottom:2px;

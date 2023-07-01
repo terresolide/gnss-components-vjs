@@ -10,18 +10,19 @@
 	    <span class="close button" @click="close($event)" style="margin-right:20px;"><font-awesome-icon icon="fa-solid fa-close" /></span>
 	    <h2>List of files</h2>
 	 </div>
-  <div class="station-body" style="min-height:calc(100vh - 70px);">
+  <div class="station-body" style="min-height:calc(100vh - 70px);max-height:max-content;overflow-x:hidden;">
 	   
 	   <div ><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
 	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging>
 	   <div style="display:inline-block;width:30%;text-align:right;padding-right:20px;">
-	     <button type="button" :disabled="downloading"  title="Export result to csv file" >
-           <a  :href="exportQuery" :download="'exportGnss.csv'" >
+	     <button type="button" :disabled="true"  title="on going" >
+           <!--  <a   :href="exportQuery":download="'exportGnss.csv'" >
            Export CSV
             <font-awesome-icon icon="fa-solid fa-file" />
            </a>
-         
-          
+         -->
+          Export CSV
+            <font-awesome-icon icon="fa-solid fa-file" />
       </button>
 	    <button type="button" :disabled="downloading"  title="Download only the files in the page" @click="downloadPage">
           Download All
@@ -63,7 +64,7 @@
 	     </div>
 	    </div>
 	    
-	    <div style="max-height:calc(100vh - 140px);overflow-y:scroll;">
+	    <div style="max-height:calc(100vh - 155px);overflow-y:scroll;">
 	      <file-row v-for="file, index in files" :key="index" :file="file"></file-row>
 	    </div>
    </div>
@@ -296,6 +297,9 @@ export default {
 }
 </script>
 <style>
+button[disabled] {
+  pointer-events: none;
+}
 div.box-station {
   display: inline-block;
 overflow: hidden;

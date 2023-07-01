@@ -39,9 +39,11 @@
     
       <h3 style="margin-left:-10px;">Information</h3>
          <div v-if="station.properties.domes"><label>IERS DOMES Number:</label> {{station.properties.domes}}</div>
+       
         <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M<sup>3</sup>G GNSS station page </a></div>
-      
        <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M<sup>3</sup>G sitelog</a></div>
+        <div v-if="station.owner"><label>Owner: </label> {{station.owner}}</div>
+       
        <div v-if="isEPOS"><label>EPOS</label> <a :href="'https://gnssdata-epos.oca.eu/#/metadata/marker='+ stationName.substring(0,4)" target="_blank">EPOS station page</a></div>
        <div v-if="station.properties.networks"><label>Networks:</label> 
 	       <span v-for="net in station.properties.networks">
@@ -559,6 +561,8 @@ export default {
         this.station.contacts = {}
         if (data.sitelog.siteOwner) {
           this.station.contacts.siteOwner = data.sitelog.siteOwner
+          if (data.sitelog.siteOwner.agency && data.sitelog.siteOwner.agency.preferedAbbreviation)
+          this.station.owner = data.sitelog.siteOwner.agency.preferedAbbreviation
         }
         if (data.sitelog.onSiteContact) {
           this.station.contacts.onSiteContact = data.sitelog.onSiteContact

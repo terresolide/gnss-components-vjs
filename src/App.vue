@@ -142,6 +142,9 @@ export default {
 </script>
 <style src='./assets/fontello/css/fontello.css' />
 <style>
+.gnss-terresolide {
+  overflow:hidden;
+}
 .gnss-terresolide  a {
  color: #b8412c;
 }
@@ -278,6 +281,7 @@ div.menu-context ul li:hover {
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
+   overflow:hidden;
   }
   div.station-content {
     background:white;
@@ -296,7 +300,7 @@ div.menu-context ul li:hover {
    div.station-body {
     padding: 3px 10px;
     max-height:calc(100vh - 80px);
-    overflow:scroll;
+    overflow-x:hidden;
   }
   div.station-header h2 {
     padding:0;
