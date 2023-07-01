@@ -21,10 +21,10 @@
        <ol><li>
        Vérifiez que la station exite bien sur le M<sup>3</sup>G et est identique en consultant <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank"> {{stationName}} M<sup>3</sup>G sitelog</a>
        </li>
-       <li>Liez cette station avec celle du M<sup>3</sup>G: <button type="button" >Lier</button></li>
+       <li>Si l'erreur provient du M<sup>3</sup>G, liez cette station avec celle du M<sup>3</sup>G: <button type="button" >Lier</button><br>
+       Sinon <button type="button" @click="removeStation()">supprimez</button> la station, corrigez ses coordonnées dans votre fichier et repoussez le.</li>
        </ol>
     </div>
-    <div v-else><span>Cette station est différente de celle du M<sup>3</sup>G</span></div>
   </div>
   <div v-if="location || stations">
 	  <div v-if="!station && stations" style="float:left;">
@@ -171,10 +171,13 @@
        <gnss-carousel :slide-width="530" :width="1380">
           <slot v-for="file, index in files[productType]" >
             <div slot="slide" class="slider-files" >
-            <div class="file-container">
+            <div class="file-container" :class="{removed: file.removed}">
            <!--  <a href="https://spotgins.formater/data/SPOTGINS/GROUP2/RSTL00FRA_SERIE.txt" download >lien truc</a>
              -->
-            <div class="product-link">
+            <div v-if="$store.state.back && !file.removed" class="gnss-admin product-link" >
+              <button type="button" @click="removeFile(index)">Supprimer</button>
+            </div>
+            <div v-else class="product-link">
                <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
                 target="_blank"><font-awesome-icon icon="fa-solid fa-cog" /> SARI</a> 
@@ -186,7 +189,9 @@
              <a  v-else :href="api + 'products/' + file.name + '/download'" :download="file.name" >
                <font-awesome-icon icon="fa-solid fa-download" /></a>
             
-               </div>
+            </div>
+            
+            
            <div><label>Name</label> {{file.name}}</div>
            <div><label>Ref Frame</label> <span style="letter-spacing: .07em;">{{file.properties.refFrame}}</span></div>
            <div style="font-size:0.8rem;height:175px;">
@@ -437,6 +442,18 @@ export default {
       this.$http.delete(this.$store.state.back + '/entities/removeStation/' + this.stationId, {credentials: true} )
       .then(resp => {
         this.removed = true
+      }, resp => {console.log('error')})
+    },
+    removeFile (index) {
+      var file = this.files[this.productType][index]
+      if (!window.confirm("Voulez-vous réellement supprimer le fichier" + file.name )) {
+        return
+      }
+      
+      this.$http.delete(this.$store.state.back + '/entities/removeFile/' + file.id, {credentials: true} )
+      .then(resp => {
+        this.files[this.productType][index].removed = true
+        this.$forceUpdate()
       }, resp => {console.log('error')})
     },
     scroll (event) {
@@ -735,7 +752,8 @@ export default {
 .removed .gnss-admin-box {
   display:none;
 }
-.removed .station-body {
+.removed .station-body,
+.file-container.removed {
   opacity: 0.5;
 }
 .line {

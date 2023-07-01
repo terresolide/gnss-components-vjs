@@ -24,7 +24,7 @@
           Export CSV
             <font-awesome-icon icon="fa-solid fa-file" />
       </button>
-	    <button type="button" :disabled="downloading"  title="Download only the files in the page" @click="downloadPage">
+	    <button v-if="!$store.state.back" type="button" :disabled="downloading"  title="Download only the files in the page" @click="downloadPage">
           Download All
           <font-awesome-icon icon="fa-solid fa-download" />
       </button>
@@ -65,7 +65,7 @@
 	    </div>
 	    
 	    <div style="max-height:calc(100vh - 155px);overflow-y:scroll;">
-	      <file-row v-for="file, index in files" :key="index" :file="file"></file-row>
+	      <file-row v-for="file, index in files" :key="index" :file="file" @remove="reload()"></file-row>
 	    </div>
    </div>
    <div v-else style="text-align:center;padding:30px;"><em>No file match search criteria</em></div>
@@ -233,6 +233,9 @@ export default {
       query.page = event.page
       query.maxRecords = event.maxRecords
       this.$router.push({name: this.$route.name, query: query})
+    },
+    reload () {
+      this.treatmentQuery(this.$route.query)
     },
     treatmentQuery (query) {
       if (!this.api) {

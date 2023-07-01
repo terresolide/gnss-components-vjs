@@ -1,5 +1,5 @@
 <template>
-  <div class="gnss-file">
+  <div class="gnss-file" :class="{back : $store.state.back}">
       <div class="gnss-file-title">{{file.name}}</div>
       <div class="gnss-file-1"></div>
       <div class="gnss-file-2">
@@ -31,8 +31,13 @@
          <div v-if="file.properties.refFrame"><label>RefFrame</label>: {{file.properties.refFrame}}</div>
  
       </div>
-      <div class="gnss-file-6">
-         <div> 
+      <div v-if="$store.state.back" class="gnss-file-6-top gnss-admin">
+         
+              <button type="button" class="btn-sm" @click="removeFile()">Supprimer</button>
+       </div>
+      <div v-else class="gnss-file-6">
+         
+         <div > 
            <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.$parent.preLogin(api + 'products/' + file.name + '/download')"><font-awesome-icon icon="fa-solid fa-download" /></a>
            <a v-else :href="api + 'products/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
           </div>
@@ -90,6 +95,16 @@ export default {
       this.$parent.$parent.removeContextMenu()
       target.classList.add('context')
     },
+    removeFile () {
+       if (!window.confirm("Voulez-vous réellement supprimer le fichier" + this.file.name )) {
+        return
+      }
+      
+      this.$http.delete(this.$store.state.back + '/entities/removeFile/' + this.file.id, {credentials: true} )
+      .then(resp => {
+        this.$emit('remove', this.file.id)
+      }, resp => {console.log('error')})
+    },
     toDateStr (date) {
       return date.substring(0,10)
       return moment.utc(date).format('ll')
@@ -111,6 +126,16 @@ export default {
 .gnss-file {
   display: grid;
   grid-template-columns: 10px minmax(120px,1fr) minmax(120px,0.8fr)  minmax(150px,1.2fr) minmax(100px,0.8fr) minmax(50px,0.3fr);
+  grid-gap: 5px;
+  grid-template-rows: 14px 30px; 
+  /*grid-auto-rows: minmax(100px, auto);*/
+  font-size:0.8em;
+  
+  border-bottom:1px solid lightgrey;
+}
+.gnss-file.back {
+  display: grid;
+  grid-template-columns: 10px minmax(120px,1fr) minmax(120px,0.8fr)  minmax(150px,1.2fr) minmax(100px,0.8fr) minmax(50px,0.4fr);
   grid-gap: 5px;
   grid-template-rows: 14px 30px; 
   /*grid-auto-rows: minmax(100px, auto);*/
@@ -184,6 +209,11 @@ export default {
   grid-column: 5;
   grid-row: 2;
 }
+.gnss-file-6-top{
+  grid-column: 6;
+  grid-row: 1/2;
+  padding-top:5px;
+}
 .gnss-file-6{
   grid-column: 6;
   grid-row: 2;
@@ -192,6 +222,7 @@ export default {
   font-weight: normal;
   color: black;
   line-height:1;
+  min-width:0;
   margin:0;
 }
 </style>

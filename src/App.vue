@@ -447,6 +447,13 @@ div.menu-context ul li:hover {
   border-color: #f0F0F0;
   cursor: pointer;
 }
+.gnss-terresolide [type="button"].btn-sm,
+.gnss-terresolide [type="submit"].btn-sm {
+  padding: .25rem .5rem;
+  font-size: .875rem;
+  line-height: 1.5;
+  border-radius: .2rem;
+}
 .gnss-terresolide .gnss-admin [type="button"],
 .gnss-terresolide .gnss-admin [type="submit"] {
    color: white;
