@@ -66,8 +66,8 @@
 	           </div>
 	          </slot>
 	        </gnss-carousel>
-	        <div  v-if="$store.state.back">
-	        <button @click="removeStation(selected)"><i class="fa fa-close" ></i>Remove station</button>
+	        <div  v-if="$store.state.back" class="gnss-admin">
+	        <button @click="removeStation(selected)" type="button"><i class="fa fa-close" ></i>Supprimer la station</button>
 	        </div>
 	        <div v-else class="link-area" style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @contextmenu="menuContext($event)" @click="goToStation($event)">
              <div  class="menu-context" @click="closeMenuContext($event)">
@@ -81,7 +81,7 @@
 	      </div>
      </div>
       </div>
-      <div v-if="!$store.state.back && selected" style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
+      <div v-if="selected" style="position:absolute;bottom:3px;right:10px;" title="See the station in full page">
            <span class="fa button"  @click="goToStation($event)" @contextmenu="menuContext($event)"><font-awesome-icon icon="fa-solid fa-arrows-alt" />
             <div  class="menu-context" @click="closeMenuContext($event)">
                 <ul>
@@ -267,27 +267,10 @@ export default {
        if (!window.confirm("Voulez-vous réellement supprimer la station " + selected[1] + "\navec tous ses produits!")) {
          return
        }
-//        var data = {stationId: selected[0]}
-//        fetch(this.$store.state.back + '/entities/removeStation/' + selected[0], { method: 'DELETE', credentials: 'include', redirect: 'follow'})
-//        .then(async response => {
-//          const isJson = response.headers.get('content-type').includes('application/json');
-//          const data = isJson && await response.json();
-
-//          // check for error response
-//          if (!response.ok) {
-//              // get error message from body or default to response status
-//              const error = (data && data.message) || response.status;
-//              return Promise.reject(error);
-//          }
-
-//          this.status = 'Delete successful';
-//        })
-//        .catch(error => {
-//          this.errorMessage = error;
-//          console.error('There was an error!', error);
-//        });
        this.$http.delete(this.$store.state.back + '/entities/removeStation/' + selected[0], {credentials: true} )
-       .then(resp => {console.log(resp)}, resp => {console.log('error')})
+       .then(resp => {
+           this.load(0)
+       }, resp => {console.log('error')})
     },
     closeMenuContext(e) { 
       e.stopPropagation()
@@ -617,7 +600,7 @@ export default {
        if (i === 0) {
         this.$store.commit('setSearching', true)
       }
-      if (toSearch.length === 0 || (toSearch.length === 1 && toSearch.indexOf('solution') >= 0)) {
+      if (!this.$store.state.back && (toSearch.length === 0 || (toSearch.length === 1 && toSearch.indexOf('solution') >= 0))) {
         var url = this.api + 'stations/cache'
         var params = []
         this.$http.get(url, {params: this.$route.query})

@@ -1,5 +1,5 @@
 <template>
-<div class="page-station" style="width:100%;position:relative;overflow:hidden;">
+<div class="page-station" :class="{removed: removed}" style="width:100%;position:relative;overflow:hidden;">
   
  
   <file-form mode="station" ></file-form>
@@ -13,6 +13,19 @@
 	    <h2 v-else>UNKNOWN STATION</h2>
 	 </div>
   <div class="station-body" @scroll="scroll($event)" >
+  <div v-if="$store.state.back && station" class="gnss-admin gnss-admin-box">
+    <h3 style="margin-top:0;">Administration</h3>
+    <div style="margin-bottom:10px;"><span>Suppression de la station</span> <button type="button" @click="removeStation()">Supprimer</button></div>
+    <div v-if="!station.properties.m3g">
+       <div style="margin-bottom:3px">Identifiez la station sur le M<sup>3</sup>G </div>
+       <ol><li>
+       Vérifiez que la station exite bien sur le M<sup>3</sup>G et est identique en consultant <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank"> {{stationName}} M<sup>3</sup>G sitelog</a>
+       </li>
+       <li>Liez cette station avec celle du M<sup>3</sup>G: <button type="button" >Lier</button></li>
+       </ol>
+    </div>
+    <div v-else><span>Cette station est différente de celle du M<sup>3</sup>G</span></div>
+  </div>
   <div v-if="location || stations">
 	  <div v-if="!station && stations" style="float:left;">
 	      <div v-for="st in stations" class="box-station">
@@ -168,7 +181,7 @@
                <a v-if="(file.solution === 'GAMIT-GLOBK' || file.solution.indexOf('UGA')>=0) && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=uga_pos'"
                 target="_blank" ><font-awesome-icon icon="fa-solid fa-cog" /> SARI</a> 
-             <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.service.login()">
+             <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.preLogin()">
              <font-awesome-icon icon="fa-solid fa-download" /></a>
              <a  v-else :href="api + 'products/' + file.name + '/download'" :download="file.name" >
                <font-awesome-icon icon="fa-solid fa-download" /></a>
@@ -272,6 +285,7 @@ export default {
       },
       scrollY: 0,
       newTab: false,
+      removed: false,
       monumentKeys: ['foundation', 'monumentDesc', 'heightVal', 'foundationDepthVal'],
       translateMonument:['Monument foundation', 'Monument description', 'Monument height', 'Monument foundation depth'],
       geologicalKeys: [   'geologicCharacteristic', 
@@ -307,7 +321,8 @@ export default {
       this.stationName = route.params.name
       if (route.params.id) {
         this.stationId = route.params.id
-      } 
+      }
+      this.removed = false
       this.getStation()
       this.$store.commit('setReset', false)
     }
@@ -414,6 +429,15 @@ export default {
         this.neighboursLayer.remove()
         this.onMap = false
       } 
+    },
+    removeStation () {
+      if (!window.confirm("Voulez-vous réellement supprimer la station " + this.stationName + "\navec tous ses produits!")) {
+        return
+      }
+      this.$http.delete(this.$store.state.back + '/entities/removeStation/' + this.stationId, {credentials: true} )
+      .then(resp => {
+        this.removed = true
+      }, resp => {console.log('error')})
     },
     scroll (event) {
       this.scrollY = event.target.scrollTop
@@ -701,6 +725,19 @@ export default {
 }
 </script>
 <style>
+.gnss-admin-box {
+   border:2px solid darkgrey;
+   border-radius:5px;
+   background: #f3f3f3;
+   padding: 10px;
+   margin-right:50px;
+}
+.removed .gnss-admin-box {
+  display:none;
+}
+.removed .station-body {
+  opacity: 0.5;
+}
 .line {
   border:0;
   display:inline-block;

@@ -1,7 +1,7 @@
 <template>
  <div id="gnss" class="gnss-terresolide" style="position:relative;" @click="removeContextMenu">
  <!--   <spot-gins root="https://catalog.formater/FROST-Server/v1.1/" ></spot-gins>
- -->
+ -->  <div v-if="msgBack && $store.state.back" class="gnss-hello" @click="msgBack=false">N'oubliez pas de reconstruire le cache après vos modifications!</div>
       <div v-if="hello && email" class="gnss-hello" @click="hello=false">
         Hello {{email}}!
       </div>
@@ -52,7 +52,8 @@ export default {
       hello: false,
       service: null,
       waitingUrl: null,
-      pleaseLogin: false
+      pleaseLogin: false,
+      msgBack:true
     }
   },
   created () {
@@ -446,11 +447,21 @@ div.menu-context ul li:hover {
   border-color: #f0F0F0;
   cursor: pointer;
 }
+.gnss-terresolide .gnss-admin [type="button"],
+.gnss-terresolide .gnss-admin [type="submit"] {
+   color: white;
+   background:#337ab7;
+}
 [type="button"]:hover,
 [type="submit"]:hover{
   color: #000;
   background-color: #f0F0F0;
   border-color: #f9fafb;
+}
+.gnss-terresolide .gnss-admin [type="button"]:hover,
+.gnss-terresolide .gnss-admin [type="submit"]:hover {
+   background-color: #0069d9;
+   border-color: #0062cc;
 }
 [type="button"]:active,
 [type="submit"]:active {
