@@ -64,6 +64,9 @@ export default {
       var query = Object.assign({}, this.$route.query)
       delete query.network
       delete query.several
+      delete query.page
+      delete query.maxRecords
+      delete query.orderBy
       this.$router.push({ name: 'station', params: { name: this.file.station, id: this.file.stationId}, query: query})
 
     },
