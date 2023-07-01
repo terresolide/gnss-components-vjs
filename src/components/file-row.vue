@@ -95,11 +95,15 @@ export default {
 }
 </script>
 <style >
-.gnss-file a.station-link {
+.gnss-file a {
   line-height: 1;
   text-decoration: none;
-  color: #337ab7;
+  color: #b8412c;
   cursor:pointer;
+}
+.gnss-file a.station-link:hover {
+   text-decoration: none;
+    color:#7b080e;
 }
 .gnss-file {
   display: grid;

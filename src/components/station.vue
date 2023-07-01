@@ -160,7 +160,7 @@
                <a v-if="file.solution === 'SPOTGINS' && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=spotgins_pos'"
                 target="_blank"><font-awesome-icon icon="fa-solid fa-cog" /> SARI</a> 
-               <a v-if="file.solution === 'GAMIT-GLOBK' && file.productType === 'POSITION'"
+               <a v-if="(file.solution === 'GAMIT-GLOBK' || file.solution.indexOf('UGA')>=0) && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=uga_pos'"
                 target="_blank" ><font-awesome-icon icon="fa-solid fa-cog" /> SARI</a> 
              <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.service.login()">
@@ -823,13 +823,15 @@ span.gnss-network-item::after {
     padding: 2px 5px;
     margin-right: 5px;
     border-radius: 3px;
-    border: 1px dotted blue;
+    text-decoration:none;
+    color: #b8412c;
+    border: 1px dotted grey;
     background:#f3f3F3; 
   }
   div.product-link a:hover {
     text-decoration: none;
+    color:#7b080e;
     background: #e5e5e5;
-    color: #23527c;
   }
   div.file-container img {
     max-width:96%;
@@ -854,7 +856,7 @@ span.gnss-network-item::after {
     margin:5px;
   } **/
   span.station-link {
-    color: darkblue;
+    color: #b8412c;
     padding: 2px 3px;
     cursor: pointer;
     line-height:1.5rem;
@@ -862,6 +864,7 @@ span.gnss-network-item::after {
   }
   span.station-link:hover {
     border-color: grey;
+    color:#7b080e;
   }
   span.in-title {
     font-size: 1rem;

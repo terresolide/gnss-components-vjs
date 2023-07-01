@@ -148,11 +148,11 @@ export default {
 </script>
 <style>
 .gnss-paging > div {
-   width: calc(100% - 250px);
+   width: 68%;
    height: 33px;
-   text-align: center;
+   text-align: right;
    display: inline-block;
-   margin-left: 70px;
+   margin-left: 0px;
 }
 .gnss-paging span.mtdt-navigation span{
   font-size: 1rem;

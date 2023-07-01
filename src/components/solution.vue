@@ -63,13 +63,15 @@ export default {
     get () {
       this.$http.get(this.api + 'solutions/' + this.name)
       .then(resp => {
-        if (resp.body.name) {
+        if (resp.body && resp.body.name) {
           this.solution = resp.body
           if (this.solution.metadata) {
             this.getMetadata()
           }
+        } else {
+          
         }
-      })
+      }, resp => {console.log('NOT FOUND')})
     },
     isLocalFile (url) {
       var api = new URL(this.$store.state.api)

@@ -14,10 +14,20 @@
 	   
 	   <div ><gnss-paging color="#b8412c" :page="pagination.page" :max-records="pagination.maxRecords" :count="files.length"
 	   :total-results="pagination.tot" @change="paginationChange"></gnss-paging>
+	   <div style="display:inline-block;width:30%;text-align:right;padding-right:20px;">
+	     <button type="button" :disabled="downloading"  title="Export result to csv file" >
+           <a  :href="exportQuery" :download="'exportGnss.csv'" >
+           Export CSV
+            <font-awesome-icon icon="fa-solid fa-file" />
+           </a>
+         
+          
+      </button>
 	    <button type="button" :disabled="downloading"  title="Download only the files in the page" @click="downloadPage">
           Download All
           <font-awesome-icon icon="fa-solid fa-download" />
       </button>
+      </div>
 	   </div>
 	   <div class="array-list" v-if="files.length > 0">
 	    <div class="gnss-file header">
@@ -86,10 +96,18 @@ export default {
     defaultRequest () {
       var obj = Object.assign({page: 1, maxRecords: 25, orderBy: 'station ASC,solution ASC'}, this.$store.getters['request'] )
       return obj
+    },
+    exportQuery () {
+      var query = Object.assign({output: 'csv'}, this.$route.query)
+      var queryString = new URLSearchParams(query).toString()
+      var url = this.api + 'products?' + queryString
+      console.log(url)
+      return url
     }
   },
   watch: {
     $route (newroute, oldroute) {
+      console.log(newroute)
       this.treatmentQuery(newroute.query)
     }
   },
@@ -333,7 +351,7 @@ div.box-station a.station-link {
     border:1px solid grey;
   }
   span.station-link {
-    color: darkblue;
+    color: #b8412c;
     padding: 2px 3px;
     cursor: pointer;
     line-height:1.5rem;

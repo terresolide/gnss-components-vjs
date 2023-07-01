@@ -105,6 +105,23 @@ export default {
 </script>
 <style src='./assets/fontello/css/fontello.css' />
 <style>
+.gnss-terresolide  a {
+ color: #b8412c;
+}
+.gnss-terresolide a:hover {
+   color:#7b080e;
+}
+.gnss-terresolide button a,
+.gnss-terresolide button a:hover {
+  color: black;
+  text-decoration: none;
+  background:transparent;
+}
+.gnss-terresolide  a,
+.gnss-terresolide a:hover {
+  text-decoration:none;
+}
+
 .gnss-maintenance {
   color:darkred;
   font-size:26px;
