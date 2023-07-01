@@ -33,7 +33,7 @@
       </div>
       <div class="gnss-file-6">
          <div> 
-           <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.$parent.service.login()"><font-awesome-icon icon="fa-solid fa-download" /></a>
+           <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.$parent.preLogin(api + 'products/' + file.name + '/download')"><font-awesome-icon icon="fa-solid fa-download" /></a>
            <a v-else :href="api + 'products/' + file.name + '/download'" :download="file.name" ><font-awesome-icon icon="fa-solid fa-download" /></a>
           </div>
  

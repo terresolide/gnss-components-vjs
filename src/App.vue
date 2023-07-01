@@ -5,6 +5,15 @@
       <div v-if="hello && email" class="gnss-hello" @click="hello=false">
         Hello {{email}}!
       </div>
+      <div class="gnss-hello" v-if="pleaseLogin" style="text-align:left;max-width:500px;font-weight:500;">
+         To download product you must authenticate.<br><br>
+         You can authenticate using an <b>Orcid</b> or <b>Renater</b> account or by creating an account.
+        <div style="text-align:right;margin-top:10px;"> 
+           <button type="button" @click="cancelPreLogin()">Cancel</button>
+           <button type="button" @click="launchLogin()">Login/Register</button>
+         
+        </div>
+      </div>
       <div v-if="maintenance" class="gnss-maintenance">
         SERVICE <b>UNDER MAINTENANCE.</b><br>
         Please come back later.
@@ -41,7 +50,9 @@ export default {
     return {
       maintenance: false,
       hello: false,
-      service: null
+      service: null,
+      waitingUrl: null,
+      pleaseLogin: false
     }
   },
   created () {
@@ -62,6 +73,7 @@ export default {
 	    var self = this
 	    this.service.on('authenticated', function (user, serv) {
 	       self.$store.commit('user/set', user)
+	       self.launchWaiting()
 	       self.hello = true
 	       setTimeout(function () {
 	          self.hello = false
@@ -79,6 +91,31 @@ export default {
     this.service = null
   },
   methods: {
+    cancelPreLogin () {
+      this.pleaseLogin = false
+      this.waitingUrl = null
+    },
+    
+    launchLogin () {
+      this.pleaseLogin = false
+      this.service.login()
+    },
+    launchWaiting () {
+      if (!this.waitingUrl) {
+        return
+      }
+      var a = document.createElement('a')
+      a.setAttribute('href', this.waitingUrl)
+      a.setAttribute('download', 'file')
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      this.waitingUrl = null
+    },
+    preLogin (url) {
+      this.pleaseLogin = true
+      this.waitingUrl = url
+    },
     removeContextMenu () {
       if (this.$refs.map) {
         this.$refs.map.selectedContextMenu = null
@@ -121,7 +158,10 @@ export default {
 .gnss-terresolide a:hover {
   text-decoration:none;
 }
-
+.gnss-terresolide .leaflet-control-container a,
+.gnss-terresolide .leaflet-control-container a:hover{
+  color:black;
+}
 .gnss-maintenance {
   color:darkred;
   font-size:26px;
