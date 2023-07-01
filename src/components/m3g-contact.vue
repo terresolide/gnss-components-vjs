@@ -72,7 +72,7 @@ fieldset {
   height:100%;
 }
 legend {
-  color: black;
+  color: #333;
   font-weight:600;
   font-size:1rem;
   width:auto;

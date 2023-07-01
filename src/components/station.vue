@@ -42,13 +42,16 @@
        
         <div v-if="station.MOID"><label>MOID:</label>  <a :href="station.MOID" target="_blank">M<sup>3</sup>G GNSS station page </a></div>
        <div v-if="station.properties.m3g"><label>Sitelog:</label>  <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank">M<sup>3</sup>G sitelog</a></div>
-        <div v-if="station.owner"><label>Owner: </label> {{station.owner}}</div>
+        <div v-if="station.owner"><label>Site owner: </label> 
+           <span v-if="station.owner.ROR"><a :href="station.owner.ROR" target="_blank">{{station.owner.acronym}}</a></span>
+           <span v-else>{{station.owner.acronym}}</span>
+        </div>
        
        <div v-if="isEPOS"><label>EPOS</label> <a :href="'https://gnssdata-epos.oca.eu/#/metadata/marker='+ stationName.substring(0,4)" target="_blank">EPOS station page</a></div>
        <div v-if="station.properties.networks"><label>Networks:</label> 
 	       <span v-for="net in station.properties.networks">
 	        <span v-if="networks[net]" class="gnss-network-item">
-	          <span v-if="isDoi(networks[net])">{{net}} (<a :href="'https://www.doi.org/' + isDoi(networks[net])">{{networks[net]}}</a>)</span>
+	          <span v-if="isDoi(networks[net])">{{net}} (<a :href="'https://www.doi.org/' + isDoi(networks[net])" target="_blank">{{networks[net]}}</a>)</span>
 	          <span v-else ><a :href="networks[net]" target="_blank">{{net}}</a></span>
 	        </span>
 	        <span v-else class="gnss-network-item">{{net}}</span>
@@ -559,15 +562,21 @@ export default {
           this.station.antennas = data.sitelog.antennas
         }
         this.station.contacts = {}
-        if (data.sitelog.siteOwner) {
+        if (data.sitelog.siteOwner && data.sitelog.siteOwner.agency && data.sitelog.siteOwner.agency.agencyName) {
           this.station.contacts.siteOwner = data.sitelog.siteOwner
-          if (data.sitelog.siteOwner.agency && data.sitelog.siteOwner.agency.preferedAbbreviation)
-          this.station.owner = data.sitelog.siteOwner.agency.preferedAbbreviation
+          if (data.sitelog.siteOwner.agency && data.sitelog.siteOwner.agency.preferedAbbreviation) {
+            this.station.owner = { acronym: data.sitelog.siteOwner.agency.preferedAbbreviation}
+            if (data.sitelog.siteOwner.agency.ROR) {
+              this.station.owner.ROR = data.sitelog.siteOwner.agency.ROR
+            }
+          }
+          
         }
-        if (data.sitelog.onSiteContact) {
+        if (data.sitelog.onSiteContact && data.sitelog.onSiteContact.agency && data.sitelog.onSiteContact.agency.agencyName) {
           this.station.contacts.onSiteContact = data.sitelog.onSiteContact
         }
-        if (data.sitelog.siteMetadataCustodian) {
+        if (data.sitelog.siteMetadataCustodian && data.sitelog.siteMetadataCustodian.agency &&
+            data.sitelog.siteMetadataCustodian.agency.agencyName) {
           this.station.contacts.siteMetadataCustodian = data.sitelog.siteMetadataCustodian
         }
         
