@@ -9,8 +9,11 @@
      <div v-if="user" style="margin:20px;">
         <div><label>Your email:</label> {{user.email}}</div>
         <div v-if="user['client-roles']"><label>Your roles: </label> {{user['client-roles']}}</div>
-        <div style="position:relative;"><label>Your cookie:</label> 
-            <textarea>{{user.cookie}}</textarea>
+        <div><label>Name:</label> {{user.name}}</div>
+        <div><label>Given name:</label>{{user.given_name}}</div>
+        <div><label>Family name:</label>{{user.family_name}}</div>
+        <div v-if="cookie" style="position:relative;"><label>Your cookie:</label> 
+            <textarea>{{cookie}}</textarea>
             <button type="button" @click="CopyClipboard" style="position:relative;">
             <font-awesome-icon icon="fa-solid fa-clipboard" /> Copy to clipboard
                  <div class="gnss-tooltip">Your cookie has been copied to clipboard</div>
@@ -21,17 +24,23 @@
                <font-awesome-icon icon="fa-solid fa-download" /> Cookie.txt
             </button> -->
         </div>
-        <h3>How download a product with command line</h3>
-        You must use the cookie.
+        <h3 >How download a product with command line</h3>
+        You must use the session cookie.
+        <span v-if="cookie">
         <h4>With curl and cookie string</h4>
         <pre>
-curl {{$store.state.env === 'development' ? '-k ':''}}-b "{{user.cookie}}" {{fileUrl}} -o {{filename}}
-curl {{$store.state.env === 'development' ? '-k ':''}}-b "{{user.cookie}}" {{downloadUrl}} -o {{filename}}</pre>
+curl {{$store.state.env === 'development' ? '-k ':''}}-b "{{cookie}}" {{fileUrl}} -o {{filename}}
+curl {{$store.state.env === 'development' ? '-k ':''}}-b "{{cookie}}" {{downloadUrl}} -o {{filename}}</pre>
         <h4>With wget</h4>
         <pre>
-wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--header="Cookie: {{user.cookie}}" {{fileUrl}}
-wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--header="Cookie: {{user.cookie}}" {{downloadUrl}} </pre>
+wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--header="Cookie: {{cookie}}" {{fileUrl}}
+wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--header="Cookie: {{cookie}}" {{downloadUrl}} </pre>
+      </span>
+      <span v-else >
+        <div>More information on <a :href="$store.state.api.replace('api', 'sso-back') + 'userinfo'" target="_blank">data server</a></div>
+      </span>
      </div>
+     
      <div v-else style="margin:20px;">
      <em>You are not authenticated.</em>
        <div v-if="$store.state.auth" style="width:250px;text-align:right;">
@@ -62,6 +71,7 @@ export default {
   data () {
     return {
       fileUrl: null,
+      cookie: null,
       downloadUrl: null,
       filename:'1MEL00FRA.enu'
     }
@@ -74,7 +84,21 @@ export default {
     this.downloadUrl = this.$store.state.api + 'products/' + this.filename + '/download'
     this.fileUrl = this.$store.state.api.replace('api', 'data') + station + '/' + this.filename
   },
+  mounted () {
+    this.getCookie()
+  },
   methods: {
+    getCookie () {
+       this.$http.get(this.$store.state.api.replace('api', 'sso-back') + 'user',
+           {
+               headers: {
+                 'Accept': 'application/json'
+               },
+               credentials: true})
+       .then(resp => {if (resp.body.cookie) {
+            this.cookie = resp.body.cookie
+       }}, resp => {this.cookie = null})
+    }, 
     close(e) {
       this.$router.go(-1)
     },
