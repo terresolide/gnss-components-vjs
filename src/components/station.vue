@@ -2,7 +2,7 @@
 <div class="page-station" :class="{removed: removed}" style="width:100%;position:relative;overflow:hidden;">
   
  
-  <file-form mode="station" ></file-form>
+  <file-form v-if="!$store.state.back" mode="station" ></file-form>
   <gnss-menu :top="55"></gnss-menu>
   <div v-if="scrollY > 400" class="gnss-top" @click="scrollTop"><font-awesome-icon icon="fa-solid fa-circle-chevron-up" /></div>
  <div class="station-content"  >
@@ -15,8 +15,27 @@
   <div class="station-body" @scroll="scroll($event)" >
   <div v-if="$store.state.back && station" class="gnss-admin gnss-admin-box">
     <h3 style="margin-top:0;">Administration</h3>
-    <div style="margin-bottom:10px;"><span>Suppression de la station</span> <button type="button" @click="removeStation()">Supprimer</button></div>
-    <div v-if="!station.properties.m3g">
+    <ol>
+    <li><span>Suppression de la station </span> <button type="button" @click="removeStation()">Supprimer</button></li>
+    <li v-if="duplicate" style="margin-bottom:10px;">
+       Il existe une station de même nom. Son identifiant interne est <b>{{duplicate.id}}</b>. 
+       Elle se trouve à <b>{{duplicate.distance.toLocaleString()}}</b> km.
+       <span v-if="duplicate.properties.m3g">Elle est liée à une station du M<sup>3</sup>G</span><br>
+       Ses coordonnées sont : 
+       <ul><li><label>Latitude:</label> {{parseFloat(duplicate.latlng[0]).toLocaleString()}}°</li>
+         <li><label>Longitude:</label>  {{parseFloat(duplicate.latlng[1]).toLocaleString()}}°</li>
+         </ul> 
+        Si ce sont la même station, il faut fusionner les 2 références:
+        <ol>
+         <li>
+           Cette station a les bonnes coordonnées: <button  type="button" @click="mergeIn(duplicate.id, stationId)">Fusionner {{duplicate.id}} &rarr; celle-ci</button>
+         </li>
+         <li>
+           L'autre station a les bonnes coordonnées: <button  type="button" @click="mergeIn(stationId, duplicate.id)">Fusionner celle-ci &rarr; {{duplicate.id}}</button>
+         </li>
+        </ol>
+    </li>
+    <li v-if="!station.properties.m3g && (!duplicate || !duplicate.properties.m3g)">
        <div style="margin-bottom:3px">Identifiez la station sur le M<sup>3</sup>G </div>
        <ol><li>
        Vérifiez que la station exite bien sur le M<sup>3</sup>G et est identique en consultant <a :href="m3gUrl+ 'sitelog/exportlog?id=' + stationName.toUpperCase()" target="_blank"> {{stationName}} M<sup>3</sup>G sitelog</a>
@@ -24,7 +43,8 @@
        <li>Si l'erreur provient du M<sup>3</sup>G, liez cette station avec celle du M<sup>3</sup>G: <button type="button" >Lier</button><br>
        Sinon <button type="button" @click="removeStation()">supprimez</button> la station, corrigez ses coordonnées dans votre fichier et repoussez le.</li>
        </ol>
-    </div>
+    </li>
+  </ol>
   </div>
   <div v-if="location || stations">
 	  <div v-if="!station && stations" style="float:left;">
@@ -47,7 +67,7 @@
 	       <div v-if="location.properties.elevation"><label>Elevation: </label> {{location.properties.elevation.toLocaleString()}} m</div>
          <div v-if="location.properties.x"><label>X coordinate: </label> {{location.properties.x.toLocaleString()}} m</div>
          <div v-if="location.properties.y"><label>Y coordinate: </label> {{location.properties.y.toLocaleString()}} m</div>
-         <div v-if="location.properties.z"><label>Z coordinate</label> {{location.properties.z.toLocaleString()}} m</div>
+         <div v-if="location.properties.z"><label>Z coordinate:</label> {{location.properties.z.toLocaleString()}} m</div>
     
     
       <h3 style="margin-left:-10px;">Information</h3>
@@ -73,12 +93,12 @@
        <div v-if="!station.properties.m3g"><em>Sorry, we don't have more information about this station</em></div>
        
       </div>
-           <div v-show="station || stations" id="stationMap"  >
-   </div>
+           
     
   </div>
+  <div v-show="station || stations" id="stationMap"  ></div>
    <div style="clear:left;"> </div>
-       <div v-if="station.contacts" style="margin-left:10px;">
+       <div v-if="station && station.contacts" style="margin-left:10px;">
          <label> Contacts
             <span class="fa button in-title" @click="show.contact = !show.contact">{{show.contact ? '-' : '+'}}</span>
          </label>
@@ -88,7 +108,7 @@
 	         </div>
 	       </div>
        </div>
-       <div v-if="station.monument || station.dateInstalled || station.geological" style="margin-left:10px;">
+       <div v-if="station && (station.monument || station.dateInstalled || station.geological)" style="margin-left:10px;">
          <label> Monument and geological information
             <span class="fa button in-title" @click="show.siteForm = !show.siteForm">{{show.siteForm ? '-' : '+'}}</span>
          </label>
@@ -107,7 +127,7 @@
 	         </div>
 	         </div>
        </div>
-       <div v-if="station.antennas|| station.receivers" style="margin-left:10px;">
+       <div v-if="station && (station.antennas|| station.receivers)" style="margin-left:10px;">
          <label> Instruments
             <span class="fa button in-title" @click="show.material = !show.material">{{show.material ? '-' : '+'}}</span>
          </label>
@@ -118,7 +138,7 @@
         <h3  v-if="stationId" >Nearest stations
             <span class="fa button in-title" @click="show.nearest = !show.nearest">{{show.nearest ? '-' : '+'}}</span>
         </h3>
-        <div  style="margin-left:10px;" :style="{display: show.nearest ? 'block': 'none'}">
+        <div  v-if="stationId" style="margin-left:10px;" :style="{display: show.nearest ? 'block': 'none'}">
           <div style="margin-bottom:10px;">
 	            <input type="number" step="10" min="1" v-model="radius" @change="radiusChanged=true"
 	           class="gnss-control" /> km &nbsp;
@@ -281,6 +301,7 @@ export default {
       map: null,
       location: null,
       neighbours: [],
+      duplicate: null,
       show: {
         material: false,
         filter: false,
@@ -400,6 +421,7 @@ export default {
       this.stationId = null
       this.location = null
       this.neighbours = []
+      this.duplicate = null
       this.files = []
       this.map = null
     },
@@ -434,6 +456,12 @@ export default {
         this.neighboursLayer.remove()
         this.onMap = false
       } 
+    },
+    mergeIn (id1, id2) {
+      this.$http.post(this.$store.state.back + '/entities/merge',{from: id1, to:id2}, {credentials: true, emulateJSON: true} )
+      .then(resp => {
+        // this.removed = true
+      }, resp => {console.log('error')})
     },
     removeStation () {
       if (!window.confirm("Voulez-vous réellement supprimer la station " + this.stationName + "\navec tous ses produits!")) {
@@ -509,6 +537,13 @@ export default {
             var layer = L.marker(st.latlng, {id: st.id, title: st.name})
             self.neighboursLayer.addLayer(layer)
           })
+          // search duplicate
+          if (this.$store.state.back) {
+            var duplicates = neighbours.filter(st => st.name == this.stationName)
+            if (duplicates.length > 0) {
+              this.duplicate = duplicates[0]
+            }
+          }
           if (this.onMap) {
             this.addNeighboursToMap()
           }
@@ -660,7 +695,11 @@ export default {
     },
     getFiles() {
       this.files = {}
-      this.$http.get(this.api + 'stations/' + this.stationId + '/products', {params: this.$route.query})
+      var query = this.$route.query
+      if (this.$store.state.back) {
+        query = {}
+      }
+      this.$http.get(this.api + 'stations/' + this.stationId + '/products', {params: query})
       .then(resp => {
         var files = resp.body.products
         var self = this

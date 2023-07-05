@@ -195,7 +195,7 @@ export default {
           }
          
         }
-        if (oldroute.query.bounds !== newroute.query.bounds ) {
+        if (newroute.query.bounds &&  newroute.query.bounds !== oldroute.query.bounds ) {
           var tab = newroute.query.bounds.split(',')
           if (tab.length === 4) {
             var bounds = L.latLngBounds(
