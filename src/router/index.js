@@ -11,6 +11,7 @@ const Station = () => import('../components/station.vue')
 const Solution = () => import('../components/solution.vue')
 const FileList = () => import('../components/file-list.vue')
 const GnssUser = () => import('../components/gnss-user.vue')
+const PageContact = () => import('../components/page-contact.vue')
 // import Station from '../components/station.vue'
 // import Map from '../components/map.vue'
 import Empty from '../components/empty.vue'
@@ -39,6 +40,11 @@ const routes = [
     path: '/account',
     name: 'account',
     component: GnssUser
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: PageContact
   },
   {
     path: '/files',

@@ -204,7 +204,7 @@
                <a v-if="(file.solution === 'GAMIT-GLOBK' || file.solution.indexOf('UGA')>=0) && file.productType === 'POSITION'"
                 :href="sari + '?server=formater&station=' + file.station + '&product=uga_pos'"
                 target="_blank" ><font-awesome-icon icon="fa-solid fa-cog" /> SARI</a> 
-             <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.preLogin()">
+             <a v-if="$store.state.auth && !$store.getters['user/email']" @click="$parent.preLogin(api + 'products/' + file.name + '/download')">
              <font-awesome-icon icon="fa-solid fa-download" /></a>
              <a  v-else :href="api + 'products/' + file.name + '/download'" :download="file.name" >
                <font-awesome-icon icon="fa-solid fa-download" /></a>

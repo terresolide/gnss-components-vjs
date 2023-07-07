@@ -37,7 +37,7 @@ wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--head
 wget {{$store.state.env === 'development' ? '--no-check-certificate ':''}}--header="Cookie: {{cookie}}" {{downloadUrl}} </pre>
       </span>
       <span v-else >
-        <div>More information on <a :href="$store.state.api.replace('api', 'sso-back') + 'userinfo'" target="_blank">data server</a></div>
+        <div>More information on <a :href="$store.state.api.replace('api/', 'userinfo')" target="_blank">data server</a></div>
       </span>
      </div>
      
@@ -89,12 +89,8 @@ export default {
   },
   methods: {
     getCookie () {
-       this.$http.get(this.$store.state.api.replace('api', 'sso-back') + 'user',
-           {
-               headers: {
-                 'Accept': 'application/json'
-               },
-               credentials: true})
+       this.$http.get(this.$store.state.api.replace('api/', 'cookie') ,
+           { credentials: true})
        .then(resp => {if (resp.body.cookie) {
             this.cookie = resp.body.cookie
        }}, resp => {this.cookie = null})
