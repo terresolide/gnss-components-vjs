@@ -130,12 +130,7 @@ export default {
 }
 </script>
 <style scoped>
-  .gnss-user {
-    position:absolute;
-    top:5px;
-    right:0;
-    z-index:100
-  }
+
   textarea {
   position:absolute;
   left:-9999px;
@@ -144,6 +139,7 @@ export default {
   padding:10px;
   color: white;
   background: black;
+  overflow-x:scroll;
 }
  div.gnss-tooltip {
   position: absolute;

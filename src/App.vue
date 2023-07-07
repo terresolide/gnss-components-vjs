@@ -226,6 +226,9 @@ ul[id="shortcuts"] {
   line-height:1;
   margin-top:20px;
 }
+.wrapper-content .page-station h4 {
+  margin: 10px 0;
+} 
 .gnss-attribution {
   position:absolute;
   bottom:0px;
