@@ -53,12 +53,14 @@ export default {
       service: null,
       waitingUrl: null,
       pleaseLogin: false,
-      msgBack:true
+      msgBack:true,
+      escapeListener: null
     }
   },
   created () {
     this.searchCodeLists()
-    
+    this.escapeListener = this.escape.bind(this)
+    document.addEventListener('keyup', this.escapeListener)
   },
   mounted () {
     let bokeh = document.createElement('script')
@@ -90,13 +92,21 @@ export default {
   destroyed () {
     this.service.remove()
     this.service = null
+    document.removeEventListener('keyup', this.escapeListener)
+    this.escapeListener = null
   },
   methods: {
     cancelPreLogin () {
       this.pleaseLogin = false
       this.waitingUrl = null
     },
-    
+    escape (e) {
+      if (e.keyCode === 27) {
+          console.log(this.$route.name)
+          this.$router.go(-1)
+
+      }
+    },
     launchLogin () {
       this.pleaseLogin = false
       this.service.login()

@@ -96,7 +96,7 @@
            
     
   </div>
-  <div v-show="station || stations" id="stationMap"  ></div>
+  <div  id="stationMap"  ></div>
    <div style="clear:left;"> </div>
        <div v-if="station && station.contacts" style="margin-left:10px;">
          <label> Contacts
@@ -316,9 +316,7 @@ export default {
       translateMonument:['Monument foundation', 'Monument description', 'Monument height', 'Monument foundation depth'],
       geologicalKeys: [   'geologicCharacteristic', 
          'bedrockCondition', 'bedrockType', 'fractureSpacingVal', 'faultZonesNearby', 'distance', 'tectonicPlate'],
-      translateGeo: ['Geological Characteristic', 'Bedrock condition', 'Bedrock type', 'Fracture spacing', 'Fault zone', 'Distance to fault', 'Tectonic plate']    
-          
-    //  resizeListener: null
+      translateGeo: ['Geological Characteristic', 'Bedrock condition', 'Bedrock type', 'Fracture spacing', 'Fault zone', 'Distance to fault', 'Tectonic plate']
     }
   },
   computed: {
@@ -366,10 +364,6 @@ export default {
     } else {
       this.stationId = null
     }
-    // test get sitelog
-   
-//     this.resizeListener = this.countNbFiles.bind(this)
-//     window.addEventListener('resize', this.resizeListener)
     this.getStation()
   },
   destroyed () {
