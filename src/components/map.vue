@@ -43,7 +43,7 @@
     </div> -->
   
     <div id="map" class="fullmap" @click="noStation=false"></div>
-    <div  id="json" v-show="show" style="background:white;max-width:320px;min-height:350px;max-height:400px;">
+    <div  id="json" v-show="show" style="background:white;max-width:270px;min-height:300px;max-height:400px;">
       <div class="gnss-close" @click="closePopup"><font-awesome-icon icon="fa-solid fa-close" /></div>
       <div  style="min-height:100px;cursor:pointer;">
            <h4 style="position:relative;display:inline-block;" v-if="selected" @click="goToStation($event)" title="Go to station page" @contextmenu="menuContext($event)">STATION {{selected[1]}}
@@ -59,17 +59,17 @@
       <div v-if="selected ">
 
 	      <div  style="min-width:250px;position:relative;" v-if="selected[4] && selected[4].length > 0">
-	        <gnss-carousel  :height="300" :slide-width="310" dot-position="bottom" :id="selected[0]">
+	        <gnss-carousel  :height="250" :slide-width="260" dot-position="bottom" :id="selected[0]">
 	          <slot v-for="img in selected[4]" >
-	          <div slot="slide" style="min-width:310px;text-align:center;display:inline-block;position:relative;">
-	           <img :src="$store.state.preview + img" height="300" style="max-width:300px;" />
+	          <div slot="slide" style="min-width:260px;text-align:center;display:inline-block;position:relative;cursor:unset;">
+	           <img :src="$store.state.preview + img" height="250" style="max-width:250px;" />
 	           </div>
 	          </slot>
 	        </gnss-carousel>
 	        <div  v-if="$store.state.back" class="gnss-admin">
 	        <button @click="removeStation(selected)" type="button"><i class="fa fa-close" ></i>Supprimer la station</button>
 	        </div>
-	        <div v-else class="link-area" style="cursor:pointer;position:absolute;top:0;width:190px;height:330px;left:65px;" title="Go to station page" @contextmenu="menuContext($event)" @click="goToStation($event)">
+	        <div v-else class="link-area" style="cursor:pointer;position:absolute;top:0;width:150px;height:250px;left:65px;" title="Go to station page" @contextmenu="menuContext($event)" @click="goToStation($event)">
              <div  class="menu-context" @click="closeMenuContext($event)">
                 <ul>
                    <li title="Open in new tab">
@@ -242,7 +242,8 @@ export default {
       wait: false,
       noStation: false,
       initialized: false,
-      selectedContextMenu: null
+      selectedContextMenu: null,
+      closingPopup: false
     }
   },
   created () {
@@ -498,7 +499,7 @@ export default {
       legend.addTo(this.map)
 //       var control = new L.Control.Form()
 //       control.addTo(this.map)
-      this.popup = L.popup({autoPan:true, minWidth: 300, autoPanPaddingTopLeft: [0,0], minHeight:320, maxHeight:410, closeButton: false})
+      this.popup = L.popup({autoPan:true, minWidth: 250, autoPanPaddingTopLeft: [0,0], minHeight:250, maxHeight:300, closeButton: false})
       this.initDrawControl()
       var self = this
 //       this.map.whenReady(function (e) {
@@ -518,13 +519,17 @@ export default {
        this.map.on('popupclose', function (e) {
         // self.selected = null
         //  console.log('event popupclose')
+        
          var query = Object.assign({}, self.$route.query) 
+        
+         self.closingPopup = query['selected']
          delete query['selected']
-//          self.closingPopup = true
-//          setTimeout(function () {
-//            self.closingPopup = false
-//          }, 300)
+         
+         setTimeout(function () {
+           self.closingPopup = false
+         }, 300)
          self.$router.push({name: 'home', query: query}).catch(()=>{})
+         return false
        })
        this.map.on('zoomstart movestart', function (e) {
          // console.log(self.map.getZoom())
@@ -695,14 +700,7 @@ export default {
              this.markers[region] = null
            }
            this.markers = {}
-//         for (var key in this.groupLayers) {
-//           if (this.groupLayers[key]) {
-// 	          this.groupLayers[key].clearLayers()
-// 	          this.groupLayers[key].remove(this.map)
-// 	          this.layerControl.removeLayer(this.groupLayers[key])
-// 	          this.groupLayers[key] = null
-//           }
-//        }
+
         this.groupLayers = []
         this.stations = []
         this.groups = []
@@ -731,26 +729,7 @@ export default {
         this.markers['W_EU'].addTo(this.map)
       }
       this.$store.commit('setSearching', false)
-      // next step
-      // add layer to control
-     // this.groups.sort()
-    //  var first = 'STATION STATUS'
-//       this.groups.forEach(function (group) {
-//         self.groupLayers[group].first = first ? {title:first,separator:true}:false
-//         first = false
-//         var className = self.getClassname(group)
-       
-//         self.layerControl.addOverlay(self.groupLayers[group],  group +' <div class="marker-' + className + '"></div>' )
-//       })
 
-//       if (!init) {
-//         this.closePopup()
-//       }
-     
-      
-//       if (init && this.$route.query.expand) {
-//         this.toggleForm()
-//       }
       if (init && this.$route.query.nodraw) {
         this.drawLayers.remove()
       }
@@ -967,10 +946,6 @@ export default {
     },
     addStation (feature) {
       this.stations[feature[0]] = feature
-      
-//       if (country === 'CHE') {
-//         country = 'FRA'
-//       }
       var region = this.getRegion(feature)
      // var groupId = this.(feature)
       var html = '<span></span>'
@@ -982,15 +957,6 @@ export default {
 
       var self = this
       var marker = L.marker(feature[3], {icon: icon, id: feature[0], title: feature[1]})
-     // marker.on('click', self.getData)
-//       var ma = L.geoJSON(feature,{
-//         pointToLayer: function(feature, latlng) {
-//            var marker = L.marker(latlng, {icon: icon, title: feature.properties.name})
-//            marker.on('click', self.getData )
-//           // L.marker(latlng, {icon: arrow}).addTo(self.map)
-//            return marker
-//         }
-//       })
       if (!this.markers[region]) {
         
         this.markers[region] = L.markerClusterGroup({
@@ -1015,10 +981,8 @@ export default {
         if (region !== 'W_EU') {
           this.markers[region].addTo(this.map)
         }
-       
  
       }
-
       this.markers[region].addLayer(marker)
       
       if (!this.bounds) {
@@ -1026,32 +990,6 @@ export default {
       }
       this.bounds.extend(feature[3])
     },
-//     download (type) {
-//       var dataUrl = null
-//       if (type === 'json') {
-//         // var MIME_TYPE = "application/json";
-//         dataUrl = this.dataJsonUrl
-//       }
-//       if (type === 'ascii') {
-//         dataUrl = this.dataAsciiUrl
-//       }
-//       this.$http.get(dataUrl, {responseType: 'blob'}).then(
-//           resp => {
-//             if (resp.bodyBlob) {
-//              // var blob = new Blob(resp.bodyBlob);
-//               var url = window.URL.createObjectURL(resp.bodyBlob);
-//               const a = document.createElement('a')
-//               a.href = url
-//               a.download = dataUrl.split('/').pop()
-//               document.body.appendChild(a)
-//               a.click()
-//               document.body.removeChild(a)
-//             }
-//           }
-//       )
-//       var blob = new Blob([data], {type: MIME_TYPE});
-//       window.location.href = window.URL.createObjectURL(blob);
-//    },
     openPopup (station) {
 	      this.selected = station
 	      this.mode = 'image'
@@ -1074,10 +1012,8 @@ export default {
     },
     getData (e) {
       var query = Object.assign({}, this.$route.query)
-      if (this.selected && this.selected.id === e.options.id) {
-       
-        delete query['selected']
-        this.$router.push({name: 'home', query: query}).catch(()=>{})
+      if (this.closingPopup === e.options.id) {
+        this.closingPopup = false
         return
       }
       this.mode = 'image'
