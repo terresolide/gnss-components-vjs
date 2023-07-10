@@ -31,7 +31,7 @@
         </select>
       </div>
       <div v-if="mode === 'map'" style="position:relative;" >
-        <label style="width:auto;">Has several solutions
+        <label style="width:auto;">Has several products
          
         </label>
         <input type="checkbox" v-model="searchparams.several" />

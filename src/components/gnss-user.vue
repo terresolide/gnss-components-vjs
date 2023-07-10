@@ -73,14 +73,14 @@ export default {
       fileUrl: null,
       cookie: null,
       downloadUrl: null,
-      filename:'1MEL00FRA.enu'
+      filename:'UGA_BRST00FRA.pos'
     }
   },
   created () {
     if (!this.user) {
       
     }
-    var station = '1MEL00FRA'
+    var station = 'BRST00FRA'
     this.downloadUrl = this.$store.state.api + 'products/' + this.filename + '/download'
     this.fileUrl = this.$store.state.api.replace('api', 'data') + station + '/' + this.filename
   },

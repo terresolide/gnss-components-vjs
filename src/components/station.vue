@@ -820,7 +820,7 @@ div.box-station a.station-link {
   cursor:pointer;
 }
 .file-container label {
-  margin-bottom:3px;
+  margin-bottom:1px;
 }
 div[id="stationMap"] {
   position: relative;
@@ -877,7 +877,7 @@ span.gnss-network-item::after {
     max-width:525px;padding:0 5px;display:inline-block;vertical-align:top;
   }
   div.slider-files label {
-    min-width:160px;
+    min-width:150px;
   }
   label{
     display: inline-block;

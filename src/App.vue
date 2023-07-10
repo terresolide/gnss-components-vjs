@@ -61,6 +61,9 @@ export default {
     this.searchCodeLists()
     this.escapeListener = this.escape.bind(this)
     document.addEventListener('keyup', this.escapeListener)
+    // test userinfo
+    this.$http.get(this.$store.state.api.replace('api/', 'userinfo'), {credentials: true})
+    .then(resp => {console.log(resp)}, resp => console.log('not authenticated'))
   },
   mounted () {
     let bokeh = document.createElement('script')
