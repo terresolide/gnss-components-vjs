@@ -89,11 +89,11 @@
 		  </div>
 		 </div>
 		 <div>
-		  <div v-if="analysisCenters && !$store.state.analysisCenter">
-		    <label>Analysis center</label>
-		    <select class="gnss-control" v-model="searchparams.analysisCenter">
+		  <div v-if="analysisCentres && !$store.state.analysisCentre">
+		    <label>Analysis centre</label>
+		    <select class="gnss-control" v-model="searchparams.analysisCentre">
 		       <option :value="null">---</option>
-		       <option v-for="pt in analysisCenters" :value="pt">{{pt}}</option>
+		       <option v-for="pt in analysisCentres" :value="pt">{{pt}}</option>
 		    </select>
 		  </div>
 	
@@ -105,11 +105,11 @@
            <option v-for="pt in networks" :value="pt">{{pt}}</option>
         </select>
 		  </div>   
-		   <div v-if="constels"> 
-		      <label>Constel</label>
-		      <select v-model="searchparams.constel" class="gnss-control" >
+		   <div v-if="constellations"> 
+		      <label>Constellation</label>
+		      <select v-model="searchparams.constellation" class="gnss-control" >
 		         <option :value="null">---</option>
-		         <option v-for="pt in constels" :value="pt">{{pt}}</option>
+		         <option v-for="pt in constellations" :value="pt">{{pt}}</option>
 		      </select>
 		   </div>
 		    <div style="margin-top:10px;">
@@ -144,8 +144,8 @@ export default {
         return []
       }
     },
-    analysisCenters () {
-      return this.$store.getters['analysisCenters']
+    analysisCentres () {
+      return this.$store.getters['analysisCentres']
     },
     solutions () {
      return this.$store.getters['solutions']
@@ -153,8 +153,8 @@ export default {
     productTypes () {
       return this.$store.getters['productTypes']
     },
-    constels () {
-      return this.$store.getters['constels']
+    constellations () {
+      return this.$store.getters['constellations']
     }
   },
   watch: {
@@ -203,9 +203,9 @@ export default {
 	      productType: null,
 	      solution: null,
 	      several: null,
-	      analysisCenter: null,
+	      analysisCentre: null,
 	      network: [],
-	      constel: null,
+	      constellation: null,
 	      start: null,
 	      end: null,
 	      lenMin: null,

@@ -65,9 +65,9 @@ export default function makeStore( config ) {
       search (state, getters) {
         return state.search
       },
-      analysisCenters (state, getters) {
-         if (state.codelists.analysisCenters) {
-          return state.codelists.analysisCenters
+      analysisCentres (state, getters) {
+         if (state.codelists.analysisCentres) {
+          return state.codelists.analysisCentres
         }
         return null
       },
@@ -96,9 +96,9 @@ export default function makeStore( config ) {
         }
         return null
       },
-      constels (state, getters) {
-         if (state.codelists.constels) {
-          return state.codelists.constels
+      constellations (state, getters) {
+         if (state.codelists.constellations) {
+          return state.codelists.constellations
         }
         return null
       }

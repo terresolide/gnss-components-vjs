@@ -535,7 +535,11 @@ export default {
 	       if (self.$route.name === 'home') {
 	        self.animationEnd()
 	       }
+	       
 	     })
+	     this.map.on('zoomstart', function (e) {
+           this.closePopup()
+       })
 	     this.map.on('autopanstart', function (e) {
 	       self.wait = true
 	     })
