@@ -27,7 +27,7 @@
  
       </div>
       <div class="gnss-file-5">
-         <div><label>AnalysisCenter</label>: {{file.properties.operator || file.properties.producer || file.properties.analysisCenter}}</div>
+         <div><label>AnalysisCentre</label>: {{file.properties.operator || file.properties.producer || file.properties.analysisCenter || file.properties.analysisCentre}}</div>
          <div v-if="file.properties.refFrame"><label>RefFrame</label>: {{file.properties.refFrame}}</div>
  
       </div>

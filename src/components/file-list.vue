@@ -55,8 +55,8 @@
          
 	        </div>
 	     </div>
-	     <div class="gnss-file-5">Analysis center
-	       <span class="gnss-sort" @click="changeSort('analysisCenter')" :class="{unactive: !sort.analysisCenter}" >{{sort.analysisCenter === 'DESC' ? '&uarr;' : '&darr;' }}</span>
+	     <div class="gnss-file-5">Analysis centre
+	       <span class="gnss-sort" @click="changeSort('analysisCentre')" :class="{unactive: !sort.analysisCentre}" >{{sort.analysisCentre === 'DESC' ? '&uarr;' : '&darr;' }}</span>
        
 	     </div>
 	    </div>
@@ -118,7 +118,7 @@ export default {
         solution: 'ASC',
         name: null,
         productType: null,
-        analysisCenter: null,
+        analysisCentre: null,
         start: null,
         end: null,
         fill: null,
@@ -191,7 +191,7 @@ export default {
       var orderBy = this.orderBy.map(el => el.name + ' ' + el.value).join(',')
       var query = Object.assign({}, this.$route.query)
       query.orderBy = orderBy
-      this.$router.push({name: 'files', query: query})
+      this.$router.push({name: 'files', query: query}).catch(()=>{})
     },
 //     copyClipboard () {
 //       var tooltip = this.$el.querySelector('.bookmark-tooltip')
